@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Dynamic Programming</title>
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="katex/katex.min.css">
 </head>
 <body>
 
@@ -61,9 +62,9 @@
 
 <div class="box tpl">
   <span class="label">The sentence, with three slots</span>
-  <p><i>"For <b>[index range]</b>, define <code>A[i]</code> to be the <b>[maximum / minimum / number of]</b>
-  <b>[quantity]</b> achievable using only <b>[the restricted resource]</b>. We also set <code>A[0] = 0</code>.
-  The final answer is <code>A[n]</code>."</i></p>
+  <p><i>"For <b>[index range]</b>, define $A[i]$ to be the <b>[maximum / minimum / number of]</b>
+  <b>[quantity]</b> achievable using only <b>[the restricted resource]</b>. We also set $A[0] = 0$.
+  The final answer is $A[n]$."</i></p>
 </div>
 
 <p>The whole skill is choosing what the index restricts. There are only a few options and one of them
@@ -75,18 +76,18 @@ is always right:</p>
 <tbody>
 <tr><td>the first i items are available</td><td>Items are independent and considered in order</td><td>Shelves, subset sum</td></tr>
 <tr><td>a budget or capacity of i</td><td>There is a numeric resource being spent</td><td>Bundling apples, shares</td></tr>
-<tr><td>the prefix <code>A[1..i]</code></td><td>The input is a sequence and the answer is about a prefix</td><td>Dominoes, books</td></tr>
-<tr><td>two prefixes <code>[1..i]</code> and <code>[1..j]</code></td><td>Two sequences being compared</td><td>Edit distance</td></tr>
-<tr><td>the subtree rooted at v</td><td>The input is a tree</td><td>Independent set in a tree</td></tr>
-<tr><td>an interval <code>[i..j]</code></td><td>The answer splits at an interior point</td><td>Optimal BST</td></tr>
+<tr><td>the prefix $A[1 \ldots i]$</td><td>The input is a sequence and the answer is about a prefix</td><td>Dominoes, books</td></tr>
+<tr><td>two prefixes $[1 \ldots i]$ and $[1 \ldots j]$</td><td>Two sequences being compared</td><td>Edit distance</td></tr>
+<tr><td>the subtree rooted at $v$</td><td>The input is a tree</td><td>Independent set in a tree</td></tr>
+<tr><td>an interval $[i \ldots j]$</td><td>The answer splits at an interior point</td><td>Optimal BST</td></tr>
 </tbody>
 </table>
 </div>
 
 <div class="box trap">
   <span class="label">Say what the entry holds, not how it is computed</span>
-  <p>"<code>A[i]</code> is the maximum dividends achievable with budget i" is a definition. "<code>A[i]</code>
-  is <code>max(A[i-1], A[i-c] + d)</code>" is not, it is part (b) written in the wrong box. Part (a)
+  <p>"$A[i]$ is the maximum dividends achievable with budget $i$" is a definition.
+  "$A[i] = \max\{A[i-1],\, A[i-c] + d\}$" is not, it is part (b) written in the wrong box. Part (a)
   should be readable by someone who has not seen your recurrence.</p>
 </div>
 
@@ -115,27 +116,32 @@ leaves behind a smaller subproblem you have already defined.</p>
 <div class="box note">
   <span class="label">Base cases are marked separately</span>
   <p>"Make sure to specify the base cases" appears in the question wording every year. Write them on
-  their own line, labelled. Usually <code>A[0] = 0</code>, and often a second one such as
-  <code>A[i] = 0</code> for <code>i &lt; 0</code> or <code>A[m][0] = m</code>. Missing them costs a mark
-  when you have done the hard part correctly.</p>
+  their own line, labelled. Usually $A[0] = 0$, and often a second one such as $A[i] = 0$ for
+  $i &lt; 0$, or $A[m][0] = m$. Missing them costs a mark when you have done the hard part
+  correctly.</p>
 </div>
 
 <h2 id="fill">Part (c): filling it, animated</h2>
 
-<p>This is the December 2024 shares problem. Budget B, companies with cost
-<code>c<sub>i</sub></code> and dividend <code>d<sub>i</sub></code> per share, and you may buy <b>more than
-one share</b> from the same company. Maximise total dividends within budget.</p>
+<p>This is the December 2024 shares problem. Budget $B$, companies with cost $c_i$ and dividend
+$d_i$ per share, and you may buy <b>more than one share</b> from the same company. Maximise total
+dividends within budget.</p>
 
 <div class="box tpl">
   <span class="label">The array and the recurrence</span>
-  <p>For <code>b = 0, 1, ..., B</code>, let <code>D[b]</code> be the maximum total dividends achievable
-  with budget exactly at most b. The answer is <code>D[B]</code>.</p>
-  <pre><code>D[0] = 0
-D[b] = max( D[b-1],
-            max over i with c&#7522; &le; b of  D[b - c&#7522;] + d&#7522; )</code></pre>
-  <p>The <code>D[b-1]</code> term covers "do not spend this last dollar". The inner max covers "the last
-  share bought was from company i". Because <code>D[b - c<sub>i</sub>]</code> is a full solution rather
-  than a company-restricted one, company i can be chosen again, which is exactly what "you can purchase
+  <p>For $b = 0, 1, \ldots, B$, let $D[b]$ be the maximum total dividends achievable with total cost
+  at most $b$. The answer is $D[B]$.</p>
+
+  <div class="eq">
+  $$D[0] = 0,$$
+  $$D[b] \;=\; \max\left\{\; D[b-1], \;\; \max_{\substack{1 \le i \le n \\ c_i \le b}}
+    \bigl( D[b - c_i] + d_i \bigr) \;\right\}
+    \qquad \text{for } b \ge 1 .$$
+  </div>
+
+  <p>The $D[b-1]$ term covers "do not spend this last dollar". The inner maximum covers "the last
+  share bought was from company $i$". Because $D[b - c_i]$ is a full solution rather than a
+  company-restricted one, company $i$ can be chosen again, which is exactly what "you can purchase
   more than one share" requires.</p>
 </div>
 
@@ -155,9 +161,8 @@ D[b] = max( D[b-1],
 
 <div class="box why">
   <span class="label">Why left to right is the whole of "bottom up"</span>
-  <p><code>D[b]</code> reads only cells with a strictly smaller index, since every
-  <code>c<sub>i</sub> &ge; 1</code>. So filling in increasing b guarantees that every cell a formula
-  needs is already written. That single sentence is what part (c) means by "describe the order in which
+  <p>$D[b]$ reads only cells with a strictly smaller index, since every $c_i \ge 1$. So filling in
+  increasing $b$ guarantees that every cell a formula needs is already written. That single sentence is what part (c) means by "describe the order in which
   you would compute your table entries", and it is worth stating explicitly.</p>
   <p>If the recurrence for a cell ever read a cell with a <b>larger</b> index, the fill order would be
   wrong and the algorithm would be reading garbage. Checking that is the sanity check for the whole
@@ -177,8 +182,8 @@ D[b] = max( D[b-1],
 8              J[b] = i               // last share bought was from company i
 9  return D[B], J</code></pre>
 
-<p><b>Running time.</b> The outer loop runs B times, the inner loop n times, and each iteration is O(1),
-so the fill is <b>O(nB)</b>. That is exactly the bound the question demands.</p>
+<p><b>Running time.</b> The outer loop runs $B$ times, the inner loop $n$ times, and each iteration
+is $O(1)$, so the fill is $O(nB)$. That is exactly the bound the question demands.</p>
 
 <h2 id="trace">The traceback array</h2>
 
@@ -197,7 +202,7 @@ maximum</b> at each cell, then walk it backwards.</p>
 8      b = b - 1                      // walk past budgets where nothing was bought
 9  return count</code></pre>
 
-<p>The walk visits each budget value at most once, so recovery is <b>O(B)</b> and does not change the
+<p>The walk visits each budget value at most once, so recovery is $O(B)$ and does not change the
 overall bound.</p>
 
 <div class="box trap">
@@ -226,29 +231,33 @@ overall bound.</p>
 
 <h2 id="edit">Edit distance, the two dimensional case</h2>
 
-<p><b>Input:</b> strings X of length m and Y of length n.
-<b>Output:</b> the fewest single character insertions, deletions and substitutions turning X into Y.</p>
+<p><b>Input:</b> strings $X$ of length $m$ and $Y$ of length $n$.
+<b>Output:</b> the fewest single character insertions, deletions and substitutions turning $X$ into
+$Y$.</p>
 
 <div class="box tpl">
   <span class="label">Array, recurrence, base cases</span>
-  <p><code>E[i][j]</code> = the edit distance between the prefixes <code>X[1..i]</code> and
-  <code>Y[1..j]</code>. The answer is <code>E[m][n]</code>.</p>
-  <pre><code>E[i][0] = i          // delete all i characters
-E[0][j] = j          // insert all j characters
+  <p>Let $E[i][j]$ be the edit distance between the prefixes $X[1 \ldots i]$ and $Y[1 \ldots j]$.
+  The answer is $E[m][n]$.</p>
 
-E[i][j] = min( E[i-1][j]   + 1,                    // delete X[i]
-               E[i][j-1]   + 1,                    // insert Y[j]
-               E[i-1][j-1] + (X[i] &ne; Y[j] ? 1 : 0) )   // match or substitute</code></pre>
+  <div class="eq">
+  $$E[i][0] = i, \qquad E[0][j] = j$$
+  $$E[i][j] \;=\; \min \begin{cases}
+      E[i-1][j] + 1 & \text{delete } X[i] \\[2pt]
+      E[i][j-1] + 1 & \text{insert } Y[j] \\[2pt]
+      E[i-1][j-1] + \mathbb{1}\{X[i] \ne Y[j]\} & \text{match or substitute}
+    \end{cases}$$
+  </div>
+
   <p><b>Justification.</b> Look at what an optimal edit sequence does with the <b>last</b> characters.
-  Either it deletes <code>X[i]</code>, leaving the problem of turning <code>X[1..i-1]</code> into
-  <code>Y[1..j]</code>; or it inserts <code>Y[j]</code>, leaving <code>X[1..i]</code> into
-  <code>Y[1..j-1]</code>; or it pairs <code>X[i]</code> with <code>Y[j]</code>, costing 1 if they differ
-  and 0 if they match, leaving <code>X[1..i-1]</code> into <code>Y[1..j-1]</code>. There is nothing else
-  a last operation can do, so the cases are exhaustive.</p>
+  Either it deletes $X[i]$, leaving the problem of turning $X[1 \ldots i-1]$ into $Y[1 \ldots j]$; or
+  it inserts $Y[j]$, leaving $X[1 \ldots i]$ into $Y[1 \ldots j-1]$; or it pairs $X[i]$ with $Y[j]$,
+  costing $1$ if they differ and $0$ if they match, leaving $X[1 \ldots i-1]$ into $Y[1 \ldots j-1]$.
+  There is nothing else a last operation can do, so the cases are exhaustive.</p>
 </div>
 
 <p><b>Fill order.</b> Row by row, left to right. Each cell reads only up, left, and up-left, all of
-which are already written. <b>Running time O(mn)</b>, one constant time operation per cell.</p>
+which are already written. Running time $O(mn)$, one constant time operation per cell.</p>
 
 <div class="box why">
   <span class="label">The 2D pattern in general</span>
@@ -265,22 +274,25 @@ problem you just proved NP-complete does not prove P = NP.</p>
 
 <div class="box tpl">
   <span class="label">The answer</span>
-  <p>Polynomial time means polynomial in the <b>number of bits of input</b>. The budget B is one number,
-  written in <code>log B</code> bits. So an O(nB) algorithm is
-  <code>O(n &middot; 2<sup>log B</sup>)</code>, which is <b>exponential</b> in the length of that input,
-  not polynomial. It is called <b>pseudo-polynomial</b>: polynomial in the numeric <i>value</i> of the
-  input, exponential in its <i>size</i>.</p>
-  <p>Concretely, a 64 bit budget is 8 bytes of input and up to <code>2<sup>64</sup></code> table columns.</p>
+  <p>Polynomial time means polynomial in the <b>number of bits of input</b>. The budget $B$ is one
+  number, written in $\log B$ bits. So an $O(nB)$ algorithm is</p>
+  <div class="eq">
+  $$O(nB) \;=\; O\!\left(n \cdot 2^{\log B}\right),$$
+  </div>
+  <p>which is <b>exponential</b> in the length of that input, not polynomial. It is called
+  <b>pseudo-polynomial</b>: polynomial in the numeric <i>value</i> of the input, exponential in its
+  <i>size</i>.</p>
+  <p>Concretely, a $64$ bit budget is $8$ bytes of input and up to $2^{64}$ table columns.</p>
 </div>
 
 <div class="box why">
   <span class="label">The consequence worth understanding</span>
-  <p>Subset Sum is NP-complete and also has an O(nB) algorithm, with no contradiction. NP-completeness
+  <p>Subset Sum is NP-complete and also has an $O(nB)$ algorithm, with no contradiction. NP-completeness
   says there is no algorithm polynomial in the input <b>size</b>. The DP is polynomial in the input
   <b>value</b>. Both are true, because those are different quantities whenever numbers are written in
   binary.</p>
-  <p>The tell is a running time mentioning a numeric input value (B, W, P) instead of only counts of
-  things (n, m, k). Say the words "pseudo-polynomial" if you see one.</p>
+  <p>The tell is a running time mentioning a numeric input <i>value</i> ($B$, $W$, $P$) instead of
+  only counts of things ($n$, $m$, $k$). Say the words "pseudo-polynomial" if you see one.</p>
 </div>
 
 <h2 id="zoo">The problems from this course</h2>
@@ -304,42 +316,47 @@ problem you just proved NP-complete does not prove P = NP.</p>
 
 <div class="box why">
   <span class="label">Two shapes cover almost all of them</span>
-  <p><b>Binary choice on the last item:</b> take it or leave it. Gives
-  <code>A[i] = max(A[i-1], A[i-1 or i-w] + v)</code>. Subset sum, dominoes, weighted intervals.</p>
-  <p><b>Best over a split point:</b> the last group starts somewhere, or the root is one of the keys.
-  Gives <code>A[i] = min over j of (A[j-1] + cost(j..i))</code>. Shelves, bundling, optimal BST. This
-  one has an inner loop, so it costs a factor of n more.</p>
+  <p><b>Binary choice on the last item</b>, take it or leave it:</p>
+  <div class="eq">
+  $$A[i] \;=\; \max\bigl\{\, A[i-1], \;\; A[i-w] + v \,\bigr\}$$
+  </div>
+  <p>Subset sum, dominoes, weighted intervals.</p>
+  <p><b>Best over a split point</b>, the last group starts somewhere, or the root is one of the keys:</p>
+  <div class="eq">
+  $$A[i] \;=\; \min_{1 \le j \le i} \bigl(\, A[j-1] + \operatorname{cost}(j, i) \,\bigr)$$
+  </div>
+  <p>Shelves, bundling, optimal BST. This one has an inner loop, so it costs a factor of $n$ more.</p>
   <p>Ask "is the last decision a yes/no, or a where?" and you have picked your shape.</p>
 </div>
 
 <h2 id="exam">Exam answer, written out</h2>
 
-<p>October 2025 Q3. Books <code>1..n</code> with thickness <code>T[i]</code> and height
-<code>H[i]</code>, stored on shelves in order, so each shelf holds consecutively numbered books. A shelf
-holds total thickness at most L, and its height becomes the max height of the books on it. Minimise the
-total height of the shelves.</p>
+<p>October 2025 Q3. Books $1, \ldots, n$ with thickness $T[i]$ and height $H[i]$, stored on shelves
+in order, so each shelf holds consecutively numbered books. A shelf holds total thickness at most $L$,
+and its height becomes the maximum height of the books on it. Minimise the total height of the
+shelves.</p>
 
 <details>
 <summary>Think about it first, then open this</summary>
 
-<p><b>(a) The array.</b> For <code>i = 0, 1, ..., n</code>, let <code>S[i]</code> be the minimum total
-shelf height needed to store books <code>1..i</code>. Base case <code>S[0] = 0</code>. The answer is
-<code>S[n]</code>.</p>
+<p><b>(a) The array.</b> For $i = 0, 1, \ldots, n$, let $S[i]$ be the minimum total shelf height
+needed to store books $1, \ldots, i$. Base case $S[0] = 0$. The answer is $S[n]$.</p>
 
 <p><b>(b) The Bellman equation.</b></p>
 
-<pre><code>S[0] = 0
+<div class="eq">
+$$S[0] = 0$$
+$$S[i] \;=\; \min_{\substack{1 \le j \le i \\[2pt] \sum_{k=j}^{i} T[k] \;\le\; L}}
+  \left(\, S[j-1] \;+\; \max_{j \le k \le i} H[k] \,\right)$$
+</div>
 
-S[i] = min over j in 1..i, subject to  T[j] + ... + T[i] &le; L,  of
-           S[j-1] + max( H[j], ..., H[i] )</code></pre>
-
-<p><i>Justification.</i> In an optimal arrangement of books <code>1..i</code>, the last shelf holds some
-block of consecutive books <code>j, j+1, ..., i</code>. That shelf's height is
-<code>max(H[j..i])</code>, and it is legal exactly when <code>T[j] + ... + T[i] &le; L</code>. Whatever
-is left, books <code>1..j-1</code>, must itself be arranged at minimum total height, because if it were
-not we could replace it with a better arrangement and lower the total, contradicting optimality. So the
-cost is <code>S[j-1] + max(H[j..i])</code>. The value of j is not known, but it must be one of
-<code>1..i</code>, so taking the minimum over all feasible j is exhaustive and correct.</p>
+<p><i>Justification.</i> In an optimal arrangement of books $1, \ldots, i$, the last shelf holds
+some block of consecutive books $j, j+1, \ldots, i$. That shelf's height is $\max_{j \le k \le i} H[k]$,
+and it is legal exactly when $\sum_{k=j}^{i} T[k] \le L$. Whatever is left, books $1, \ldots, j-1$,
+must itself be arranged at minimum total height, because if it were not we could replace it with a
+better arrangement and lower the total, contradicting optimality. So the cost is
+$S[j-1] + \max_{j \le k \le i} H[k]$. The value of $j$ is not known, but it must be one of
+$1, \ldots, i$, so taking the minimum over all feasible $j$ is exhaustive and correct.</p>
 
 <p><b>(c) Bottom up.</b> Compute in the order <code>i = 1, 2, ..., n</code>. For each i, run the inner
 loop <code>j = i</code> down to 1, accumulating the running thickness and running max height so both are
@@ -361,12 +378,12 @@ available in O(1) per step.</p>
 13             J[i] = j                       // first book on the last shelf
 14 return S[n], J</code></pre>
 
-<p><i>Why descending j.</i> Going down from i, adding one book at a time, lets both the thickness sum
-and the height max be updated in constant time. Going up would need a fresh scan for each j and cost a
-factor of n more.</p>
+<p><i>Why descending $j$.</i> Going down from $i$, adding one book at a time, lets both the
+thickness sum and the height maximum be updated in constant time. Going up would need a fresh scan for
+each $j$ and cost a factor of $n$ more.</p>
 
-<p><b>Running time.</b> Two nested loops of at most n iterations each, constant work inside, so
-<b>O(n<sup>2</sup>)</b>.</p>
+<p><b>Running time.</b> Two nested loops of at most $n$ iterations each, constant work inside, so
+$O(n^{2})$.</p>
 
 <p><b>(d) Recovering the shelves.</b> <code>J[i]</code> stores the j that achieved the minimum for
 <code>S[i]</code>, that is, the first book on the last shelf of the optimal arrangement of
@@ -379,13 +396,13 @@ factor of n more.</p>
 5      t = s - 1</code></pre>
 
 <p>This outputs the shelves right to left, so reverse the list if order matters. Each iteration
-consumes at least one book, so it is O(n).</p>
+consumes at least one book, so it is $O(n)$.</p>
 
 <div class="box why">
   <span class="label">The move to notice</span>
-  <p>The last shelf is a <b>contiguous block ending at i</b>, and you do not know where it starts, so
-  you minimise over the start point. That is the "best over a split" shape, and it is why this is
-  O(n<sup>2</sup>) rather than O(n). The greedy version of this problem is O(n), and the thing that broke
+  <p>The last shelf is a <b>contiguous block ending at $i$</b>, and you do not know where it starts,
+  so you minimise over the start point. That is the "best over a split" shape, and it is why this is
+  $O(n^{2})$ rather than $O(n)$. The greedy version of this problem is O(n), and the thing that broke
   greedy is the height: cramming one more book onto a shelf can raise that shelf's height by more than
   it saves later.</p>
 </div>
@@ -394,8 +411,8 @@ consumes at least one book, so it is O(n).</p>
 <div class="box tpl">
   <span class="label">Recognising Q2 in 60 seconds</span>
   <ul>
-    <li>Stated running time mentions a <b>product</b>: O(nB), O(nk), O(n<sup>2</sup>), O(mn). That is a
-    table with those dimensions and it names your array for you.</li>
+    <li>Stated running time mentions a <b>product</b>: $O(nB)$, $O(nk)$, $O(n^{2})$, $O(mn)$. That is
+    a table with those dimensions and it names your array for you.</li>
     <li>The problem asks for a <b>maximum or minimum over choices</b>, with choices interacting through
     a shared resource.</li>
     <li>Ask what the <b>last decision</b> was, and enumerate every value it could take.</li>
@@ -574,5 +591,22 @@ consumes at least one book, so it is O(n).</p>
 })();
 </script>
 
+<script defer src="katex/katex.min.js"></script>
+<script defer src="katex/auto-render.min.js"></script>
+<script>
+// Render math after the DOM is up. Deferred scripts run before DOMContentLoaded,
+// so katex and renderMathInElement are both defined by the time this fires.
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$',  right: '$',  display: false }
+    ],
+    // pseudocode stays monospace, it is code and not maths
+    ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option'],
+    throwOnError: false
+  });
+});
+</script>
 </body>
 </html>

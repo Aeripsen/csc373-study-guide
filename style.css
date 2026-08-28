@@ -356,3 +356,47 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
 .toc p { margin: 0 0 .35rem; font-family: var(--mono); font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink3); }
 .toc ul { margin: 0; padding-left: 1.1rem; }
 .toc li { margin: .16rem 0; }
+
+/* ---------- maths (KaTeX) ---------- */
+
+.katex { font-size: 1.05em; }
+
+/* A long equation scrolls inside its own box rather than widening the page. */
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: .3rem 0 .5rem;
+  margin: .9rem 0;
+}
+.box .katex-display { margin: .7rem 0; }
+
+/* A boxed formula, for the statements worth copying onto the aid sheet. */
+.eq {
+  background: var(--code-bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: .3rem .9rem;
+  margin: .9rem 0;
+  overflow-x: auto;
+}
+.eq .katex-display { margin: .5rem 0; }
+
+/* ---------- printing (mainly the aid sheet page) ---------- */
+
+@media print {
+  header.top, footer.bot, .pagenav, .backlink, .toc, .ctrls, .readout { display: none; }
+  body { background: #fff; color: #000; font-size: 9pt; line-height: 1.4; padding: 0; }
+  .wrap { max-width: none; padding: 0; }
+  h2 { font-size: 11pt; margin: 10pt 0 4pt; border-bottom: 1px solid #000; }
+  h3 { font-size: 10pt; margin: 8pt 0 3pt; }
+  p { margin: 3pt 0; }
+  /* keep a block of the sheet from splitting across two pages */
+  .box, .eq, pre, table, .anim { break-inside: avoid; page-break-inside: avoid; }
+  .box { border: 1px solid #666; border-inline-start-width: 3pt; background: #fff; padding: 5pt 7pt; margin: 6pt 0; }
+  .box .label { color: #000; font-size: 7.5pt; }
+  pre { background: #fff; border: 1px solid #bbb; font-size: 7.8pt; padding: 4pt 5pt; overflow: visible; white-space: pre-wrap; }
+  code { background: #fff; }
+  .eq { background: #fff; border: 0; padding: 0; }
+  th { background: #eee; }
+  a { color: #000; text-decoration: none; }
+}

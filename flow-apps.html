@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Flow Applications</title>
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="katex/katex.min.css">
 </head>
 <body>
 
@@ -33,7 +34,7 @@
 
 <h2 id="match">Bipartite matching, built step by step</h2>
 
-<p>A <b>bipartite graph</b> is <code>G = (A &cup; B, E)</code> where every edge has one endpoint in A and
+<p>A <b>bipartite graph</b> is $G = (A \cup B, E)$ where every edge has one endpoint in A and
 one in B. A <b>matching</b> is a set of edges no two of which share an endpoint. The problem is to find
 a matching of maximum size.</p>
 
@@ -54,7 +55,7 @@ already know how to solve.</p>
 <div class="box why">
   <span class="label">Why capacity 1 on the source edges is the matching condition</span>
   <p>The capacity of <code>(s, u)</code> is the number of times u is allowed to be used. Flow
-  conservation then forces <code>f<sup>out</sup>(u) = f<sup>in</sup>(u) &le; 1</code>, so at most one
+  conservation then forces $f^{out}(u) = f^{in}(u) \le 1$, so at most one
   middle edge out of u carries flow. That is precisely "u is in at most one matched edge".</p>
   <p>The same argument at v, using the capacity of <code>(v, t)</code>, handles the other side. The two
   matching conditions are not enforced by anything clever, they are enforced by two numbers.</p>
@@ -131,16 +132,16 @@ becomes. Try it on the December 2024 clubs question.</p>
 
 <h2 id="seg">Image segmentation, where you want the cut and not the flow</h2>
 
-<p>Every pixel u has a likelihood <code>a<sub>u</sub></code> of being foreground and
-<code>b<sub>u</sub></code> of being background. Neighbouring pixels <code>(u,v)</code> have a separation
-penalty <code>p<sub>u,v</sub></code> charged when one goes foreground and the other background.
+<p>Every pixel u has a likelihood $a_{u}$ of being foreground and
+$b_{u}$ of being background. Neighbouring pixels <code>(u,v)</code> have a separation
+penalty $p_{u,v}$ charged when one goes foreground and the other background.
 Partition the pixels into foreground A and background B maximising</p>
 
 <pre><code>q(A,B) = &sum;<sub>u&isin;A</sub> a&#7512;  +  &sum;<sub>u&isin;B</sub> b&#7512;  -  &sum;<sub>(u,v) separated</sub> p&#7512;,&#7515;</code></pre>
 
 <div class="box why">
   <span class="label">The trick: turn a maximisation into a minimisation</span>
-  <p>The total <code>&sum;<sub>u</sub>(a<sub>u</sub> + b<sub>u</sub>)</code> is a constant, independent of
+  <p>The total $\sum _{u}(a_{u} + b_{u})$ is a constant, independent of
   how you partition. Subtract q from it and the maximisation becomes a minimisation of</p>
   <pre><code>q'(A,B) = &sum;<sub>u&isin;B</sub> a&#7512;  +  &sum;<sub>u&isin;A</sub> b&#7512;  +  &sum;<sub>(u,v) separated</sub> p&#7512;,&#7515;</code></pre>
   <p>Notice the a and b swapped sides and the penalty flipped sign. Now every term is a <b>cost paid for
@@ -150,11 +151,11 @@ Partition the pixels into foreground A and background B maximising</p>
 <div class="box tpl">
   <span class="label">The network</span>
   <ul>
-    <li><code>(s, u)</code> with capacity <code>a<sub>u</sub></code>, for every pixel u. Cut when u lands
-    in B, charging <code>a<sub>u</sub></code>.</li>
-    <li><code>(u, t)</code> with capacity <code>b<sub>u</sub></code>, for every pixel u. Cut when u lands
-    in A, charging <code>b<sub>u</sub></code>.</li>
-    <li><code>(u,v)</code> and <code>(v,u)</code> each with capacity <code>p<sub>u,v</sub></code>, for every
+    <li><code>(s, u)</code> with capacity $a_{u}$, for every pixel u. Cut when u lands
+    in B, charging $a_{u}$.</li>
+    <li><code>(u, t)</code> with capacity $b_{u}$, for every pixel u. Cut when u lands
+    in A, charging $b_{u}$.</li>
+    <li><code>(u,v)</code> and <code>(v,u)</code> each with capacity $p_{u,v}$, for every
     neighbouring pair. Cut when u and v land on opposite sides.</li>
   </ul>
   <p>Then <code>c(A,B) = q'(A,B)</code> for every s-t cut, so a minimum cut is an optimal segmentation.
@@ -176,28 +177,28 @@ Partition the pixels into foreground A and background B maximising</p>
 <div class="box tpl">
   <span class="label">Direction 1: assignment gives flow</span>
   <p><i>"Let M be a valid assignment of size k. Define a flow f by putting 1 unit on
-  <code>(u<sub>i</sub>, v<sub>j</sub>)</code> for each assigned pair, and setting
-  <code>f(s, u<sub>i</sub>)</code> to the number of assignments of i and <code>f(v<sub>j</sub>, t)</code> to
+  $(u_{i}, v_{j})$ for each assigned pair, and setting
+  $f(s, u_{i})$ to the number of assignments of i and $f(v_{j}, t)$ to
   the number of assignments to j. Conservation holds by construction. Capacities are respected because
   [each constraint of the problem, named]. Hence f is a valid flow of value k, so
-  <code>max flow &ge; max assignment</code>."</i></p>
+  $max flow \ge max assignment$."</i></p>
 </div>
 
 <div class="box tpl">
   <span class="label">Direction 2: flow gives assignment</span>
   <p><i>"Conversely, let f be an integral maximum flow of value k, which exists because all capacities are
   integers and Ford Fulkerson returns an integral flow. Since middle edge capacities are 1, each
-  <code>f(u<sub>i</sub>, v<sub>j</sub>)</code> is 0 or 1. Assign i to j exactly when it is 1. Conservation at
-  <code>u<sub>i</sub></code> gives that i is assigned at most <code>c(s, u<sub>i</sub>)</code> times, and
-  conservation at <code>v<sub>j</sub></code> gives that j receives at most <code>c(v<sub>j</sub>, t)</code>.
+  $f(u_{i}, v_{j})$ is 0 or 1. Assign i to j exactly when it is 1. Conservation at
+  $u_{i}$ gives that i is assigned at most $c(s, u_{i})$ times, and
+  conservation at $v_{j}$ gives that j receives at most $c(v_{j}, t)$.
   A middle edge exists only for permitted pairs. So the assignment is valid and has size k, giving
-  <code>max assignment &ge; max flow</code>."</i></p>
+  $max assignment \ge max flow$."</i></p>
   <p><i>"The two inequalities together give equality, so the algorithm's output is optimal."</i></p>
 </div>
 
 <div class="box trap">
   <span class="label">Do not skip the second direction</span>
-  <p>Showing only that assignments give flows proves <code>max flow &ge; max assignment</code>, which
+  <p>Showing only that assignments give flows proves $max flow \ge max assignment$, which
   says nothing useful: a flow could be larger and correspond to no assignment at all. The second
   direction is the one that makes the algorithm correct, and it is the one that needs integrality.</p>
 </div>
@@ -205,58 +206,58 @@ Partition the pixels into foreground A and background B maximising</p>
 <h2 id="exam">Exam answer, written out</h2>
 
 <p>December 2024 Q5. There are m students and n clubs. Each student is in at most b clubs. Club
-<code>c<sub>i</sub></code> accepts at most <code>k<sub>i</sub></code> members. Student i applied to the set
-<code>A<sub>i</sub></code>. Maximise total club membership. Give the algorithm, justify correctness, and
+$c_{i}$ accepts at most $k_{i}$ members. Student i applied to the set
+$A_{i}$. Maximise total club membership. Give the algorithm, justify correctness, and
 bound the running time by a polynomial in n + m.</p>
 
 <details>
 <summary>Think about it first, then open this</summary>
 
 <p><b>The network.</b> Construct <code>G = (V, E)</code> where <code>V</code> consists of a source s, a
-sink t, a vertex <code>u<sub>i</sub></code> for each student <code>s<sub>i</sub></code>, and a vertex
-<code>w<sub>j</sub></code> for each club <code>c<sub>j</sub></code>. The edges are:</p>
+sink t, a vertex $u_{i}$ for each student $s_{i}$, and a vertex
+$w_{j}$ for each club $c_{j}$. The edges are:</p>
 <ul>
-  <li><code>(s, u<sub>i</sub>)</code> with capacity <b>b</b>, for each <code>i &isin; [m]</code>;</li>
-  <li><code>(u<sub>i</sub>, w<sub>j</sub>)</code> with capacity <b>1</b>, for each i and each
-  <code>c<sub>j</sub> &isin; A<sub>i</sub></code>;</li>
-  <li><code>(w<sub>j</sub>, t)</code> with capacity <b>k<sub>j</sub></b>, for each <code>j &isin; [n]</code>.</li>
+  <li>$(s, u_{i})$ with capacity <b>b</b>, for each $i \in [m]$;</li>
+  <li>$(u_{i}, w_{j})$ with capacity <b>1</b>, for each i and each
+  $c_{j} \in A_{i}$;</li>
+  <li>$(w_{j}, t)$ with capacity <b>k<sub>j</sub></b>, for each $j \in [n]$.</li>
 </ul>
 
 <p><b>The algorithm.</b> Compute an integral maximum s-t flow f in G using Ford Fulkerson with the
 shortest augmenting path rule. Then assign student i to club j exactly when
-<code>f(u<sub>i</sub>, w<sub>j</sub>) = 1</code>. Output that assignment.</p>
+$f(u_{i}, w_{j}) = 1$. Output that assignment.</p>
 
 <p><b>Correctness.</b></p>
 
 <p><i>Every valid assignment of total size k yields a flow of value k.</i> Given such an assignment, put
-1 unit on <code>(u<sub>i</sub>, w<sub>j</sub>)</code> for each assigned pair, set
-<code>f(s, u<sub>i</sub>)</code> to the number of clubs student i was assigned, and
-<code>f(w<sub>j</sub>, t)</code> to the size of club j. Conservation holds at every
-<code>u<sub>i</sub></code> and <code>w<sub>j</sub></code> by construction. The source edge capacity is
+1 unit on $(u_{i}, w_{j})$ for each assigned pair, set
+$f(s, u_{i})$ to the number of clubs student i was assigned, and
+$f(w_{j}, t)$ to the size of club j. Conservation holds at every
+$u_{i}$ and $w_{j}$ by construction. The source edge capacity is
 respected because each student is in at most b clubs; the middle edge capacities are respected because
 a student is assigned to a club at most once, and edges exist only for clubs applied to; the sink edge
-capacities are respected because club j takes at most <code>k<sub>j</sub></code> members. The value of
-this flow is <code>f<sup>out</sup>(s)</code>, which equals the total number of assignments, that is, the
+capacities are respected because club j takes at most $k_{j}$ members. The value of
+this flow is $f^{out}(s)$, which equals the total number of assignments, that is, the
 total membership k.</p>
 
 <p><i>Every integral flow of value k yields a valid assignment of total size k.</i> All capacities are
 integers, so Ford Fulkerson returns an integral flow, meaning each
-<code>f(u<sub>i</sub>, w<sub>j</sub>) &isin; {0, 1}</code>. Take the assignment defined above. No student is
+$f(u_{i}, w_{j}) \in {0, 1}$. Take the assignment defined above. No student is
 assigned to a club twice, since that edge carries at most 1. No student is assigned a club they did not
 apply to, since no such edge exists. Student i is assigned
-<code>f<sup>out</sup>(u<sub>i</sub>) = f<sup>in</sup>(u<sub>i</sub>) = f(s, u<sub>i</sub>) &le; b</code> clubs.
-Club j receives <code>f<sup>in</sup>(w<sub>j</sub>) = f(w<sub>j</sub>, t) &le; k<sub>j</sub></code> students.
-The total membership equals <code>&sum;<sub>j</sub> f(w<sub>j</sub>, t) = f<sup>in</sup>(t) = val(f) = k</code>.</p>
+$f^{out}(u_{i}) = f^{in}(u_{i}) = f(s, u_{i}) \le b$ clubs.
+Club j receives $f^{in}(w_{j}) = f(w_{j}, t) \le k_{j}$ students.
+The total membership equals $\sum _{j} f(w_{j}, t) = f^{in}(t) = val(f) = k$.</p>
 
 <p>The two directions give a bijection between valid assignments and integral flows that preserves size,
 so maximising the flow maximises total membership.</p>
 
-<p><b>Running time.</b> Let <code>L = &sum;<sub>i</sub>|A<sub>i</sub>| &le; mn</code> be the total number of
+<p><b>Running time.</b> Let $L = \sum _{i}|A_{i}| \le mn$ be the total number of
 applications. Then <code>|V| = m + n + 2</code> and <code>|E| = m + L + n</code>. Building the network
 takes <code>O(m + n + L)</code>. Edmonds Karp runs in
-<code>O(|E|<sup>2</sup>|V|) = O((m + n + L)<sup>2</sup>(m + n))</code>. Reading off the assignment takes
+$O(|E|^{2}|V|) = O((m + n + L)^{2}(m + n))$. Reading off the assignment takes
 <code>O(|E|)</code>. The total is dominated by the flow computation and is polynomial in n + m, since
-<code>L &le; mn</code>.</p>
+$L \le mn$.</p>
 
 <div class="box why">
   <span class="label">The move to notice</span>
@@ -412,10 +413,10 @@ function circ(x, y, label, fill, stroke, r) {
   var cur = 0;
 
   var INFO = [
-    { where: 'source', msg: '<b>"Each student can be a member of at most b clubs."</b> This is a limit on how much a single student can do, so it belongs on the edge that all of that student’s flow must pass through: <code>(s, u&#7522;)</code> with capacity <b>b</b>. Conservation at u&#7522; then forces the total assignments of student i to be at most b.' },
-    { where: 'sink',   msg: '<b>"Club c&#7522; can accept no more than k&#7522; members."</b> A limit on a single club, so it goes on the one edge every unit reaching that club must leave by: <code>(w&#11431;, t)</code> with capacity <b>k&#11431;</b>.' },
-    { where: 'mid',    msg: '<b>"No student can be assigned to a club they did not apply to."</b> This one is not a capacity at all. It is enforced by <b>which middle edges exist</b>: draw <code>(u&#7522;, w&#11431;)</code> only when club j is in A&#7522;. A missing edge is an absolute prohibition, which is stronger than any finite capacity.' },
-    { where: 'midcap', msg: '<b>"No club can be assigned a student twice."</b> A limit on one specific pair, so it is the capacity of the middle edge: <code>(u&#7522;, w&#11431;)</code> with capacity <b>1</b>. Note this is a different sentence from the previous one: that decided whether the edge exists, this decides its capacity.' }
+    { where: 'source', msg: '<b>"Each student can be a member of at most b clubs."</b> This is a limit on how much a single student can do, so it belongs on the edge that all of that student’s flow must pass through: $(s, u_{i})$ with capacity <b>b</b>. Conservation at u&#7522; then forces the total assignments of student i to be at most b.' },
+    { where: 'sink',   msg: '<b>"Club c&#7522; can accept no more than k&#7522; members."</b> A limit on a single club, so it goes on the one edge every unit reaching that club must leave by: $(w_{j}, t)$ with capacity <b>k&#11431;</b>.' },
+    { where: 'mid',    msg: '<b>"No student can be assigned to a club they did not apply to."</b> This one is not a capacity at all. It is enforced by <b>which middle edges exist</b>: draw $(u_{i}, w_{j})$ only when club j is in A&#7522;. A missing edge is an absolute prohibition, which is stronger than any finite capacity.' },
+    { where: 'midcap', msg: '<b>"No club can be assigned a student twice."</b> A limit on one specific pair, so it is the capacity of the middle edge: $(u_{i}, w_{j})$ with capacity <b>1</b>. Note this is a different sentence from the previous one: that decided whether the edge exists, this decides its capacity.' }
   ];
 
   function draw() {
@@ -489,5 +490,22 @@ function circ(x, y, label, fill, stroke, r) {
 })();
 </script>
 
+<script defer src="katex/katex.min.js"></script>
+<script defer src="katex/auto-render.min.js"></script>
+<script>
+// Render math after the DOM is up. Deferred scripts run before DOMContentLoaded,
+// so katex and renderMathInElement are both defined by the time this fires.
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$',  right: '$',  display: false }
+    ],
+    // pseudocode stays monospace, it is code and not maths
+    ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option'],
+    throwOnError: false
+  });
+});
+</script>
 </body>
 </html>

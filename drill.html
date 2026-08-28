@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Past Paper Drill</title>
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="katex/katex.min.css">
 </head>
 <body>
 
@@ -36,10 +37,10 @@ one line reason for yourself.</p>
 <table>
 <thead><tr><th>Recurrence</th><th>Your answer</th></tr></thead>
 <tbody>
-<tr><td><code>T(n) &le; 3T(&lceil;n/2&rceil;) + O(n log n)</code></td><td></td></tr>
-<tr><td><code>T(n) &le; 8T(&lceil;n/2&rceil;) + O(n<sup>2</sup>)</code></td><td></td></tr>
-<tr><td><code>T(n) &le; 8T(&lceil;n/2&rceil;) + O(n<sup>3</sup>)</code></td><td></td></tr>
-<tr><td><code>T(n) &le; 2T(&lceil;n/4&rceil;) + O(&radic;n)</code></td><td></td></tr>
+<tr><td>$T(n) \le 3T( \lceil n/2 \rceil ) + O(n log n)$</td><td></td></tr>
+<tr><td>$T(n) \le 8T( \lceil n/2 \rceil ) + O(n^{2})$</td><td></td></tr>
+<tr><td>$T(n) \le 8T( \lceil n/2 \rceil ) + O(n^{3})$</td><td></td></tr>
+<tr><td>$T(n) \le 2T( \lceil n/4 \rceil ) + O( \sqrt n)$</td><td></td></tr>
 </tbody>
 </table>
 </div>
@@ -47,22 +48,22 @@ one line reason for yourself.</p>
 <details>
 <summary>Answers</summary>
 <ol>
-  <li><code>O(n<sup>log&#8322;3</sup>)</code>. Here <code>c = log&#8322;3 &asymp; 1.585</code>. Since
-  <code>n log n = O(n<sup>1+&epsilon;</sup>)</code> for any <code>&epsilon; &gt; 0</code>, and
-  <code>log&#8322;3 &gt; 1</code>, we are in case 1 and the log vanishes.</li>
-  <li><code>O(n<sup>3</sup>)</code>. <code>c = log&#8322;8 = 3</code> and <code>n<sup>2</sup> = n<sup>3-1</sup></code>,
+  <li>$O(n^{log_{2}3})$. Here $c = log_{2}3 \approx 1.585$. Since
+  $n log n = O(n^{1+ \epsilon })$ for any $\epsilon > 0$, and
+  $log_{2}3 > 1$, we are in case 1 and the log vanishes.</li>
+  <li>$O(n^{3})$. $c = log_{2}8 = 3$ and $n^{2} = n^{3-1}$,
   so case 1.</li>
-  <li><code>O(n<sup>3</sup> log n)</code>. <code>c = 3</code> and <code>n<sup>3</sup> = &Theta;(n<sup>3</sup>)</code>,
+  <li>$O(n^{3} log n)$. <code>c = 3</code> and $n^{3} = \Theta (n^{3})$,
   so case 2 with <code>k = 0</code>.</li>
-  <li><code>O(n<sup>1/2</sup> log n)</code>. <code>c = log&#8324;2 = 1/2</code> and
-  <code>f(n) = &radic;n = &Theta;(n<sup>1/2</sup>)</code>, a tie, so case 2 with <code>k = 0</code>.</li>
+  <li>$O(n^{1/2} log n)$. $c = log_{4}2 = 1/2$ and
+  $f(n) = \sqrt n = \Theta (n^{1/2})$, a tie, so case 2 with <code>k = 0</code>.</li>
 </ol>
 <div class="box why">
   <span class="label">Watch the difference between 4 and the version with O(n)</span>
   <p><code>T(n) = 2T(n/4) + O(n)</code> gives <code>O(n)</code>, not <code>O(n log n)</code>, because
-  <code>n = n<sup>0.5 + 0.5</sup></code> is polynomially <b>larger</b> than <code>n<sup>0.5</sup></code>, so
+  $n = n^{0.5 + 0.5}$ is polynomially <b>larger</b> than $n^{0.5}$, so
   it is case 3, not case 2. Also check the regularity condition:
-  <code>af(n/b) = 2(n/4) = n/2 = &frac12;f(n)</code>, so <code>d = &frac12; &lt; 1</code> works.</p>
+  $af(n/b) = 2(n/4) = n/2 = \tfrac{1}{2} f(n)$, so $d = \tfrac{1}{2} < 1$ works.</p>
 </div>
 </details>
 
@@ -88,14 +89,14 @@ level calls <code>CountSig(A, 1, n)</code> and outputs the count.</p>
 
 <p>Base case: if <code>l == u</code>, return <code>(0, A[l..u])</code>.</p>
 
-<p>Otherwise let <code>mid = &lfloor;(l+u)/2&rfloor;</code>, and recursively compute
+<p>Otherwise let $mid = \lfloor (l+u)/2 \rfloor$, and recursively compute
 <code>(L, left) = CountSig(A, l, mid)</code> and <code>(R, right) = CountSig(A, mid+1, u)</code>. Both
 returned halves are sorted.</p>
 
 <p>To count the straddling pairs C, make a copy B of <code>right</code> and double every entry. Run the
 merge-and-count procedure from class on <code>left</code> and B, which counts pairs
-<code>(i, j)</code> with <code>left[i] &gt; B[j]</code>. Since <code>B[j] = 2&middot;right[j]</code>, those
-are exactly the pairs with <code>left[i] &gt; 2&middot;right[j]</code>, that is, the significant straddling
+<code>(i, j)</code> with <code>left[i] &gt; B[j]</code>. Since $B[j] = 2 \cdot right[j]$, those
+are exactly the pairs with $left[i] > 2 \cdot right[j]$, that is, the significant straddling
 inversions.</p>
 
 <p>Then run a <b>second, ordinary</b> merge of <code>left</code> and <code>right</code> to build the
@@ -110,12 +111,12 @@ remains to show C counts the straddling group.</p>
 <p>The merge-and-count procedure from class correctly counts, for two sorted arrays, the pairs with
 <code>first[i] &gt; second[j]</code>. It applies here because <code>left</code> is sorted by the
 induction hypothesis and B is sorted, since doubling is monotone and <code>right</code> is sorted. And
-<code>left[i] &gt; B[j] &hArr; left[i] &gt; 2&middot;right[j]</code>. So C is exactly the straddling
+$left[i] > B[j] \iff left[i] > 2 \cdot right[j]$. So C is exactly the straddling
 count. The sorted output is correct by the correctness of the mergesort merge.</p>
 
 <p><b>Running time.</b> Doubling the copy is O(n), the counting merge is O(n), and the plain merge is
 O(n), so the combine step is O(n) overall. Hence <code>T(n) = 2T(n/2) + O(n)</code>. By the master
-theorem with a = 2, b = 2, c = log&#8322;2 = 1, and <code>f(n) = &Theta;(n) = &Theta;(n<sup>c</sup>)</code>,
+theorem with a = 2, b = 2, c = log&#8322;2 = 1, and $f(n) = \Theta (n) = \Theta (n^{c})$,
 we are in case 2 with k = 0, giving <code>T(n) = O(n log n)</code>.</p>
 
 <div class="box why">
@@ -184,7 +185,7 @@ values can each be done by a single linear traversal (BFS or DFS) of the subtree
 
 <pre><code>T(n) &le; 3T(n/3) + O(n)</code></pre>
 
-<p>By the master theorem with a = 3, b = 3, c = log&#8323;3 = 1, and <code>f(n) = &Theta;(n)</code>, we are
+<p>By the master theorem with a = 3, b = 3, c = log&#8323;3 = 1, and $f(n) = \Theta (n)$, we are
 in case 2 with k = 0, so <code>T(n) = O(n log n)</code>.</p>
 </details>
 
@@ -230,7 +231,7 @@ optimal solution O.</p>
 O. If greedy's shelf i is also a shelf of O, done. Otherwise, let s and t be the first and last books on
 greedy's shelf i. Since shelves 1 through <code>i-1</code> agree, both solutions have shelved exactly
 books <code>1..s-1</code>, so book s is the first book on shelf i of O too. Shelf i of O therefore
-holds books <code>s, ..., t'</code> for some <code>t' &le; t</code> by the greedy choice (greedy fits the
+holds books <code>s, ..., t'</code> for some $t' \le t$ by the greedy choice (greedy fits the
 maximum possible), and since the shelves differ, <code>t' &lt; t</code>.</p>
 
 <p>Move books <code>t'+1, ..., t</code> from their shelves in O onto shelf i of O. They fit, because
@@ -311,8 +312,8 @@ at least as many as OPT does there.</p>
 <h2>Q5. Dynamic programming: dominoes on an array <span class="marks">20 marks &middot; 25 min</span></h2>
 
 <p>You have unlimited dominoes of k types, type j being an ordered pair
-<code>(a<sub>j</sub>, b<sub>j</sub>)</code>. Given <code>C[1..n]</code>, a domino of type j can go on
-indices <code>(i, i+1)</code> when <code>a<sub>j</sub> = C[i]</code> and <code>b<sub>j</sub> = C[i+1]</code>.
+$(a_{j}, b_{j})$. Given <code>C[1..n]</code>, a domino of type j can go on
+indices <code>(i, i+1)</code> when $a_{j} = C[i]$ and $b_{j} = C[i+1]$.
 Maximise the number of non overlapping dominoes. O(nk) for full credit, O((n+k) log k) for bonus.</p>
 
 <details>
@@ -329,8 +330,8 @@ dom[i] = max{ dom[i-1], dom[i-2] + 1 }         if i &ge; 2 and some type j
                                                has (C[i-1], C[i]) = (a&#11431;, b&#11431;)
 dom[i] = dom[i-1]                              otherwise</code></pre>
 
-<p><i>Justification.</i> For <code>i &isin; {0, 1}</code> there are not two cells, so no domino fits and
-the answer is 0. For <code>i &ge; 2</code>, consider an optimal placement on <code>C[1..i]</code> and ask
+<p><i>Justification.</i> For $i \in {0, 1}$ there are not two cells, so no domino fits and
+the answer is 0. For $i \ge 2$, consider an optimal placement on <code>C[1..i]</code> and ask
 whether cell i is covered. If it is, the covering domino must sit on <code>(i-1, i)</code>, which
 requires a type matching <code>(C[i-1], C[i])</code>, and the rest is an optimal placement on
 <code>C[1..i-2]</code>, giving <code>dom[i-2] + 1</code>. If cell i is uncovered, the placement is an
@@ -339,15 +340,15 @@ optimum is the larger. When no type matches, the first case is impossible and on
 <code>dom[i-1]</code> remains.</p>
 
 <p><b>(c) Bottom up.</b> Compute in the order <code>i = 0, 1, ..., n</code>. Base cases
-<code>dom[0] = dom[1] = 0</code> are set directly. For each <code>i &ge; 2</code>, the only real work is
+<code>dom[0] = dom[1] = 0</code> are set directly. For each $i \ge 2$, the only real work is
 testing whether <code>(C[i-1], C[i])</code> matches one of the k types.</p>
 
 <p>The straightforward version scans all k types per cell, giving <b>O(nk)</b>.</p>
 
 <p><b>Bonus, O((n+k) log k).</b> Pre-process the domino types once into a balanced search structure keyed
 by the pair, costing <code>O(k log k)</code> for k insertions. Each lookup is then
-<code>O(log k)</code>. Alternatively, sort the types by <code>a<sub>j</sub></code> breaking ties by
-<code>b<sub>j</sub></code> in <code>O(k log k)</code>, then per cell binary search for the range with first
+<code>O(log k)</code>. Alternatively, sort the types by $a_{j}$ breaking ties by
+$b_{j}$ in <code>O(k log k)</code>, then per cell binary search for the range with first
 coordinate <code>C[i-1]</code> and binary search inside it for second coordinate <code>C[i]</code>, again
 <code>O(log k)</code>.</p>
 
@@ -364,8 +365,8 @@ coordinate <code>C[i-1]</code> and binary search inside it for second coordinate
 
 <h2>Q6. Dynamic programming: counting bundlings <span class="marks">10 marks &middot; 15 min</span></h2>
 
-<p>Given <code>n</code>, count the ways to write <code>n = i&#8321; + i&#8322; + ... + i<sub>k</sub></code> with
-<code>i&#8321; &ge; i&#8322; &ge; ... &ge; i<sub>k</sub> &ge; 1</code>. For n = 5 the answer is 7. Define
+<p>Given <code>n</code>, count the ways to write $n = i_{1} + i_{2} + ... + i_{k}$ with
+$i_{1} \ge i_{2} \ge ... \ge i_{k} \ge 1$. For n = 5 the answer is 7. Define
 <code>P[m, b]</code> as the number of such sums for m with largest part at most b. Give a recurrence with
 base cases, justify it, then give O(n<sup>2</sup>) pseudocode.</p>
 
@@ -380,15 +381,15 @@ P[m, b] = P[m-b, b] + P[m, b-1]      if b &lt; m
 base cases:  P[1, b] = 1  for all b &ge; 1
              P[m, 1] = 1  for all m &ge; 1</code></pre>
 
-<p><i>Justification.</i> Since all parts are positive, <code>i&#8321; &le; m</code> always, so any bound
+<p><i>Justification.</i> Since all parts are positive, $i_{1} \le m$ always, so any bound
 <code>b &gt; m</code> is no restriction and <code>P[m, b] = P[m, m]</code>. That handles
-<code>b &ge; m</code> once we know <code>P[m, m] = 1 + P[m, m-1]</code>, which holds because there is
+$b \ge m$ once we know <code>P[m, m] = 1 + P[m, m-1]</code>, which holds because there is
 exactly one sum using the single part m, and every other sum has largest part at most
 <code>m - 1</code>.</p>
 
-<p>For <code>b &lt; m</code>, split on the largest part. Either <code>i&#8321; = b</code>, and the rest is a
+<p>For <code>b &lt; m</code>, split on the largest part. Either $i_{1} = b$, and the rest is a
 sum for <code>m - b</code> with parts at most b, of which there are <code>P[m-b, b]</code>; or
-<code>i&#8321; &le; b - 1</code>, giving <code>P[m, b-1]</code>. These are exhaustive and disjoint, so add
+$i_{1} \le b - 1$, giving <code>P[m, b-1]</code>. These are exhaustive and disjoint, so add
 them.</p>
 
 <p>The base cases are immediate: <code>m = 1</code> has only <code>1 = 1</code>, and <code>b = 1</code>
@@ -405,12 +406,12 @@ forces all parts to be 1, so only <code>m = 1 + ... + 1</code>.</p>
 7              P[m, b] = P[m-b, b] + P[m, b-1]
 8  return P[n, n]</code></pre>
 
-<p><b>Running time.</b> <code>n<sup>2</sup></code> cells, O(1) each, so <b>O(n<sup>2</sup>)</b>, assuming the
+<p><b>Running time.</b> $n^{2}$ cells, O(1) each, so <b>O(n<sup>2</sup>)</b>, assuming the
 arithmetic is constant time.</p>
 
 <div class="box note">
   <span class="label">The cleaner version</span>
-  <p>With base cases <code>P[0, b] = 1</code> for all <code>b &ge; 0</code> and <code>P[m, b] = 0</code>
+  <p>With base cases <code>P[0, b] = 1</code> for all $b \ge 0$ and <code>P[m, b] = 0</code>
   for <code>m &lt; 0</code>, the single equation <code>P[m, b] = P[m-b, b] + P[m, b-1]</code> covers every
   case. Shorter, but the case split above is easier to justify under exam pressure, and the
   justification is what carries the marks.</p>
@@ -443,7 +444,7 @@ valid path earns the marks.</p>
 <code>B = V \ A</code>. Write both sets out. Then compute <code>c(A, B)</code> by summing capacities of
 edges from A to B, and state that it equals <code>val(f)</code>.</p>
 
-<p><b>4. Check.</b> Compute <code>val(f) = f<sup>out</sup>(s)</code> independently and confirm it matches
+<p><b>4. Check.</b> Compute $val(f) = f^{out}(s)$ independently and confirm it matches
 your cut capacity. If it does not, you missed an augmenting path or mis-summed the cut.</p>
 
 <div class="box why">
@@ -457,7 +458,7 @@ your cut capacity. If it does not, you missed an augmenting path or mis-summed t
 <div class="box note">
   <span class="label">And if it asks whether the min cut is unique</span>
   <p>Compute the other extreme cut: let <code>B' =</code> the vertices that <b>can reach t</b> in the
-  residual, and <code>A' = V \ B'</code>. That is also a minimum cut. If <code>A &ne; A'</code> you have
+  residual, and <code>A' = V \ B'</code>. That is also a minimum cut. If $A \ne A'$ you have
   two distinct minimum cuts and you write both. If they are equal, the minimum cut is unique and you say
   why: no other partition achieves the same capacity.</p>
 </div>
@@ -465,16 +466,16 @@ your cut capacity. If it does not, you missed an augmenting path or mis-summed t
 
 <h2>Q8. LP: coffee roasters and shops <span class="marks">12 marks &middot; 15 min</span></h2>
 
-<p>m roasters, n coffeeshops. Roaster <code>r<sub>i</sub></code> supplies at most
-<code>s<sub>i</sub></code> kg per month. Shop <code>c<sub>j</sub></code> receives at most
-<code>d<sub>j</sub></code> kg. Shop j values a kg from roaster i at <code>w<sub>i,j</sub></code>. Every
+<p>m roasters, n coffeeshops. Roaster $r_{i}$ supplies at most
+$s_{i}$ kg per month. Shop $c_{j}$ receives at most
+$d_{j}$ kg. Shop j values a kg from roaster i at $w_{i,j}$. Every
 roaster can ship to every shop. (a) Write an LP in standard form maximising total value. (b) Give its
 dual, saying which dual variable goes with which primal constraint.</p>
 
 <details>
 <summary>Model answer</summary>
 
-<p><b>(a) The primal.</b> Let <code>x<sub>i,j</sub> &ge; 0</code> be the kilograms per month sent from
+<p><b>(a) The primal.</b> Let $x_{i,j} \ge 0$ be the kilograms per month sent from
 roaster i to shop j.</p>
 
 <pre><code>max   &sum;&#7522;&#8330;&#8321;..&#7504; &sum;&#11431;&#8330;&#8321;..&#8345;  w&#7522;,&#11431; x&#7522;,&#11431;
@@ -483,12 +484,12 @@ s.t.  &sum;&#11431;&#8330;&#8321;..&#8345;  x&#7522;,&#11431;  &le;  s&#7522;   
       &sum;&#7522;&#8330;&#8321;..&#7504;  x&#7522;,&#11431;  &le;  d&#11431;        for all j &isin; [n]
       x&#7522;,&#11431; &ge; 0                     for all i, j</code></pre>
 
-<p>This is already in standard form: a maximisation, all constraints <code>&le;</code>, all variables
+<p>This is already in standard form: a maximisation, all constraints $\le$, all variables
 non negative. Say that explicitly rather than leaving the marker to check.</p>
 
 <p><b>(b) The dual.</b> There are <code>m + n</code> primal constraints, so <code>m + n</code> dual
-variables. Use <code>y<sub>i</sub></code> for the supply constraint of roaster i, and
-<code>z<sub>j</sub></code> for the demand constraint of shop j. There are <code>mn</code> primal
+variables. Use $y_{i}$ for the supply constraint of roaster i, and
+$z_{j}$ for the demand constraint of shop j. There are <code>mn</code> primal
 variables, so <code>mn</code> dual constraints, one for each pair <code>(i, j)</code>.</p>
 
 <pre><code>min   &sum;&#7522;&#8330;&#8321;..&#7504; s&#7522; y&#7522;  +  &sum;&#11431;&#8330;&#8321;..&#8345; d&#11431; z&#11431;
@@ -497,13 +498,13 @@ s.t.  y&#7522; + z&#11431;  &ge;  w&#7522;,&#11431;         for all i &isin; [m]
       y&#7522;, z&#11431;  &ge;  0               for all i, j</code></pre>
 
 <p>The dual constraint for the pair <code>(i,j)</code> reads down the column of
-<code>x<sub>i,j</sub></code>, which has a 1 in roaster i's supply row, a 1 in shop j's demand row, and
-zeros elsewhere. Hence the left hand side <code>y<sub>i</sub> + z<sub>j</sub></code>.</p>
+$x_{i,j}$, which has a 1 in roaster i's supply row, a 1 in shop j's demand row, and
+zeros elsewhere. Hence the left hand side $y_{i} + z_{j}$.</p>
 
 <div class="box why">
   <span class="label">What the dual means here</span>
-  <p><code>y<sub>i</sub></code> is a price per kg charged for using roaster i's capacity, and
-  <code>z<sub>j</sub></code> a price per kg for using shop j's. The constraint says the combined price of
+  <p>$y_{i}$ is a price per kg charged for using roaster i's capacity, and
+  $z_{j}$ a price per kg for using shop j's. The constraint says the combined price of
   a shipment must be at least its value, and the objective minimises the total cost of pricing all the
   capacity. Duality says the cheapest such pricing equals the maximum achievable value. Reading a dual
   as prices on the primal's scarce resources works for most LPs in this course and makes the algebra
@@ -530,29 +531,29 @@ need to justify the certifier's correctness or running time.</p>
 <summary>Model answer</summary>
 
 <ol>
-  <li>The certificate is S. The certifier checks that <code>|S| &le; k</code>, and that for every
-  <code>u &isin; V</code>, either <code>u &isin; S</code> or some neighbour of u is in S.</li>
+  <li>The certificate is S. The certifier checks that $|S| \le k$, and that for every
+  $u \in V$, either $u \in S$ or some neighbour of u is in S.</li>
 
-  <li>The certificate is the assignment <code>&phi;: V &rarr; {1,2,3}</code>. The certifier checks that
-  <code>&phi;(u) &ne; &phi;(v)</code> for every <code>(u,v) &isin; E</code>.</li>
+  <li>The certificate is the assignment $\varphi : V \to {1,2,3}$. The certifier checks that
+  $\varphi (u) \ne \varphi (v)$ for every $(u,v) \in E$.</li>
 
   <li>The certificate is the edge set of the tree T. The certifier runs DFS in T to check it is
   connected, by confirming every vertex is visited. It counts the edges of T and checks there are
   exactly <code>|V| - 1</code>, which together with connectivity rules out cycles. It then computes each
   vertex's degree within T and checks it is at most k.</li>
 
-  <li>There are only <code>O(n<sup>3</sup>)</code> possible certificates, one per triple of vertices, so
-  instead of guessing you can enumerate. Loop over all triples in <code>O(n<sup>3</sup>)</code> time and
+  <li>There are only $O(n^{3})$ possible certificates, one per triple of vertices, so
+  instead of guessing you can enumerate. Loop over all triples in $O(n^{3})$ time and
   check in O(1) whether all three pairs are edges, using an adjacency matrix (buildable from an
-  adjacency list in <code>O(n<sup>2</sup>)</code>). This decides 3-Clique in
-  <code>O(n<sup>3</sup>)</code> time, so it is in P.</li>
+  adjacency list in $O(n^{2})$). This decides 3-Clique in
+  $O(n^{3})$ time, so it is in P.</li>
 </ol>
 
 <div class="box why">
   <span class="label">The lesson in part 4</span>
   <p>A problem is in NP when a certificate is short. It is in P when the number of possible certificates
   is only polynomial, so you can try them all. Fixing k to a constant in k-Clique shrinks
-  <code>C(n,k)</code> from exponential to <code>O(n<sup>k</sup>)</code>, which is why the general problem
+  <code>C(n,k)</code> from exponential to $O(n^{k})$, which is why the general problem
   is NP complete and the k = 3 case is easy.</p>
 </div>
 </details>
@@ -568,12 +569,12 @@ fewer nodes.</p>
 <details>
 <summary>Model answer</summary>
 
-<p><b>(a)</b> Let O be a maximum independent set in T. If <code>&ell; &isin; O</code>, done. Otherwise O
-must contain the parent u of <code>&ell;</code>: if it did not, then <code>O &cup; {&ell;}</code> would
+<p><b>(a)</b> Let O be a maximum independent set in T. If $&ell; \in O$, done. Otherwise O
+must contain the parent u of <code>&ell;</code>: if it did not, then $O \cup {&ell;}$ would
 still be independent (since u is <code>&ell;</code>'s only neighbour) and strictly larger, contradicting
 maximality.</p>
 
-<p>Set <code>O' = (O \ {u}) &cup; {&ell;}</code>. Then <code>|O'| = |O|</code>. And <code>O'</code> is
+<p>Set $O' = (O \setminus {u}) \cup {&ell;}$. Then <code>|O'| = |O|</code>. And <code>O'</code> is
 independent: <code>&ell;</code>'s only neighbour is u, which we removed, so <code>&ell;</code> conflicts
 with nothing in <code>O'</code>; and any edge with both endpoints in <code>O' \ {&ell;}</code> would have
 both endpoints in O, contradicting O being independent. So <code>O'</code> is a maximum independent set
@@ -598,7 +599,7 @@ of G contains u.</p>
 <p>Since O is independent and contains u, it contains no neighbour of u. So
 <code>O' = O \ {u}</code> is an independent set in <code>G'</code>, the graph after removing u and its
 neighbours. Deleting vertices from a forest leaves a forest, so the induction hypothesis applies to
-<code>G'</code>, giving <code>|S'| &ge; |O'|</code> where <code>S'</code> is what the recursive call
+<code>G'</code>, giving $|S'| \ge |O'|$ where <code>S'</code> is what the recursive call
 returns. Therefore</p>
 
 <pre><code>|S| = |S'| + 1 &ge; |O'| + 1 = |O|</code></pre>
@@ -685,5 +686,22 @@ worked through on the topic pages:</p>
 </footer>
 
 </div>
+<script defer src="katex/katex.min.js"></script>
+<script defer src="katex/auto-render.min.js"></script>
+<script>
+// Render math after the DOM is up. Deferred scripts run before DOMContentLoaded,
+// so katex and renderMathInElement are both defined by the time this fires.
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$',  right: '$',  display: false }
+    ],
+    // pseudocode stays monospace, it is code and not maths
+    ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option'],
+    throwOnError: false
+  });
+});
+</script>
 </body>
 </html>

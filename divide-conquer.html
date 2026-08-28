@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Divide and Conquer</title>
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="katex/katex.min.css">
 </head>
 <body>
 
@@ -55,18 +56,22 @@
   <span class="label">The move that makes combining fast</span>
   <p>The linear time combine almost always comes from <b>demanding more from the recursion than the
   problem asks for</b>. Counting inversions is fast because each recursive call also returns its half
-  <i>sorted</i>. That extra promise costs nothing (the merge does it anyway) and turns an O(n<sup>2</sup>)
-  combine into an O(n) one.</p>
+  <i>sorted</i>. That extra promise costs nothing (the merge does it anyway) and turns an $O(n^2)$
+  combine into an $O(n)$ one.</p>
   <p>On the exam, if your combine step is too slow, ask what extra thing the recursion could return
   that would speed it up. That is nearly always the intended trick.</p>
 </div>
 
 <h2 id="inv">Counting inversions</h2>
 
-<p><b>Input:</b> an array <code>A[1..n]</code> of distinct integers.<br>
-<b>Output:</b> the number of pairs <code>i &lt; j</code> with <code>A[i] &gt; A[j]</code>.</p>
+<p><b>Input:</b> an array $A[1 \ldots n]$ of distinct integers.<br>
+<b>Output:</b> the number of <b>inversions</b>, that is, pairs</p>
 
-<p>The brute force is to check all pairs, O(n<sup>2</sup>). It measures how far from sorted A is, which is
+<div class="eq">
+$$\#\{\,(i,j) \;:\; i &lt; j \ \text{ and } \ A[i] > A[j]\,\}$$
+</div>
+
+<p>The brute force is to check all pairs, $O(n^2)$. It measures how far from sorted $A$ is, which is
 also the Kendall tau distance between two rankings, used in voting theory and rank aggregation.</p>
 
 <p>Split A into B (left half) and C (right half). Every inversion is one of three kinds: both indices
@@ -89,10 +94,10 @@ combine has to count.</p>
 
 <div class="box why">
   <span class="label">Why taking from C is the counting moment</span>
-  <p>B and C are both sorted, and everything in B started to the left of everything in C. So if the
-  front of C is smaller than the front of B, it is smaller than <b>every</b> remaining element of B,
-  and each of those is a pair <code>i &lt; j</code> with <code>A[i] &gt; A[j]</code>. That is
-  <code>|B remaining|</code> inversions discovered in one comparison, which is how a whole quadratic
+  <p>$B$ and $C$ are both sorted, and everything in $B$ started to the left of everything in $C$. So
+  if the front of $C$ is smaller than the front of $B$, it is smaller than <b>every</b> remaining
+  element of $B$, and each of those is a pair $i &lt; j$ with $A[i] > A[j]$. That is
+  $|B_{\text{remaining}}|$ inversions discovered in one comparison, which is how a whole quadratic
   count collapses into a linear pass.</p>
   <p>Taking from B tells you nothing new, because a B element being smaller is the non inverted case.</p>
 </div>
@@ -112,16 +117,14 @@ combine has to count.</p>
 <p>Line 7 is the merge from mergesort with a counter bolted on. Note the contract: the procedure
 returns a <b>pair</b>, the count and the sorted array. Lines 5 and 6 rely on that.</p>
 
-<p><b>Running time.</b> <code>T(n) = 2T(n/2) + O(n)</code>, and the master theorem gives
-<code>O(n log n)</code>.</p>
+<p><b>Running time.</b> &nbsp; $T(n) = 2T(n/2) + O(n)$, and the master theorem gives $O(n \log n)$.</p>
 
 <div class="box note">
   <span class="label">The variant they actually ask</span>
-  <p>The October 2025 midterm asked for <b>significant inversions</b>: pairs with
-  <code>A[i] &gt; 2A[j]</code>. The fix is small and worth memorising as a pattern. Make a copy of the
+  <p>The October 2025 midterm asked for <b>significant inversions</b>: pairs with $A[i] > 2A[j]$. The fix is small and worth memorising as a pattern. Make a copy of the
   sorted right half, double every entry, and run the counting merge against that copy. Then do a
   <b>second, plain</b> merge of the two original halves to produce the sorted output.</p>
-  <p>Two passes, each O(n), so the recurrence is unchanged. The reason you need two is that the doubled
+  <p>Two passes, each $O(n)$, so the recurrence is unchanged. The reason you need two is that the doubled
   array is the right thing for counting and the wrong thing for sorting. Whenever the comparison used
   for counting differs from the comparison used for ordering, you need separate passes.</p>
 </div>
@@ -133,16 +136,23 @@ form. It was printed on both past midterms as a reference. Put it on your aid sh
 
 <div class="box tpl">
   <span class="label">Master theorem, as stated in this course</span>
-  <p>Let <code>a &ge; 1</code>, <code>b &gt; 1</code> be constants, and <code>T(n) &le; aT(&lceil;n/b&rceil;) + f(n)</code>.
-  Let <code>c = log<sub>b</sub>(a)</code>. Then:</p>
+  <p>Let $a \ge 1$ and $b > 1$ be constants, and let</p>
+
+  <div class="eq">
+  $$T(n) \;\le\; a\,T\!\left(\left\lceil \frac{n}{b} \right\rceil\right) + f(n),
+    \qquad c \;=\; \log_b a .$$
+  </div>
+
   <ul>
-    <li><b>Case 1 (leaves win).</b> If <code>f(n) = O(n<sup>c-&epsilon;</sup>)</code> for some <code>&epsilon; &gt; 0</code>,
-    then <code>T(n) = O(n<sup>c</sup>)</code>.</li>
-    <li><b>Case 2 (tie).</b> If <code>f(n) = &Theta;(n<sup>c</sup> log(n)<sup>k</sup>)</code> for <code>k &ge; 0</code>,
-    then <code>T(n) = O(n<sup>c</sup> log(n)<sup>k+1</sup>)</code>.</li>
-    <li><b>Case 3 (root wins).</b> If <code>f(n) = &Omega;(n<sup>c+&epsilon;</sup>)</code> for some <code>&epsilon; &gt; 0</code>,
-    <b>and</b> <code>af(n/b) &le; df(n)</code> for some constant <code>d &lt; 1</code> and all large n,
-    then <code>T(n) = O(f(n))</code>.</li>
+    <li><b>Case 1 (leaves win).</b> &nbsp; If $f(n) = O\!\left(n^{\,c-\epsilon}\right)$ for some
+    $\epsilon > 0$, &nbsp; then $\;T(n) = O(n^{c})$.</li>
+
+    <li><b>Case 2 (tie).</b> &nbsp; If $f(n) = \Theta\!\left(n^{c} \log^{k} n\right)$ for some
+    $k \ge 0$, &nbsp; then $\;T(n) = O\!\left(n^{c} \log^{\,k+1} n\right)$.</li>
+
+    <li><b>Case 3 (root wins).</b> &nbsp; If $f(n) = \Omega\!\left(n^{\,c+\epsilon}\right)$ for some
+    $\epsilon > 0$, <b>and</b> $a f(n/b) \le d\,f(n)$ for some constant $d &lt; 1$ and all large $n$,
+    &nbsp; then $\;T(n) = O(f(n))$.</li>
   </ul>
 </div>
 
@@ -161,68 +171,75 @@ form. It was printed on both past midterms as a reference. Put it on your aid sh
 
 <div class="box why">
   <span class="label">The intuition in one line</span>
-  <p>At depth <code>i</code> there are <code>a<sup>i</sup></code> subproblems, each of size
-  <code>n/b<sup>i</sup></code>, so the work at that level is <code>a<sup>i</sup> f(n/b<sup>i</sup>)</code>.
-  That is a geometric series in disguise. If it grows going down, the <b>bottom</b> level dominates and
-  the answer is the number of leaves, <code>n<sup>c</sup></code>. If it shrinks, the <b>top</b> dominates
-  and the answer is <code>f(n)</code>. If it is flat, every one of the <code>log<sub>b</sub>n</code>
-  levels costs the same, so you multiply by a log.</p>
-  <p>You never need to remember which case is which. Compare <code>n<sup>c</sup></code> with
-  <code>f(n)</code>, and the bigger one wins. A tie costs you a log factor.</p>
+  <p>At depth $i$ there are $a^{i}$ subproblems, each of size $n/b^{i}$, so the work at that level is</p>
+
+  <div class="eq">
+  $$W_i \;=\; a^{i}\, f\!\left(\frac{n}{b^{i}}\right)$$
+  </div>
+
+  <p>which is a geometric series in disguise. If it grows going down, the <b>bottom</b> level dominates
+  and the answer is the number of leaves, $n^{c}$. If it shrinks, the <b>top</b> dominates and the
+  answer is $f(n)$. If it is flat, every one of the $\log_b n$ levels costs the same, so you multiply
+  by a log.</p>
+  <p>You never need to remember which case is which. Compare $n^{c}$ with $f(n)$, and the bigger one
+  wins. A tie costs you a log factor.</p>
 </div>
 
 <h3>Applying it in the exam, in 20 seconds</h3>
 
 <ol>
-  <li>Read off <code>a</code> (number of recursive calls) and <code>b</code> (shrink factor).</li>
-  <li>Compute <code>c = log<sub>b</sub>a</code>.</li>
-  <li>Compare <code>f(n)</code> to <code>n<sup>c</sup></code>. Bigger one wins, tie gives an extra log.</li>
-  <li>Write the sentence: <i>"With a = _, b = _, c = log<sub>b</sub>a = _, and f(n) = _, we are in case _,
-  so T(n) = _."</i></li>
+  <li>Read off $a$ (number of recursive calls) and $b$ (shrink factor).</li>
+  <li>Compute $c = \log_b a$.</li>
+  <li>Compare $f(n)$ to $n^{c}$. Bigger one wins, a tie gives an extra log.</li>
+  <li>Write the sentence: <i>"With $a = \_$, $b = \_$, $c = \log_b a = \_$, and $f(n) = \_$, we are in
+  case $\_$, so $T(n) = \_$."</i></li>
 </ol>
 
 <div class="scroll">
 <table>
 <thead><tr><th>Recurrence</th><th class="num">c = log<sub>b</sub>a</th><th>Compare</th><th>Answer</th></tr></thead>
 <tbody>
-<tr><td><code>T(n) = 2T(n/2) + O(n)</code></td><td class="num">1</td><td>n vs n<sup>1</sup>, tie</td><td><code>O(n log n)</code></td></tr>
-<tr><td><code>T(n) = 3T(n/2) + O(n log n)</code></td><td class="num">log<sub>2</sub>3 &asymp; 1.58</td><td>n log n is smaller</td><td><code>O(n<sup>log&#8322;3</sup>)</code></td></tr>
-<tr><td><code>T(n) = 8T(n/2) + O(n<sup>2</sup>)</code></td><td class="num">3</td><td>n<sup>2</sup> is smaller</td><td><code>O(n<sup>3</sup>)</code></td></tr>
-<tr><td><code>T(n) = 8T(n/2) + O(n<sup>3</sup>)</code></td><td class="num">3</td><td>tie</td><td><code>O(n<sup>3</sup> log n)</code></td></tr>
-<tr><td><code>T(n) = 2T(n/4) + O(n)</code></td><td class="num">0.5</td><td>n is bigger</td><td><code>O(n)</code></td></tr>
-<tr><td><code>T(n) = 3T(n/2) + O(n)</code></td><td class="num">log<sub>2</sub>3 &asymp; 1.58</td><td>n is smaller</td><td><code>O(n<sup>log&#8322;3</sup>)</code></td></tr>
+<tr><td>$T(n) = 2T(n/2) + O(n)$</td><td class="num">$1$</td><td>$n$ vs $n^{1}$, tie</td><td>$O(n \log n)$</td></tr>
+<tr><td>$T(n) = 3T(n/2) + O(n \log n)$</td><td class="num">$\log_2 3 \approx 1.58$</td><td>$n \log n$ is smaller</td><td>$O\!\left(n^{\log_2 3}\right)$</td></tr>
+<tr><td>$T(n) = 8T(n/2) + O(n^{2})$</td><td class="num">$3$</td><td>$n^{2}$ is smaller</td><td>$O(n^{3})$</td></tr>
+<tr><td>$T(n) = 8T(n/2) + O(n^{3})$</td><td class="num">$3$</td><td>tie</td><td>$O(n^{3} \log n)$</td></tr>
+<tr><td>$T(n) = 2T(n/4) + O(n)$</td><td class="num">$0.5$</td><td>$n$ is bigger</td><td>$O(n)$</td></tr>
+<tr><td>$T(n) = 3T(n/2) + O(n)$</td><td class="num">$\log_2 3 \approx 1.58$</td><td>$n$ is smaller</td><td>$O\!\left(n^{\log_2 3}\right)$</td></tr>
 </tbody>
 </table>
 </div>
 
 <div class="box trap">
   <span class="label">Case 1 needs a gap, not just "smaller"</span>
-  <p>Row 2 above catches people out. Is <code>n log n</code> smaller than <code>n<sup>1.58</sup></code>?
-  Yes, and by a polynomial factor: <code>n log n = O(n<sup>1.58-&epsilon;</sup>)</code> holds for small
-  <code>&epsilon;</code>, because <code>log n</code> grows slower than any <code>n<sup>&epsilon;</sup></code>.
-  So case 1 applies and the log disappears entirely from the answer.</p>
-  <p>The published solution spells this out: "because n log n = O(n<sup>1+&epsilon;</sup>) for any
-  &epsilon; &gt; 0, and log<sub>2</sub>(3) &gt; 1". Write that parenthetical. It is the justification the
-  question is asking for.</p>
+  <p>Row 2 above catches people out. Is $n \log n$ smaller than $n^{1.58}$? Yes, and by a polynomial
+  factor: $n \log n = O\!\left(n^{\,1.58-\epsilon}\right)$ holds for small $\epsilon$, because
+  $\log n$ grows more slowly than $n^{\epsilon}$ for every $\epsilon > 0$. So case 1 applies and the
+  log disappears entirely from the answer.</p>
+  <p>Write the justification out: <i>"because $n \log n = O\!\left(n^{1+\epsilon}\right)$ for any
+  $\epsilon > 0$, and $\log_2 3 > 1$"</i>. That parenthetical is what the question is asking for.</p>
 </div>
 
 <div class="box trap">
   <span class="label">Case 3 has a second condition and people forget it</span>
-  <p><code>af(n/b) &le; df(n)</code> for some <code>d &lt; 1</code>. It is a regularity condition saying
-  f really does shrink as you go down. For every polynomial f it holds trivially, so on the exam you
-  check it in one line and move on: for <code>T(n) = 2T(n/4) + O(n)</code>,
-  <code>af(n/b) = 2(n/4) = n/2 = &frac12;f(n)</code>, so <code>d = &frac12;</code> works.</p>
+  <p>$a f(n/b) \le d\,f(n)$ for some $d &lt; 1$. It is a regularity condition saying $f$ really does
+  shrink as you go down. For every polynomial $f$ it holds trivially, so on the exam you check it in
+  one line and move on: for $T(n) = 2T(n/4) + O(n)$,</p>
+  <div class="eq">
+  $$a f(n/b) \;=\; 2 \cdot \frac{n}{4} \;=\; \frac{n}{2} \;=\; \tfrac12 f(n),
+    \qquad \text{so } d = \tfrac12 \text{ works.}$$
+  </div>
 </div>
 
 <h2 id="pair">Closest pair of points</h2>
 
-<p><b>Input:</b> n points in the plane. <b>Output:</b> the two points at minimum Euclidean distance.
-Brute force is O(n<sup>2</sup>). In one dimension you would just sort and check adjacent pairs, but in two
-dimensions there is no single order that puts close points next to each other, so that fails.</p>
+<p><b>Input:</b> $n$ points in the plane. <b>Output:</b> the two points at minimum Euclidean
+distance. Brute force is $O(n^2)$. In one dimension you would just sort and check adjacent pairs, but
+in two dimensions there is no single order that puts close points next to each other, so that fails.</p>
 
-<p><b>Divide</b> with a vertical line L into equal halves Q and R. <b>Recurse</b> to get the closest
-pair in each. Let <code>&delta;</code> be the smaller of the two distances. <b>Combine</b>: is there a
-pair closer than <code>&delta;</code> with one point in Q and one in R?</p>
+<p><b>Divide</b> with a vertical line $L$ into equal halves $Q$ and $R$. <b>Recurse</b> to get the
+closest pair in each, at distances $\delta_Q$ and $\delta_R$, and set
+$\delta = \min(\delta_Q, \delta_R)$. <b>Combine</b>: is there a pair closer than $\delta$ with one
+point in $Q$ and one in $R$?</p>
 
 <div class="anim">
   <h4>The strip, and why 11 comparisons suffice</h4>
@@ -238,63 +255,66 @@ pair closer than <code>&delta;</code> with one point in Q and one in R?</p>
 
 <div class="box why">
   <span class="label">Where the 11 comes from</span>
-  <p>Cut the strip into squares of side <code>&delta;/2</code>. Each square holds <b>at most one</b>
-  point: it lies entirely on one side of L, and its diagonal is
-  <code>&delta;&radic;2/2 &asymp; 0.71&delta; &lt; &delta;</code>, so two points inside it would be closer than
-  <code>&delta;</code>, contradicting what the recursion already found.</p>
-  <p>The strip is <code>2&delta;</code> wide, so each row holds 4 squares. If two points in the y sorted
-  order are more than 11 positions apart, they are separated by at least 3 full rows, so their vertical
-  distance exceeds <code>&delta;</code> and they cannot be the pair you are looking for. Comparing each
-  point to the next 11 is therefore enough, and 11 is a constant, so the scan is O(n).</p>
+  <p>Cut the strip into squares of side $\delta/2$. Each square holds <b>at most one</b> point: it
+  lies entirely on one side of $L$, and its diagonal is</p>
+  <div class="eq">
+  $$\frac{\delta}{2}\sqrt{2} \;=\; \frac{\delta}{\sqrt{2}} \;\approx\; 0.71\,\delta \;&lt;\; \delta ,$$
+  </div>
+  <p>so two points inside it would be closer than $\delta$, contradicting what the recursion already
+  found.</p>
+  <p>The strip is $2\delta$ wide, so each row holds $4$ squares. If two points in the $y$ sorted order
+  are more than $11$ positions apart, they are separated by at least $3$ full rows, so their vertical
+  distance exceeds $\delta$ and they cannot be the pair you are looking for. Comparing each point to
+  the next $11$ is therefore enough, and $11$ is a constant, so the scan is $O(n)$.</p>
 </div>
 
-<p><b>Running time.</b> Naively <code>T(n) = 2T(n/2) + O(n log n)</code> because the strip has to be
-sorted by y, giving <code>O(n log<sup>2</sup> n)</code>. Sort by both coordinates <b>once</b> at the start
-and reuse those orders, and the combine drops to O(n), giving <code>T(n) = 2T(n/2) + O(n)</code> and
-<code>O(n log n)</code>.</p>
+<p><b>Running time.</b> Naively $T(n) = 2T(n/2) + O(n \log n)$, because the strip has to be sorted
+by $y$, giving $O(n \log^{2} n)$. Sort by both coordinates <b>once</b> at the start and reuse those
+orders, and the combine drops to $O(n)$, giving $T(n) = 2T(n/2) + O(n)$ and $O(n \log n)$.</p>
 
 <h2 id="kara">Karatsuba, or 4 multiplications becoming 3</h2>
 
-<p><b>Input:</b> two n bit integers x and y. <b>Output:</b> their product. Grade school long
-multiplication is O(n<sup>2</sup>), and Kolmogorov conjectured that was optimal. Karatsuba disproved it.</p>
+<p><b>Input:</b> two $n$ bit integers $x$ and $y$. <b>Output:</b> their product. Grade school long
+multiplication is $O(n^2)$, and Kolmogorov conjectured that was optimal. Karatsuba disproved it.</p>
 
-<p>Split each number in half: <code>x = x&#8321;2<sup>n/2</sup> + x&#8320;</code> and
-<code>y = y&#8321;2<sup>n/2</sup> + y&#8320;</code>. Then</p>
+<p>Split each number in half, $x = x_1 2^{n/2} + x_0$ and $y = y_1 2^{n/2} + y_0$. Then</p>
 
-<pre><code>xy = x&#8321;y&#8321;&middot;2&#8319; + (x&#8321;y&#8320; + x&#8320;y&#8321;)&middot;2^(n/2) + x&#8320;y&#8320;</code></pre>
+<div class="eq">
+$$xy \;=\; x_1 y_1 \cdot 2^{n} \;+\; (x_1 y_0 + x_0 y_1)\cdot 2^{n/2} \;+\; x_0 y_0 .$$
+</div>
 
-<p>Computing all four products separately gives <code>T(n) = 4T(n/2) + O(n)</code>, and since
-<code>c = log&#8322;4 = 2</code>, that is <code>O(n<sup>2</sup>)</code>. No gain.</p>
+<p>Computing all four products separately gives $T(n) = 4T(n/2) + O(n)$, and since
+$c = \log_2 4 = 2$, that is $O(n^{2})$. No gain.</p>
 
 <div class="box tpl">
   <span class="label">The trick</span>
-  <p>You do not need <code>x&#8321;y&#8320;</code> and <code>x&#8320;y&#8321;</code> separately, only their sum. And</p>
-  <pre><code>(x&#8321; + x&#8320;)(y&#8321; + y&#8320;) = x&#8321;y&#8321; + (x&#8321;y&#8320; + x&#8320;y&#8321;) + x&#8320;y&#8320;</code></pre>
+  <p>You do not need $x_1 y_0$ and $x_0 y_1$ separately, only their sum. And</p>
+  <div class="eq">
+  $$(x_1 + x_0)(y_1 + y_0) \;=\; x_1 y_1 \;+\; (x_1 y_0 + x_0 y_1) \;+\; x_0 y_0 ,$$
+  </div>
   <p>so the middle term is that product minus the two you already computed. Three recursive
   multiplications instead of four:</p>
-  <ul>
-    <li><code>A = x&#8321;y&#8321;</code></li>
-    <li><code>B = x&#8320;y&#8320;</code></li>
-    <li><code>C = (x&#8321; + x&#8320;)(y&#8321; + y&#8320;)</code>, and the middle term is <code>C - A - B</code></li>
-  </ul>
-  <p><code>T(n) = 3T(n/2) + O(n)</code>, and <code>c = log&#8322;3 &asymp; 1.585</code> with
-  <code>f(n) = n</code> smaller, so case 1 gives <code>O(n<sup>1.585</sup>)</code>.</p>
+  <div class="eq">
+  $$A = x_1 y_1, \qquad B = x_0 y_0, \qquad C = (x_1 + x_0)(y_1 + y_0),$$
+  $$\text{middle term} \;=\; C - A - B .$$
+  </div>
+  <p>So $T(n) = 3T(n/2) + O(n)$, and $c = \log_2 3 \approx 1.585$ with $f(n) = n$ smaller, so case 1
+  gives $O\!\left(n^{\log_2 3}\right) = O(n^{1.585})$.</p>
 </div>
 
 <div class="box note">
   <span class="label">Worth knowing, not worth memorising</span>
-  <p>Schonhage and Strassen got <code>O(n log n log log n)</code> in 1971 using the fast Fourier
-  transform, and Harvey and van der Hoeven reached <code>O(n log n)</code> in 2021. This is background,
+  <p>Schonhage and Strassen got $O(n \log n \log \log n)$ in 1971 using the fast Fourier transform,
+  and Harvey and van der Hoeven reached $O(n \log n)$ in 2021. This is background,
   not examinable procedure.</p>
 </div>
 
 <h2 id="exam">Exam answer, written out</h2>
 
-<p>The December 2024 Q1, done the way you would actually write it. The problem: n jobs, each with a
-salary <code>s<sub>i</sub></code> and a fun score <code>f<sub>i</sub></code>, all distinct. Job i
-<b>dominates</b> job j if <code>f<sub>i</sub> &gt; f<sub>j</sub></code> and
-<code>s<sub>i</sub> &gt; s<sub>j</sub></code>. A job is <b>good</b> if nothing dominates it. Output all good
-jobs in O(n log n).</p>
+<p>The December 2024 Q1, done the way you would actually write it. The problem: $n$ jobs, each with
+a salary $s_i$ and a fun score $f_i$, all distinct. Job $i$ <b>dominates</b> job $j$ if
+$f_i > f_j$ and $s_i > s_j$. A job is <b>good</b> if nothing dominates it. Output all good jobs in
+$O(n \log n)$.</p>
 
 <details>
 <summary>Think about it first, then open this</summary>
@@ -320,19 +340,18 @@ job dominates it. Every high half job already beats it on salary, so it survives
 score beats <b>all</b> of them, that is, when it beats the maximum fun score in the high half. One
 number, computed in one linear pass, filters the whole left list.</p>
 
-<p><b>Correctness.</b> By induction on <code>u - l</code>. The base case of one job is immediate, since a
+<p><b>Correctness.</b> By induction on $u - l$. The base case of one job is immediate, since a
 single job is dominated by nothing. For the step, assume L and R are correct for their halves. A job in
 the high half dominated by nothing in its own half is dominated by nothing at all, since every low half
 job has a smaller salary, so returning R unchanged is right. A job x in the low half is dominated by
 some job in the whole range exactly when it is dominated within its own half (excluded already, by the
-induction hypothesis) or by some high half job y. Since <code>s<sub>y</sub> &gt; s<sub>x</sub></code>
-automatically, that happens exactly when some high half job has a larger fun score, that is, when
-<code>f<sub>x</sub> &lt; fmax</code>. Line 7 removes exactly those.</p>
+induction hypothesis) or by some high half job $y$. Since $s_y > s_x$ automatically, that happens exactly when some high half
+job has a larger fun score, that is, when $f_x &lt; f_{\max}$. Line 7 removes exactly those.</p>
 
-<p><b>Running time.</b> Sorting once costs O(n log n). Lines 6 and 7 are single passes over at most n
-elements, so the combine is O(n) and <code>T(n) = 2T(n/2) + O(n)</code>. By the master theorem with
-a = 2, b = 2, c = log<sub>2</sub>2 = 1 and f(n) = &Theta;(n), we are in case 2 with k = 0, so
-<code>T(n) = O(n log n)</code>. Adding the sort leaves the bound at <code>O(n log n)</code>.</p>
+<p><b>Running time.</b> Sorting once costs $O(n \log n)$. Lines 6 and 7 are single passes over at
+most $n$ elements, so the combine is $O(n)$ and $T(n) = 2T(n/2) + O(n)$. By the master theorem with
+$a = 2$, $b = 2$, $c = \log_2 2 = 1$ and $f(n) = \Theta(n) = \Theta(n^{c})$, we are in case 2 with
+$k = 0$, so $T(n) = O(n \log n)$. Adding the sort leaves the bound at $O(n \log n)$.</p>
 
 <div class="box why">
   <span class="label">The move to notice</span>
@@ -346,13 +365,13 @@ a = 2, b = 2, c = log<sub>2</sub>2 = 1 and f(n) = &Theta;(n), we are in case 2 w
 <div class="box tpl">
   <span class="label">Recognising Q1 in 60 seconds</span>
   <ul>
-    <li>Target is <b>O(n log n)</b> and the input is an array or a point set. Split in half.</li>
+    <li>Target is $O(n \log n)$ and the input is an array or a point set. Split in half.</li>
     <li>The question hints at a <b>sort</b> or a <b>median</b> as a pre-processing step. That is the
     divide rule handed to you.</li>
     <li>Ask: what is true of a pair that <b>straddles</b> the split, and can I summarise one side into
     something small enough to check it in one pass?</li>
-    <li>If the combine seems to need O(n log n), ask what the recursion could <b>also return</b> (usually
-    sorted order) to make it O(n).</li>
+    <li>If the combine seems to need $O(n \log n)$, ask what the recursion could <b>also return</b>
+    (usually sorted order) to make it $O(n)$.</li>
   </ul>
 </div>
 
@@ -654,5 +673,22 @@ a = 2, b = 2, c = log<sub>2</sub>2 = 1 and f(n) = &Theta;(n), we are in case 2 w
 })();
 </script>
 
+<script defer src="katex/katex.min.js"></script>
+<script defer src="katex/auto-render.min.js"></script>
+<script>
+// Render math after the DOM is up. Deferred scripts run before DOMContentLoaded,
+// so katex and renderMathInElement are both defined by the time this fires.
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$',  right: '$',  display: false }
+    ],
+    // pseudocode stays monospace, it is code and not maths
+    ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option'],
+    throwOnError: false
+  });
+});
+</script>
 </body>
 </html>

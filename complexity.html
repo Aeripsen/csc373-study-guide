@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NP Completeness</title>
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="katex/katex.min.css">
 </head>
 <body>
 
@@ -37,7 +38,10 @@
 <p>A <b>decision problem</b> has a yes or no answer. X is in <b>NP</b> if there is a polynomial time
 algorithm B (the <b>certifier</b>) and a polynomial p, such that for every input x:</p>
 
-<pre><code>x is a Yes instance   &lArr;&rArr;   there exists y with |y| &le; p(|x|) and B(x, y) = Yes</code></pre>
+<div class="eq">
+$$x \text{ is a Yes instance} \quad \Longleftrightarrow \quad
+  \exists\, y \ \text{ with } \ |y| \le p(|x|) \ \text{ and } \ B(x, y) = \text{Yes}$$
+</div>
 
 <p>That y is the <b>certificate</b>. Informally: a Yes answer has a short proof that can be checked
 quickly. Nothing is claimed about finding it.</p>
@@ -55,25 +59,25 @@ quickly. Nothing is claimed about finding it.</p>
 <table>
 <thead><tr><th>Problem</th><th>Certificate</th><th>Certifier checks</th></tr></thead>
 <tbody>
-<tr><td>Independent Set</td><td>the set S</td><td><code>|S| = k</code>, and no edge has both endpoints in S</td></tr>
-<tr><td>Vertex Cover</td><td>the set S</td><td><code>|S| &le; k</code>, and every edge has an endpoint in S</td></tr>
-<tr><td>k-Clique</td><td>the set S</td><td><code>|S| = k</code>, and every pair in S is joined by an edge</td></tr>
-<tr><td>Subset Sum</td><td>the subset S</td><td><code>&sum;<sub>i&isin;S</sub> a<sub>i</sub> = W</code></td></tr>
+<tr><td>Independent Set</td><td>the set $S$</td><td>$|S| = k$, and no edge has both endpoints in $S$</td></tr>
+<tr><td>Vertex Cover</td><td>the set $S$</td><td>$|S| \le k$, and every edge has an endpoint in $S$</td></tr>
+<tr><td>k-Clique</td><td>the set $S$</td><td>$|S| = k$, and every pair in $S$ is joined by an edge</td></tr>
+<tr><td>Subset Sum</td><td>the subset $S$</td><td>$\sum_{i \in S} a_i = W$</td></tr>
 <tr><td>3-SAT</td><td>the truth assignment</td><td>every clause has at least one true literal</td></tr>
 <tr><td>Hamiltonian Path</td><td>the order the path visits vertices</td><td>consecutive pairs are edges, starts at s, ends at t, every vertex appears exactly once</td></tr>
-<tr><td>3-Colouring</td><td>the map <code>&phi;: V &rarr; {1,2,3}</code></td><td><code>&phi;(u) &ne; &phi;(v)</code> for every edge <code>(u,v)</code></td></tr>
-<tr><td>Dominating Set</td><td>the set S</td><td><code>|S| &le; k</code>, and every vertex is in S or has a neighbour in S</td></tr>
-<tr><td>Large Cut</td><td>the partition <code>(A, B)</code></td><td>A and B are non empty, disjoint, cover V, and at least k edges cross</td></tr>
-<tr><td>Degree Bounded Spanning Tree</td><td>the edges of T</td><td>T is connected via DFS, has exactly <code>|V| - 1</code> edges, every degree at most k</td></tr>
-<tr><td>Composite</td><td>a factor b</td><td><code>1 &lt; b &lt; a</code> and <code>b</code> divides <code>a</code></td></tr>
+<tr><td>3-Colouring</td><td>the map $\varphi : V \to \{1,2,3\}$</td><td>$\varphi(u) \ne \varphi(v)$ for every edge $(u,v)$</td></tr>
+<tr><td>Dominating Set</td><td>the set $S$</td><td>$|S| \le k$, and every vertex is in $S$ or has a neighbour in $S$</td></tr>
+<tr><td>Large Cut</td><td>the partition $(A, B)$</td><td>$A$ and $B$ are non empty, disjoint, cover $V$, and at least $k$ edges cross</td></tr>
+<tr><td>Degree Bounded Spanning Tree</td><td>the edges of $T$</td><td>$T$ is connected via DFS, has exactly $|V| - 1$ edges, every degree at most $k$</td></tr>
+<tr><td>Composite</td><td>a factor $b$</td><td>$1 &lt; b &lt; a$ and $b$ divides $a$</td></tr>
 </tbody>
 </table>
 </div>
 
 <div class="box note">
   <span class="label">Why "exactly k edges" appears in the spanning tree row</span>
-  <p>A graph on <code>|V|</code> vertices that is connected and has <code>|V| - 1</code> edges is
-  necessarily acyclic, so those two checks together certify "tree" without a separate cycle hunt. Small
+  <p>A graph on $|V|$ vertices that is connected and has $|V| - 1$ edges is necessarily acyclic, so
+  those two checks together certify "tree" without a separate cycle hunt. Small
   facts like this are what makes a certifier obviously polynomial.</p>
 </div>
 
@@ -95,13 +99,15 @@ path in G has at most k edges.</p>
 
 <h2 id="red">Reductions, and the direction</h2>
 
-<p>X is <b>polynomial time reducible</b> to Y, written <code>X &le;<sub>P</sub> Y</code>, if there is a
-polynomial time algorithm R turning any instance x of X into an instance <code>R(x)</code> of Y such
-that</p>
+<p>$X$ is <b>polynomial time reducible</b> to $Y$, written $X \le_{P} Y$, if there is a polynomial
+time algorithm $R$ turning any instance $x$ of $X$ into an instance $R(x)$ of $Y$ such that</p>
 
-<pre><code>x is a Yes instance of X   &lArr;&rArr;   R(x) is a Yes instance of Y</code></pre>
+<div class="eq">
+$$x \text{ is a Yes instance of } X \quad \Longleftrightarrow \quad
+  R(x) \text{ is a Yes instance of } Y$$
+</div>
 
-<p>Read it as "X is no harder than Y", because a solver for Y gives you a solver for X.</p>
+<p>Read it as "$X$ is no harder than $Y$", because a solver for $Y$ gives you a solver for $X$.</p>
 
 <div class="anim">
   <h4>The arrow, and what happens when you reverse it</h4>
@@ -116,9 +122,9 @@ that</p>
 
 <div class="box trap">
   <span class="label">The single most common exam error in this course</span>
-  <p>To prove <b>your</b> problem Y is NP hard, you reduce a <b>known</b> NP complete problem X into it:
-  <code>X &le;<sub>P</sub> Y</code>. The known hard problem is the <b>source</b>. Your new problem is the
-  <b>target</b>.</p>
+  <p>To prove <b>your</b> problem $Y$ is NP hard, you reduce a <b>known</b> NP complete problem $X$
+  into it: &nbsp; $X \le_{P} Y$. &nbsp; The known hard problem is the <b>source</b>. Your new problem
+  is the <b>target</b>.</p>
   <p>Sanity check before you write anything: your reduction should take an instance of
   <b>Vertex-Cover</b> (or whichever you chose) as <b>input</b>, and produce an instance of the exam's
   problem as <b>output</b>. If it is the other way round, you have proved the useless direction.</p>
@@ -126,12 +132,12 @@ that</p>
 
 <div class="box why">
   <span class="label">The lemma that makes reductions worth anything</span>
-  <p>If <code>X &le;<sub>P</sub> Y</code> and <code>Y &isin; P</code>, then <code>X &isin; P</code>.</p>
-  <p><i>Proof.</i> Let R be the reduction, running in time <code>O(n<sup>d</sup>)</code>, and let A be a
-  polynomial time algorithm for Y. Then <code>A(R(x))</code> decides X. It is correct because R
-  preserves Yes and No. It is polynomial because R takes <code>O(n<sup>d</sup>)</code>, and <b>the output
-  of R has size at most <code>O(n<sup>d</sup>)</code></b> since an algorithm cannot write more than it has
-  time for, so A runs on an input of polynomial size and therefore in polynomial time.</p>
+  <p>If $X \le_{P} Y$ and $Y \in \mathrm{P}$, then $X \in \mathrm{P}$.</p>
+  <p><i>Proof.</i> Let $R$ be the reduction, running in time $O(n^{d})$, and let $A$ be a polynomial
+  time algorithm for $Y$. Then $A(R(x))$ decides $X$. It is correct because $R$ preserves Yes and No.
+  It is polynomial because $R$ takes $O(n^{d})$, and <b>the output of $R$ has size at most
+  $O(n^{d})$</b>, since an algorithm cannot write more than it has time for. So $A$ runs on an input
+  of polynomial size and therefore in polynomial time.</p>
   <p>That bracketed step is the one people skip. Without it the composition might not be polynomial.</p>
 </div>
 
@@ -143,16 +149,16 @@ that</p>
 <tbody>
 <tr><td><b>P</b></td><td>Solvable in polynomial time</td><td>You can find the answer fast</td></tr>
 <tr><td><b>NP</b></td><td>Has a polynomial time certifier</td><td>You can check a Yes answer fast</td></tr>
-<tr><td><b>NP hard</b></td><td><code>Y &le;<sub>P</sub> X</code> for every <code>Y &isin; NP</code></td><td>At least as hard as everything in NP. Need not be in NP itself</td></tr>
+<tr><td><b>NP hard</b></td><td>$Y \le_{P} X$ for every $Y \in \mathrm{NP}$</td><td>At least as hard as everything in NP. Need not be in NP itself</td></tr>
 <tr><td><b>NP complete</b></td><td>In NP <b>and</b> NP hard</td><td>The hardest problems that are still checkable</td></tr>
 </tbody>
 </table>
 </div>
 
-<p><b>P &sube; NP.</b> If A solves X in polynomial time, use a certifier that ignores the certificate
-entirely and just runs A. That is the whole proof.</p>
+<p><b>$\mathrm{P} \subseteq \mathrm{NP}$.</b> If $A$ solves $X$ in polynomial time, use a certifier
+that ignores the certificate entirely and just runs $A$. That is the whole proof.</p>
 
-<p><b>If one NP complete problem is in P, then P = NP.</b> Every problem in NP reduces to it, and
+<p><b>If one NP complete problem is in P, then $\mathrm{P} = \mathrm{NP}$.</b> Every problem in NP reduces to it, and
 reductions preserve membership in P.</p>
 
 <div class="box tpl">
@@ -230,12 +236,16 @@ cheapest reduction in the course.</p>
 
 <div class="box tpl">
   <span class="label">The identity, worth memorising</span>
-  <p><b>S is an independent set in G &nbsp;&hArr;&nbsp; V \ S is a vertex cover of G.</b></p>
+  <div class="eq">
+  $$S \text{ is an independent set in } G
+    \quad \Longleftrightarrow \quad
+    V \setminus S \text{ is a vertex cover of } G$$
+  </div>
   <p><i>Proof, both ways at once.</i> S is independent means no edge has both endpoints in S, which means
   every edge has at least one endpoint outside S, which means every edge is covered by
   <code>V \ S</code>. Each step is a restatement, so it reads in either direction.</p>
-  <p>Immediately: G has an independent set of size <code>&ge; k</code> exactly when it has a vertex cover
-  of size <code>&le; n - k</code>. That is a reduction in one line, in both directions.</p>
+  <p>Immediately: $G$ has an independent set of size $\ge k$ exactly when it has a vertex cover of
+  size $\le n - k$. That is a reduction in one line, in both directions.</p>
 </div>
 
 <h2 id="exam">Exam answer, written out</h2>
@@ -250,42 +260,39 @@ R. Prove this problem, called <b>Representatives</b>, is NP complete.</p>
 
 <p><b>Part 1: Representatives is in NP.</b></p>
 
-<p>The certificate is the set <code>R &sube; {s&#8321;, ..., s<sub>m</sub>}</code>. The certifier checks that
-<code>|R| &le; k</code>, and that for each club <code>c<sub>i</sub></code> the set
-<code>C<sub>i</sub> &cap; R</code> is non empty. The first check takes <code>O(m)</code> time and the
-second takes <code>O(&sum;<sub>i</sub>|C<sub>i</sub>|)</code>, both polynomial in the input size. So
+<p>The certificate is the set $R \subseteq \{s_1, \ldots, s_m\}$. The certifier checks that
+$|R| \le k$, and that for each club $c_i$ the set $C_i \cap R$ is non empty. The first check takes
+$O(m)$ time and the second takes $O\!\left(\sum_i |C_i|\right)$, both polynomial in the input size. So
 Representatives is in NP.</p>
 
 <p><b>Part 2: Representatives is NP hard.</b></p>
 
-<p>We show <code>Vertex-Cover &le;<sub>P</sub> Representatives</code>. Since Vertex-Cover is NP complete,
+<p>We show $\text{Vertex-Cover} \le_{P} \text{Representatives}$. Since Vertex-Cover is NP complete,
 this makes Representatives NP hard.</p>
 
 <p><i>The reduction.</i> Given an instance <code>(G = (V, E), k)</code> of Vertex-Cover, construct an
 instance of Representatives as follows:</p>
 <ul>
-  <li>for each vertex <code>u &isin; V</code>, create a student <code>s<sub>u</sub></code>;</li>
-  <li>for each edge <code>(u,v) &isin; E</code>, create a club with membership set
-  <code>C<sub>(u,v)</sub> = {s<sub>u</sub>, s<sub>v</sub>}</code>;</li>
-  <li>keep the same bound k.</li>
+  <li>for each vertex $u \in V$, create a student $s_u$;</li>
+  <li>for each edge $(u,v) \in E$, create a club with membership set
+  $C_{(u,v)} = \{s_u,\, s_v\}$;</li>
+  <li>keep the same bound $k$.</li>
 </ul>
-<p>This writes <code>|V|</code> students and <code>|E|</code> clubs of two members each, so it runs in
-<code>O(|V| + |E|)</code> time, which is polynomial.</p>
+<p>This writes $|V|$ students and $|E|$ clubs of two members each, so it runs in $O(|V| + |E|)$ time,
+which is polynomial.</p>
 
-<p><i>Correctness, forward direction.</i> Suppose G has a vertex cover S with <code>|S| &le; k</code>. Let
-<code>R = {s<sub>u</sub> : u &isin; S}</code>, so <code>|R| = |S| &le; k</code>. Take any club
-<code>C<sub>(u,v)</sub></code>. Since S covers the edge <code>(u,v)</code>, at least one of u, v is in S,
-so at least one of <code>s<sub>u</sub>, s<sub>v</sub></code> is in R. Hence every club contains a
-representative and R is a Yes certificate for the constructed instance.</p>
+<p><i>Correctness, forward direction.</i> Suppose $G$ has a vertex cover $S$ with $|S| \le k$. Let
+$R = \{s_u : u \in S\}$, so $|R| = |S| \le k$. Take any club $C_{(u,v)}$. Since $S$ covers the edge
+$(u,v)$, at least one of $u, v$ lies in $S$, so at least one of $s_u, s_v$ lies in $R$. Hence every
+club contains a representative and $R$ is a Yes certificate for the constructed instance.</p>
 
-<p><i>Correctness, reverse direction.</i> Suppose the constructed instance has a valid set R with
-<code>|R| &le; k</code>. Let <code>S = {u : s<sub>u</sub> &isin; R}</code>, so <code>|S| = |R| &le; k</code>.
-Take any edge <code>(u,v) &isin; E</code>. The club <code>C<sub>(u,v)</sub> = {s<sub>u</sub>, s<sub>v</sub>}</code>
-contains a member of R, which must be <code>s<sub>u</sub></code> or <code>s<sub>v</sub></code>, so u or v is
-in S. Hence every edge is covered and S is a vertex cover of size at most k.</p>
+<p><i>Correctness, reverse direction.</i> Suppose the constructed instance has a valid set $R$ with
+$|R| \le k$. Let $S = \{u : s_u \in R\}$, so $|S| = |R| \le k$. Take any edge $(u,v) \in E$. The club
+$C_{(u,v)} = \{s_u, s_v\}$ contains a member of $R$, which must be $s_u$ or $s_v$, so $u$ or $v$ lies
+in $S$. Hence every edge is covered and $S$ is a vertex cover of size at most $k$.</p>
 
-<p>The two directions give: <code>(G,k)</code> is a Yes instance of Vertex-Cover exactly when its image
-is a Yes instance of Representatives. So the reduction is correct.</p>
+<p>The two directions give: $(G,k)$ is a Yes instance of Vertex-Cover exactly when its image is a Yes
+instance of Representatives. So the reduction is correct.</p>
 
 <p><b>Conclusion.</b> Representatives is in NP and is NP hard, therefore Representatives is NP
 complete.</p>
@@ -307,7 +314,7 @@ complete.</p>
   <span class="label">Q7 in six lines</span>
   <ol>
     <li>Name the certificate and the certifier. Two sentences, three minutes, worth about 3 marks.</li>
-    <li>Name your source problem and state the direction: <code>X &le;<sub>P</sub> Y</code>.</li>
+    <li>Name your source problem and state the direction: $X \le_{P} Y$.</li>
     <li>Give the construction as a bulleted mapping, and say it is polynomial time.</li>
     <li>Forward direction: a Yes for X builds a Yes for Y.</li>
     <li>Reverse direction: a Yes for Y builds a Yes for X.</li>
@@ -318,9 +325,9 @@ complete.</p>
 <div class="box note">
   <span class="label">The follow up question they like to attach</span>
   <p>"You have a pseudo-polynomial algorithm for this problem. Why does that not prove P = NP?"</p>
-  <p>Because polynomial time means polynomial in the number of <b>bits</b> of input. An O(nP) algorithm
-  where P is a sum of input numbers is exponential in the length of those numbers, since P written in
-  binary takes only <code>log P</code> bits. See <a href="dp.html#pseudo">the DP page</a> for the full
+  <p>Because polynomial time means polynomial in the number of <b>bits</b> of input. An $O(nP)$
+  algorithm, where $P$ is a sum of input numbers, is exponential in the length of those numbers, since
+  $P$ written in binary takes only $\log P$ bits. See <a href="dp.html#pseudo">the DP page</a> for the full
   version of this.</p>
 </div>
 
@@ -492,5 +499,22 @@ function clr(s) { while (s.firstChild) s.removeChild(s.firstChild); }
 })();
 </script>
 
+<script defer src="katex/katex.min.js"></script>
+<script defer src="katex/auto-render.min.js"></script>
+<script>
+// Render math after the DOM is up. Deferred scripts run before DOMContentLoaded,
+// so katex and renderMathInElement are both defined by the time this fires.
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$',  right: '$',  display: false }
+    ],
+    // pseudocode stays monospace, it is code and not maths
+    ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option'],
+    throwOnError: false
+  });
+});
+</script>
 </body>
 </html>

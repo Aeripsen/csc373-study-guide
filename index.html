@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CSC373 Study Guide</title>
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="katex/katex.min.css">
 </head>
 <body>
 
@@ -140,9 +141,9 @@ rest of it put together:</p>
 
   <a class="card" href="cheatsheet.html" style="--c:var(--ink2)">
     <span class="n">Aid sheet</span>
-    <div class="t">What goes on your one page</div>
-    <div class="d">You get one double sided handwritten sheet. Here is what earns its space and what
-    is a waste of it.</div>
+    <div class="t">The aid sheet, written out</div>
+    <div class="d">Not advice about what to include, the actual contents. Every formula, skeleton and
+    trap the seven questions can ask. Copy it by hand and carry nothing else.</div>
   </a>
 </div>
 
@@ -155,7 +156,7 @@ rest of it put together:</p>
 <tr><td><b>One evening</b></td><td><a href="templates.html">Templates</a>, then <a href="flow.html">flow</a> and <a href="lp.html">LP</a>. That is the 40% floor and the two topics where the marks are procedural.</td></tr>
 <tr><td><b>Two or three days</b></td><td>Add <a href="dp.html">DP</a> and <a href="complexity.html">complexity</a>. Both are format heavy, so they pay back fastest per hour.</td></tr>
 <tr><td><b>A week</b></td><td>Everything, then <a href="drill.html">the drill page</a> under a timer with your aid sheet and nothing else.</td></tr>
-<tr><td><b>Right before the exam</b></td><td><a href="cheatsheet.html">The aid sheet page</a>, and the trap boxes on each unit. Nothing new.</td></tr>
+<tr><td><b>Right before the exam</b></td><td><a href="cheatsheet.html">The aid sheet</a>, and nothing else. It is written to be complete on its own.</td></tr>
 </tbody>
 </table>
 </div>
@@ -182,8 +183,8 @@ can write that first line before you have solved the problem.</p>
 <div class="box note">
   <span class="label">On notation</span>
   <p>Everything here uses the notation from the course itself: <code>c[j]</code> style arrays,
-  <code>f<sup>in</sup>(v)</code> and <code>f<sup>out</sup>(v)</code> for flow, <code>X &le;<sub>P</sub> Y</code> for
-  polynomial time reduction, and the master theorem stated with <code>c = log<sub>b</sub>(a)</code>. If a
+  $f^{in}(v)$ and $f^{out}(v)$ for flow, $X \le _{P} Y$ for
+  polynomial time reduction, and the master theorem stated with $c = log_{b}(a)$. If a
   symbol here looks unfamiliar, it is a typo on this site, not a new convention.</p>
 </div>
 
@@ -194,5 +195,22 @@ can write that first line before you have solved the problem.</p>
 </footer>
 
 </div>
+<script defer src="katex/katex.min.js"></script>
+<script defer src="katex/auto-render.min.js"></script>
+<script>
+// Render math after the DOM is up. Deferred scripts run before DOMContentLoaded,
+// so katex and renderMathInElement are both defined by the time this fires.
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$',  right: '$',  display: false }
+    ],
+    // pseudocode stays monospace, it is code and not maths
+    ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option'],
+    throwOnError: false
+  });
+});
+</script>
 </body>
 </html>

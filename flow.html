@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Network Flow</title>
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="katex/katex.min.css">
 </head>
 <body>
 
@@ -34,19 +35,21 @@
 
 <h2 id="defs">Definitions you have to have exactly right</h2>
 
-<p>A <b>flow network</b> is a directed graph <code>G = (V, E)</code> with a source <code>s</code>, a sink
-<code>t</code>, and a capacity <code>c(e) &ge; 0</code> on every edge.</p>
+<p>A <b>flow network</b> is a directed graph $G = (V, E)$ with a source $s$, a sink $t$, and a
+capacity $c(e) \ge 0$ on every edge.</p>
 
-<p>An <b>s-t flow</b> is a function <code>f: E &rarr; &#8477;<sub>&ge;0</sub></code> satisfying:</p>
+<p>An <b>s-t flow</b> is a function $f : E \to \mathbb{R}_{\ge 0}$ satisfying:</p>
 
 <ul>
-  <li><b>Capacity:</b> <code>0 &le; f(e) &le; c(e)</code> for every edge.</li>
-  <li><b>Conservation:</b> <code>f<sup>in</sup>(v) = f<sup>out</sup>(v)</code> for every
-  <code>v &ne; s, t</code>, where <code>f<sup>in</sup>(v)</code> sums the flow on edges entering v and
-  <code>f<sup>out</sup>(v)</code> sums the flow on edges leaving it.</li>
+  <li><b>Capacity.</b> &nbsp; $0 \le f(e) \le c(e)$ &nbsp; for every edge $e$.</li>
+  <li><b>Conservation.</b> &nbsp; $f^{\mathrm{in}}(v) = f^{\mathrm{out}}(v)$ &nbsp; for every
+  $v \ne s, t$, where
+  $$f^{\mathrm{in}}(v) = \sum_{(u,v)\,\in\,E} f(u,v),
+    \qquad
+    f^{\mathrm{out}}(v) = \sum_{(v,w)\,\in\,E} f(v,w).$$</li>
 </ul>
 
-<p>The <b>value</b> is <code>val(f) = f<sup>out</sup>(s)</code>, the total pushed out of the source.</p>
+<p>The <b>value</b> is $\operatorname{val}(f) = f^{\mathrm{out}}(s)$, the total pushed out of the source.</p>
 
 <div class="box note">
   <span class="label">Conservation does not apply at s or t</span>
@@ -56,17 +59,16 @@
 
 <h2 id="residual">The residual network, and the backward edge</h2>
 
-<p>Given a flow f, the <b>residual network</b> <code>G<sub>f</sub></code> has the same vertices and, for
-each edge <code>(u,v)</code> of G carrying flow <code>f(u,v)</code> out of capacity
-<code>c(u,v)</code>, up to two edges:</p>
+<p>Given a flow $f$, the <b>residual network</b> $G_f$ has the same vertices and, for each edge
+$(u,v)$ of $G$ carrying flow $f(u,v)$ out of capacity $c(u,v)$, up to two edges:</p>
 
 <div class="box tpl">
   <span class="label">The rule, memorise it</span>
   <ul>
-    <li><b>Forward edge</b> <code>(u,v)</code> with residual capacity <code>c(u,v) - f(u,v)</code>, present
-    when that is positive. This is spare room.</li>
-    <li><b>Backward edge</b> <code>(v,u)</code> with residual capacity <code>f(u,v)</code>, present when
-    that is positive. This is the flow you are allowed to <b>cancel</b>.</li>
+    <li><b>Forward edge</b> $(u,v)$ with residual capacity $c(u,v) - f(u,v)$, present when that is
+    positive. This is spare room.</li>
+    <li><b>Backward edge</b> $(v,u)$ with residual capacity $f(u,v)$, present when that is positive.
+    This is the flow you are allowed to <b>cancel</b>.</li>
   </ul>
 </div>
 
@@ -111,46 +113,46 @@ edge, <b>subtract</b> b from the flow on the corresponding original edge.</p>
 <div class="box trap">
   <span class="label">The three ways people lose these marks</span>
   <ul>
-    <li><b>Omitting backward edges from the residual.</b> If <code>f(u,v) = 3</code> and
-    <code>c(u,v) = 5</code>, the residual has <code>(u,v)</code> with 2 <b>and</b> <code>(v,u)</code>
-    with 3. On most exam networks the last augmenting path uses one of these, so leaving them out gives
+    <li><b>Omitting backward edges from the residual.</b> If $f(u,v) = 3$ and $c(u,v) = 5$, the
+    residual has $(u,v)$ with $2$ <b>and</b> $(v,u)$ with $3$. On most exam networks the last augmenting path uses one of these, so leaving them out gives
     a flow that is not maximum and a cut that does not match.</li>
     <li><b>Reading the cut off the original graph.</b> Reachability is computed in the <b>residual</b>
     network, always.</li>
-    <li><b>Subtracting backward capacities in the cut.</b> <code>c(A,B)</code> is the sum of
-    <code>c(u,v)</code> over edges with <code>u &isin; A</code> and <code>v &isin; B</code>. Edges going
-    from B back to A contribute nothing at all, they are not subtracted.</li>
+    <li><b>Subtracting backward capacities in the cut.</b> $c(A,B)$ sums $c(u,v)$ over edges with
+    $u \in A$ and $v \in B$. Edges going from $B$ back to $A$ contribute nothing at all, they are not
+    subtracted.</li>
   </ul>
 </div>
 
 <h2 id="cut">Cuts, and reading the min cut off the residual</h2>
 
-<p>An <b>s-t cut</b> is a partition of V into <code>(A, B)</code> with <code>s &isin; A</code> and
-<code>t &isin; B</code>. Its <b>capacity</b> is</p>
+<p>An <b>s-t cut</b> is a partition of $V$ into $(A, B)$ with $s \in A$ and $t \in B$. Its
+<b>capacity</b> is</p>
 
-<pre><code>c(A, B) = &sum; c(u,v)   over edges (u,v) with u &isin; A and v &isin; B</code></pre>
+<div class="eq">
+$$c(A,B) \;=\; \sum_{\substack{(u,v)\,\in\,E \\ u\,\in\,A,\;\; v\,\in\,B}} c(u,v)$$
+</div>
 
 <p>Forward crossings only. An edge from B to A adds nothing.</p>
 
 <div class="box tpl">
   <span class="label">How to produce a minimum cut, every time</span>
   <p>Run Ford Fulkerson to completion. Then:</p>
-  <p><i>"Let A be the set of vertices reachable from s in the residual network
-  <code>G<sub>f</sub></code>, and let B = V \ A. Then <code>c(A,B) = val(f)</code>, so
-  <code>(A,B)</code> is a minimum cut."</i></p>
+  <p><i>"Let $A$ be the set of vertices reachable from $s$ in the residual network $G_f$, and let
+  $B = V \setminus A$. Then $c(A,B) = \operatorname{val}(f)$, so $(A,B)$ is a minimum cut."</i></p>
   <p>A always contains s, and never contains t, because if t were reachable there would still be an
   augmenting path and the algorithm would not have stopped.</p>
 </div>
 
 <div class="box why">
   <span class="label">Why that cut is saturated, in two lines</span>
-  <p>Take any edge <code>(u,v)</code> with <code>u &isin; A, v &isin; B</code>. If it had spare capacity,
-  the residual would contain <code>(u,v)</code> and v would be reachable from s, so v would be in A.
-  Contradiction. Hence <b>every edge from A to B is full</b>.</p>
-  <p>Take any edge <code>(v,u)</code> with <code>v &isin; B, u &isin; A</code>. If it carried flow, the
-  residual would contain the backward edge <code>(u,v)</code>, again making v reachable. Hence
-  <b>every edge from B to A is empty</b>.</p>
-  <p>So <code>val(f) = c(A,B) - 0 = c(A,B)</code>. Since every flow is at most every cut, both are
+  <p>Take any edge $(u,v)$ with $u \in A$, $v \in B$. If it had spare capacity, the residual would
+  contain $(u,v)$ and $v$ would be reachable from $s$, so $v$ would lie in $A$. Contradiction. Hence
+  <b>every edge from $A$ to $B$ is full</b>.</p>
+  <p>Take any edge $(v,u)$ with $v \in B$, $u \in A$. If it carried flow, the residual would contain
+  the backward edge $(u,v)$, again making $v$ reachable. Hence <b>every edge from $B$ to $A$ is
+  empty</b>.</p>
+  <p>So $\operatorname{val}(f) = c(A,B) - 0 = c(A,B)$. Since every flow is at most every cut, both are
   optimal.</p>
 </div>
 
@@ -170,8 +172,8 @@ edge, <b>subtract</b> b from the flow on the corresponding original edge.</p>
   <p>For any flow f in G, the following are equivalent:</p>
   <ol>
     <li>f is a maximum flow.</li>
-    <li>There is no augmenting path in <code>G<sub>f</sub></code>.</li>
-    <li>There is a cut <code>(A,B)</code> with <code>c(A,B) = val(f)</code>.</li>
+    <li>There is no augmenting path in $G_f$.</li>
+    <li>There is a cut $(A,B)$ with $c(A,B) = \operatorname{val}(f)$.</li>
   </ol>
   <p>In particular the maximum flow value equals the minimum cut capacity.</p>
 </div>
@@ -182,8 +184,8 @@ every flow is at most every cut, so a flow that matches a cut cannot be beaten.<
 
 <div class="box why">
   <span class="label">Weak duality in one line, because it appears again in LP</span>
-  <p>Any unit of flow leaving s must eventually reach t, and to do so it must cross from A to B at some
-  point. So <code>val(f) &le; c(A,B)</code> for <b>every</b> flow and <b>every</b> cut. That gives an
+  <p>Any unit of flow leaving $s$ must eventually reach $t$, and to do so it must cross from $A$ to
+  $B$ at some point. So $\operatorname{val}(f) \le c(A,B)$ for <b>every</b> flow and <b>every</b> cut. That gives an
   instant certificate: exhibit a cut whose capacity equals your flow's value and you have proved your
   flow is maximum without any further argument. This is the same certifying idea as LP duality, and
   max flow min cut is literally a special case of the LP duality theorem.</p>
@@ -192,7 +194,7 @@ every flow is at most every cut, so a flow that matches a cut cannot be beaten.<
 <div class="box tpl">
   <span class="label">Integrality, the sentence you need for every Q5</span>
   <p>If all capacities are integers, Ford Fulkerson terminates with an <b>integral</b> maximum flow,
-  meaning every <code>f(e)</code> is a whole number.</p>
+  meaning every $f(e)$ is a whole number.</p>
   <p><i>Why:</i> the flow starts at 0, every bottleneck is a minimum of integers, so every augmentation
   adds an integer to integers. Induction does the rest.</p>
   <p>This is what lets a flow answer a discrete question. Without it, a max flow could put 0.5 on an
@@ -205,30 +207,30 @@ every flow is at most every cut, so a flow that matches a cut cannot be beaten.<
 <table>
 <thead><tr><th>Version</th><th>Path chosen</th><th>Running time</th></tr></thead>
 <tbody>
-<tr><td>Plain Ford Fulkerson</td><td>Any augmenting path</td><td><code>O(|E| &middot; C)</code> where C is the max flow value</td></tr>
-<tr><td>Edmonds Karp</td><td>Shortest augmenting path, by BFS</td><td><code>O(|E|<sup>2</sup>|V|)</code></td></tr>
+<tr><td>Plain Ford Fulkerson</td><td>Any augmenting path</td><td>$O(|E| \cdot C)$, where $C$ is the max flow value</td></tr>
+<tr><td>Edmonds Karp</td><td>Shortest augmenting path, by BFS</td><td>$O(|E|^{2}|V|)$</td></tr>
 </tbody>
 </table>
 </div>
 
 <div class="box why">
   <span class="label">Why plain Ford Fulkerson is not polynomial</span>
-  <p><code>O(|E| &middot; C)</code> depends on the flow <b>value</b>, not the input size. C is written in
-  <code>log C</code> bits, so this is pseudo-polynomial in exactly the same sense as the O(nB)
-  knapsack table.</p>
+  <p>$O(|E| \cdot C)$ depends on the flow <b>value</b>, not the input size. $C$ is written in
+  $\log C$ bits, so this is pseudo-polynomial in exactly the same sense as the $O(nB)$ knapsack
+  table.</p>
   <p>The standard bad case: two paths of capacity 1000000 joined by a middle edge of capacity 1. Choose
   augmenting paths badly and you route through that middle edge every time, alternating direction,
   pushing one unit per iteration and taking two million iterations on a five edge graph.</p>
   <p>Edmonds Karp fixes this by always taking the <b>shortest</b> augmenting path via BFS, which makes
-  the bound depend only on <code>|V|</code> and <code>|E|</code>. When a question asks for a polynomial
+  the bound depend only on $|V|$ and $|E|$. When a question asks for a polynomial
   running time, cite Edmonds Karp, not plain Ford Fulkerson.</p>
 </div>
 
 <div class="box note">
   <span class="label">Bipartite matching is faster</span>
-  <p>On a unit capacity bipartite matching network, the max flow is at most n, so plain Ford Fulkerson
-  is already <code>O(|E| &middot; n) = O(mn)</code>. Hopcroft and Karp improve it to
-  <code>O(m&radic;n)</code> by augmenting along many short paths at once.</p>
+  <p>On a unit capacity bipartite matching network, the max flow is at most $n$, so plain Ford
+  Fulkerson is already $O(|E| \cdot n) = O(mn)$. Hopcroft and Karp improve it to $O(m\sqrt{n})$ by
+  augmenting along many short paths at once.</p>
 </div>
 
 <h2 id="exam">Exam answer, written out</h2>
@@ -260,8 +262,8 @@ s, d, D, t   bottleneck 1</code></pre>
 <p>Then the matching, which is just the middle layer edges carrying flow:
 <code>M = {(a,B), (b,A), (c,C), (d,D)}</code>, of size 4.</p>
 
-<p><b>(c) A minimum cut.</b> If every left vertex is saturated, the residual has no edge leaving s, so
-<code>A = {s}</code> and <code>B = </code> everything else, with capacity 4, matching the flow value.</p>
+<p><b>(c) A minimum cut.</b> If every left vertex is saturated, the residual has no edge leaving $s$,
+so $A = \{s\}$ and $B$ is everything else, with capacity $4$, matching the flow value.</p>
 <p>If the matching is smaller than the number of left vertices, then A is larger: it contains s, every
 left vertex still reachable, and every right vertex reachable from those. Compute it by running one BFS
 in the residual from s and listing what you reach.</p>
@@ -287,7 +289,7 @@ in the residual from s and listing what you reach.</p>
     <li>Repeat from 3 until no s-t path exists.</li>
     <li>Write out the final flow, edge by edge.</li>
     <li>A = what is reachable from s in the residual. B = the rest.</li>
-    <li>Check <code>c(A,B) = val(f)</code>. If they differ, go back to step 3.</li>
+    <li>Check $c(A,B) = \operatorname{val}(f)$. If they differ, go back to step 3.</li>
   </ol>
 </div>
 
@@ -609,5 +611,22 @@ in the residual from s and listing what you reach.</p>
 })();
 </script>
 
+<script defer src="katex/katex.min.js"></script>
+<script defer src="katex/auto-render.min.js"></script>
+<script>
+// Render math after the DOM is up. Deferred scripts run before DOMContentLoaded,
+// so katex and renderMathInElement are both defined by the time this fires.
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$',  right: '$',  display: false }
+    ],
+    // pseudocode stays monospace, it is code and not maths
+    ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option'],
+    throwOnError: false
+  });
+});
+</script>
 </body>
 </html>

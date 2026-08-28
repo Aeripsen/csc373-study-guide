@@ -32,9 +32,23 @@ first clears the 40% pass floor before you meet anything that needs an original 
 | `lp.html` | Standard form, duality, the absolute value and min max modelling tricks |
 | `complexity.html` | Certificates and certifiers, reductions, NP completeness proofs |
 | `drill.html` | Eleven past paper questions with full model answers |
-| `cheatsheet.html` | What earns space on the one double sided handwritten aid sheet |
+| `cheatsheet.html` | The finished aid sheet: every formula, skeleton and trap, ready to copy by hand |
 
 Shared stylesheet: `style.css`.
+
+## Maths
+
+Formulas are typeset with **KaTeX 0.16.11, vendored into `katex/`** (CSS, JS, the auto-render
+extension and 21 woff2 fonts, about 600 KB). Nothing is fetched from a CDN, so the pages render
+offline and cannot break when someone else's server does.
+
+Delimiters are `$ ... $` inline and `$$ ... $$` for display. Auto-render is configured to **ignore
+`<pre>` and `<code>`**, because pseudocode is code and not maths: it stays monospace on purpose, and
+only real mathematical statements are typeset. Roughly 800 formulas across the eleven pages.
+
+`cheatsheet.html` is the exception to "study material": it is written to be the finished aid sheet,
+complete enough to copy by hand and carry into the exam with nothing else. It also has a print
+stylesheet.
 
 ## Animations
 
@@ -66,7 +80,9 @@ specific mechanism visible, not for decoration.
 
 ## Checks that were run
 
-- All 12 pages start with `<!doctype html>` (without it, quirks mode stops `td` inheriting `color`).
+- All 11 pages start with `<!doctype html>` (without it, quirks mode stops `td` inheriting `color`).
+- Every formula on every page renders: 805 of them, zero KaTeX errors, checked by loading each
+  page in headless Chrome and counting `.katex-error` nodes.
 - Zero external requests. No CDN, no web fonts, no images. Works offline from a copy.
 - No em dashes or en dashes, as literal characters or as HTML entities.
 - All internal links and cross page anchors resolve.

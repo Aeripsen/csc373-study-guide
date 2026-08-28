@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Greedy Algorithms</title>
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="katex/katex.min.css">
 </head>
 <body>
 
@@ -34,11 +35,11 @@
 
 <h2 id="sched">Interval scheduling</h2>
 
-<p><b>Input:</b> intervals <code>I<sub>j</sub> = [s<sub>j</sub>, f<sub>j</sub>]</code>.
+<p><b>Input:</b> intervals $I_{j} = [s_{j}, f_{j}]$.
 <b>Output:</b> the largest set of pairwise disjoint intervals.</p>
 
 <p>There is a DP solution. Sort by finish time, let <code>c[j]</code> be the best you can do using only
-<code>I&#8321;..I<sub>j</sub></code>, and let <code>p[j] = max{k &lt; j : f<sub>k</sub> &lt; s<sub>j</sub>}</code>, the last
+$I_{1}..I_{j}$, and let $p[j] = max{k < j : f_{k} < s_{j}}$, the last
 interval that does not clash with j. Then <code>c[j] = max{c[j-1], c[p[j]] + 1}</code>. It works and it
 is O(n log n).</p>
 
@@ -61,9 +62,9 @@ is O(n log n).</p>
 1  Sort I so that f&#8321; &le; f&#8322; &le; ... &le; f&#8345;
 2  T = &empty;,  f* = -&infin;
 3  for j = 1 to n
-4      if s&#8332; &gt; f*
-5          add I&#8332; to T
-6          f* = f&#8332;
+4      if sj &gt; f*
+5          add Ij to T
+6          f* = fj
 7  return T</code></pre>
 
 <p><b>Running time.</b> O(n log n) for the sort, then one O(n) pass. If the input is given sorted, O(n).
@@ -115,7 +116,7 @@ optimal solution contains it.</p>
 
 <div class="anim">
   <h4>Swapping greedy's choice into an optimal solution</h4>
-  <p class="cap">Greedy picks I&#8332;. Suppose an optimal O does not contain it. We build a different
+  <p class="cap">Greedy picks Ij. Suppose an optimal O does not contain it. We build a different
   optimal solution that does.</p>
   <div class="stage"><svg id="exSvg" viewBox="0 0 620 250" role="img" aria-label="Exchange argument swapping an interval"></svg></div>
   <div class="ctrls">
@@ -131,8 +132,8 @@ optimal solution contains it.</p>
   swap it in without breaking anything and without losing count. That is a far weaker claim, which is
   why it is provable.</p>
   <p>The swap survives because greedy picked the earliest finishing interval, so
-  <code>f<sub>j</sub> &le; f<sub>k</sub></code>. Anything in O that fitted after
-  <code>I<sub>k</sub></code> still fits after <code>I<sub>j</sub></code>. The greedy rule is exactly the
+  $f_{j} \le f_{k}$. Anything in O that fitted after
+  $I_{k}$ still fits after $I_{j}$. The greedy rule is exactly the
   hypothesis the exchange needs, which is not a coincidence: <b>you choose the greedy rule so that the
   exchange will work.</b></p>
 </div>
@@ -141,37 +142,37 @@ optimal solution contains it.</p>
 
 <div class="box tpl">
   <span class="label">Learn this by heart, it is worth 10 marks a year</span>
-  <p><b>Lemma.</b> For every <code>j &isin; {0, 1, ..., n}</code>, let <code>T<sub>j</sub></code> be the
+  <p><b>Lemma.</b> For every $j \in {0, 1, ..., n}$, let $T_{j}$ be the
   algorithm's partial solution after processing item j. Then
-  <code>T<sub>j</sub> &sube; O</code> for some optimal solution O.</p>
+  $T_{j} \subseteq O$ for some optimal solution O.</p>
 
   <p><b>Proof, by induction on j.</b></p>
 
-  <p><b>Base case.</b> <code>T&#8320; = &empty;</code>, which is contained in every optimal solution.</p>
+  <p><b>Base case.</b> $T_{0} = \emptyset$, which is contained in every optimal solution.</p>
 
-  <p><b>Inductive step.</b> Suppose <code>T<sub>j-1</sub> &sube; O</code> for an optimal O. Three cases.</p>
+  <p><b>Inductive step.</b> Suppose $T_{j-1} \subseteq O$ for an optimal O. Three cases.</p>
   <ol>
-    <li><b>Greedy skips item j.</b> Then <code>T<sub>j</sub> = T<sub>j-1</sub> &sube; O</code>. Done.</li>
-    <li><b>Greedy takes j and <code>I<sub>j</sub> &isin; O</code>.</b> Then
-    <code>T<sub>j</sub> = T<sub>j-1</sub> &cup; {I<sub>j</sub>} &sube; O</code>. Done.</li>
-    <li><b>Greedy takes j and <code>I<sub>j</sub> &notin; O</code>.</b> Since
-    <code>T<sub>j-1</sub> &cup; {I<sub>j</sub>}</code> is feasible but O does not contain
-    <code>I<sub>j</sub></code>, there is some <code>I<sub>k</sub> &isin; O \ T<sub>j-1</sub></code> that
-    conflicts with <code>I<sub>j</sub></code>. Take the smallest such k. Let
-    <code>O' = (O \ {I<sub>k</sub>}) &cup; {I<sub>j</sub>}</code>.
+    <li><b>Greedy skips item j.</b> Then $T_{j} = T_{j-1} \subseteq O$. Done.</li>
+    <li><b>Greedy takes j and $I_{j} \in O$.</b> Then
+    $T_{j} = T_{j-1} \cup {I_{j}} \subseteq O$. Done.</li>
+    <li><b>Greedy takes j and $I_{j} \notin O$.</b> Since
+    $T_{j-1} \cup {I_{j}}$ is feasible but O does not contain
+    $I_{j}$, there is some $I_{k} \in O \setminus T_{j-1}$ that
+    conflicts with $I_{j}$. Take the smallest such k. Let
+    $O' = (O \setminus {I_{k}}) \cup {I_{j}}$.
       <ul>
-        <li><b>O' is feasible</b>, because <code>f<sub>j</sub> &le; f<sub>k</sub></code> by the greedy
-        rule, so anything in O compatible with <code>I<sub>k</sub></code> is compatible with
-        <code>I<sub>j</sub></code>.</li>
+        <li><b>O' is feasible</b>, because $f_{j} \le f_{k}$ by the greedy
+        rule, so anything in O compatible with $I_{k}$ is compatible with
+        $I_{j}$.</li>
         <li><b>O' is optimal</b>, because <code>|O'| = |O|</code>.</li>
-        <li><b>T<sub>j</sub> &sube; O'</b>, because <code>T<sub>j-1</sub> &sube; O</code>, the removed
-        <code>I<sub>k</sub></code> was not in <code>T<sub>j-1</sub></code>, and
-        <code>I<sub>j</sub></code> was added.</li>
+        <li><b>T<sub>j</sub> &sube; O'</b>, because $T_{j-1} \subseteq O$, the removed
+        $I_{k}$ was not in $T_{j-1}$, and
+        $I_{j}$ was added.</li>
       </ul>
     </li>
   </ol>
 
-  <p><b>Conclusion.</b> So <code>T = T<sub>n</sub> &sube; O</code> for some optimal O. It cannot be a
+  <p><b>Conclusion.</b> So $T = T_{n} \subseteq O$ for some optimal O. It cannot be a
   strict subset: every interval not in T was rejected because it conflicts with something in T, so it
   cannot appear in any feasible set containing T. Hence <code>T = O</code> and greedy is optimal.</p>
 </div>
@@ -212,14 +213,14 @@ optimal solution contains it.</p>
 
 <h2 id="late">Minimising lateness</h2>
 
-<p><b>Input:</b> tasks with duration <code>t<sub>i</sub></code> and deadline <code>d<sub>i</sub></code>. You
+<p><b>Input:</b> tasks with duration $t_{i}$ and deadline $d_{i}$. You
 choose start times, no overlaps, no idle time needed.
 <b>Output:</b> a schedule minimising the maximum lateness
-<code>max<sub>i</sub> max{0, f<sub>i</sub> - d<sub>i</sub>}</code>.</p>
+$max_{i} max{0, f_{i} - d_{i}}$.</p>
 
 <div class="box tpl">
   <span class="label">The rule</span>
-  <p><b>Earliest deadline first.</b> Sort by <code>d<sub>i</sub></code> ascending and run tasks
+  <p><b>Earliest deadline first.</b> Sort by $d_{i}$ ascending and run tasks
   back to back in that order. Durations are irrelevant to the ordering, which is the surprising part.</p>
 </div>
 
@@ -264,7 +265,7 @@ distinction is this:</p>
 
 <h2 id="exam">Exam answer, written out</h2>
 
-<p>December 2024 Q3. Houses at sorted positions <code>x&#8321; &le; ... &le; x<sub>n</sub></code> on the
+<p>December 2024 Q3. Houses at sorted positions $x_{1} \le ... \le x_{n}$ on the
 road <code>[0, 100]</code>. Every house needs a post office within 2 km. Minimise the number of post
 offices. Full credit requires O(n), and the question explicitly demands an inductive proof that each
 partial solution extends to an optimal one.</p>
@@ -301,17 +302,17 @@ right.</p>
 
 <p><i>Inductive step.</i> Suppose the algorithm's first <code>k-1</code> offices agree with an optimal
 solution O. Both therefore cover exactly the same set of houses, namely a prefix
-<code>x&#8321;, ..., x<sub>i-1</sub></code>, so house <code>x<sub>i</sub></code> is the leftmost house
-uncovered in both. O must cover <code>x<sub>i</sub></code> with some office at a position
-<code>y &isin; [x<sub>i</sub> - 2, x<sub>i</sub> + 2]</code>, and since the houses are sorted, that is O's
-k-th office. The algorithm puts its k-th office at <code>y' = x<sub>i</sub> + 2 &ge; y</code>.</p>
+$x_{1}, ..., x_{i-1}$, so house $x_{i}$ is the leftmost house
+uncovered in both. O must cover $x_{i}$ with some office at a position
+$y \in [x_{i} - 2, x_{i} + 2]$, and since the houses are sorted, that is O's
+k-th office. The algorithm puts its k-th office at $y' = x_{i} + 2 \ge y$.</p>
 
 <p>Form <code>O'</code> from O by moving that one office from <code>y</code> to <code>y'</code>. Every
 house O's k-th office covered lies in <code>[y - 2, y + 2]</code>. Any such house at position at least
-<code>x<sub>i</sub></code> lies in <code>[x<sub>i</sub>, y + 2] &sube; [y' - 2, y' + 2]</code> and so is still
-covered, using <code>y' &ge; y</code> and <code>y' - 2 = x<sub>i</sub></code>. Any such house below
-<code>x<sub>i</sub></code> is already covered by the first <code>k-1</code> offices, since
-<code>x<sub>i</sub></code> is the leftmost uncovered house. So <code>O'</code> covers every house that O
+$x_{i}$ lies in $[x_{i}, y + 2] \subseteq [y' - 2, y' + 2]$ and so is still
+covered, using $y' \ge y$ and $y' - 2 = x_{i}$. Any such house below
+$x_{i}$ is already covered by the first <code>k-1</code> offices, since
+$x_{i}$ is the leftmost uncovered house. So <code>O'</code> covers every house that O
 covered, uses the same number of offices, and is therefore also optimal. Its first k offices agree with
 the algorithm's, completing the step.</p>
 
@@ -547,10 +548,10 @@ function clr(s) { while (s.firstChild) s.removeChild(s.firstChild); }
   var stage = 0;
 
   var STAGES = [
-    'Greedy has already taken the grey intervals, and they sit inside an optimal solution O. Now greedy takes I&#8332;, the earliest finishing interval left. Press Step.',
-    'But O does not contain I&#8332;. Instead O contains I&#8342;, which conflicts with I&#8332;. Note where each one ends: <b>f&#8332; &le; f&#8342;</b>, because greedy picked the earliest finishing one available.',
-    'Build O&prime; by removing I&#8342; and inserting I&#8332;. The only thing to check is feasibility: does anything in O now clash with I&#8332;?',
-    'Nothing does. I&#8332; ends no later than I&#8342; did, so every interval of O that started after I&#8342; still starts after I&#8332;. <b>O&prime; is feasible, |O&prime;| = |O| so it is still optimal, and it contains greedy’s choice.</b> The induction survives one more step.'
+    'Greedy has already taken the grey intervals, and they sit inside an optimal solution O. Now greedy takes Ij, the earliest finishing interval left. Press Step.',
+    'But O does not contain Ij. Instead O contains I&#8342;, which conflicts with Ij. Note where each one ends: <b>fj &le; f&#8342;</b>, because greedy picked the earliest finishing one available.',
+    'Build O&prime; by removing I&#8342; and inserting Ij. The only thing to check is feasibility: does anything in O now clash with Ij?',
+    'Nothing does. Ij ends no later than I&#8342; did, so every interval of O that started after I&#8342; still starts after Ij. <b>O&prime; is feasible, |O&prime;| = |O| so it is still optimal, and it contains greedy’s choice.</b> The induction survives one more step.'
   ];
 
   function bar(x1, x2, y, fill, label, dash) {
@@ -632,5 +633,22 @@ function clr(s) { while (s.firstChild) s.removeChild(s.firstChild); }
 })();
 </script>
 
+<script defer src="katex/katex.min.js"></script>
+<script defer src="katex/auto-render.min.js"></script>
+<script>
+// Render math after the DOM is up. Deferred scripts run before DOMContentLoaded,
+// so katex and renderMathInElement are both defined by the time this fires.
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$',  right: '$',  display: false }
+    ],
+    // pseudocode stays monospace, it is code and not maths
+    ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option'],
+    throwOnError: false
+  });
+});
+</script>
 </body>
 </html>

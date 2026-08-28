@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Linear Programming</title>
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="katex/katex.min.css">
 </head>
 <body>
 
@@ -59,8 +60,8 @@ objective as far as it will go inside it.</p>
   all.</p>
   <p><b>Simplex</b> walks from vertex to neighbouring vertex, improving each time. It is fast in
   practice and exponential in the worst case. <b>Interior point methods</b> cut through the middle and
-  run in time polynomial in the number of bits of the input, about
-  <code>O((m+n)<sup>3.5</sup>L)</code> for m constraints, n variables, and L bit coefficients. You need
+  run in time polynomial in the number of bits of the input, about $O\!\left((m+n)^{3.5} L\right)$
+  for $m$ constraints, $n$ variables, and $L$ bit coefficients. You need
   the fact that LP is solvable in polynomial time, not the algorithms themselves.</p>
 </div>
 
@@ -72,47 +73,54 @@ objective as far as it will go inside it.</p>
   <table>
   <thead><tr><th>Maximisation</th><th>Minimisation</th></tr></thead>
   <tbody><tr>
-    <td><pre style="margin:0;border:0;background:none;padding:0"><code>max  c&#8321;x&#8321; + ... + c&#8345;x&#8345;
-s.t. a&#8321;&#8321;x&#8321; + ... + a&#8321;&#8345;x&#8345; &le; b&#8321;
-     ...
-     a&#8344;&#8321;x&#8321; + ... + a&#8344;&#8345;x&#8345; &le; b&#8344;
-     x&#8321;, ..., x&#8345; &ge; 0</code></pre></td>
-    <td><pre style="margin:0;border:0;background:none;padding:0"><code>min  c&#8321;x&#8321; + ... + c&#8345;x&#8345;
-s.t. a&#8321;&#8321;x&#8321; + ... + a&#8321;&#8345;x&#8345; &ge; b&#8321;
-     ...
-     a&#8344;&#8321;x&#8321; + ... + a&#8344;&#8345;x&#8345; &ge; b&#8344;
-     x&#8321;, ..., x&#8345; &ge; 0</code></pre></td>
+    <td>
+$$\begin{array}{ll}
+\max &amp; c_1 x_1 + \cdots + c_n x_n \\[2pt]
+\text{s.t.} &amp; a_{11} x_1 + \cdots + a_{1n} x_n \le b_1 \\
+ &amp; \qquad\qquad \vdots \\
+ &amp; a_{m1} x_1 + \cdots + a_{mn} x_n \le b_m \\[2pt]
+ &amp; x_1, \ldots, x_n \ge 0
+\end{array}$$
+    </td>
+    <td>
+$$\begin{array}{ll}
+\min &amp; c_1 x_1 + \cdots + c_n x_n \\[2pt]
+\text{s.t.} &amp; a_{11} x_1 + \cdots + a_{1n} x_n \ge b_1 \\
+ &amp; \qquad\qquad \vdots \\
+ &amp; a_{m1} x_1 + \cdots + a_{mn} x_n \ge b_m \\[2pt]
+ &amp; x_1, \ldots, x_n \ge 0
+\end{array}$$
+    </td>
   </tr></tbody>
   </table>
   </div>
-  <p>Max goes with <code>&le;</code>, min goes with <code>&ge;</code>, and every variable is
-  non negative in both. Remembering that pairing is most of the battle.</p>
+  <p>In compact form: $\max c^{\mathsf T} x$ subject to $Ax \le b$, $x \ge 0$. Max goes with $\le$,
+  min goes with $\ge$, and every variable is non negative in both. Remembering that pairing is most of
+  the battle.</p>
 </div>
 
 <div class="box tpl">
   <span class="label">The four moves, in this order</span>
   <ol>
-    <li><b>Collect variables on the left, constants on the right.</b>
-    <code>x&#8322; &le; 1 - x&#8321;</code> becomes <code>x&#8321; + x&#8322; &le; 1</code>. Do this first, it
-    prevents most sign errors.</li>
-    <li><b>Flip the wrong direction inequalities</b> by multiplying by -1, which reverses the sign.
-    <code>2x&#8322; &ge; x&#8321;</code> becomes <code>x&#8321; - 2x&#8322; &le; 0</code>.</li>
-    <li><b>Split equalities.</b> <code>g(x) = b</code> becomes <code>g(x) &le; b</code> and
-    <code>g(x) &ge; b</code>, then flip the second.</li>
-    <li><b>Split free variables.</b> If <code>x<sub>i</sub></code> may be negative, replace every
-    occurrence with <code>x<sub>i</sub><sup>+</sup> - x<sub>i</sub><sup>-</sup></code> and add
-    <code>x<sub>i</sub><sup>+</sup>, x<sub>i</sub><sup>-</sup> &ge; 0</code>. In the objective too.</li>
+    <li><b>Collect variables on the left, constants on the right.</b> &nbsp;
+    $x_2 \le 1 - x_1$ &nbsp; becomes &nbsp; $x_1 + x_2 \le 1$. Do this first, it prevents most sign
+    errors.</li>
+    <li><b>Flip the wrong direction inequalities</b> by multiplying by $-1$, which reverses the sign.
+    &nbsp; $2x_2 \ge x_1$ &nbsp; becomes &nbsp; $x_1 - 2x_2 \le 0$.</li>
+    <li><b>Split equalities.</b> &nbsp; $g(x) = b$ &nbsp; becomes &nbsp; $g(x) \le b$ and
+    $g(x) \ge b$, then flip the second.</li>
+    <li><b>Split free variables.</b> If $x_i$ may be negative, replace every occurrence with
+    $x_i^{+} - x_i^{-}$ and add $x_i^{+}, x_i^{-} \ge 0$. In the objective too.</li>
   </ol>
-  <p>To turn a min into a max, negate the objective: <code>min f</code> and <code>max -f</code> have the
-  same optimiser, and the optimal values differ by a sign. Say which convention you are using.</p>
+  <p>To turn a min into a max, negate the objective: $\min f$ and $\max (-f)$ have the same
+  optimiser, and the optimal values differ by a sign. Say which convention you are using.</p>
 </div>
 
 <div class="box why">
   <span class="label">Why splitting a free variable works</span>
   <p>Every real number is a difference of two non negative reals, and the map is onto: given any
-  <code>x</code>, take <code>x<sup>+</sup> = max(x, 0)</code> and <code>x<sup>-</sup> = max(-x, 0)</code>.
-  So the feasible values of <code>x<sup>+</sup> - x<sup>-</sup></code> are exactly all of
-  <code>&#8477;</code>, and the LP is unchanged. The representation is not unique (you could add 5 to
+  $x$, take $x^{+} = \max(x, 0)$ and $x^{-} = \max(-x, 0)$. So the feasible values of
+  $x^{+} - x^{-}$ are exactly all of $\mathbb{R}$, and the LP is unchanged. The representation is not unique (you could add 5 to
   both), but nothing in the LP can tell the difference, so it does not matter.</p>
 </div>
 
@@ -139,9 +147,9 @@ s.t. a&#8321;&#8321;x&#8321; + ... + a&#8321;&#8345;x&#8345; &ge; b&#8321;
   <table>
   <thead><tr><th>Primal (max)</th><th>Dual (min)</th></tr></thead>
   <tbody>
-  <tr><td><code>max c<sup>T</sup>x</code></td><td><code>min b<sup>T</sup>y</code></td></tr>
-  <tr><td><code>Ax &le; b</code></td><td><code>A<sup>T</sup>y &ge; c</code></td></tr>
-  <tr><td><code>x &ge; 0</code></td><td><code>y &ge; 0</code></td></tr>
+  <tr><td>$\max\; c^{\mathsf T} x$</td><td>$\min\; b^{\mathsf T} y$</td></tr>
+  <tr><td>$Ax \le b$</td><td>$A^{\mathsf T} y \ge c$</td></tr>
+  <tr><td>$x \ge 0$</td><td>$y \ge 0$</td></tr>
   <tr><td>m constraints</td><td>m variables</td></tr>
   <tr><td>n variables</td><td>n constraints</td></tr>
   </tbody>
@@ -150,24 +158,33 @@ s.t. a&#8321;&#8321;x&#8321; + ... + a&#8321;&#8345;x&#8345; &ge; b&#8321;
   <p>One dual variable per primal constraint. One dual constraint per primal variable. The old right
   hand side becomes the new objective, the old objective becomes the new right hand side, and the
   matrix is transposed.</p>
-  <p>Then the sentence the exam asks for every time: <i>"the dual variable y<sub>i</sub> corresponds to
-  the primal constraint [name it]."</i></p>
+  <p>Then the sentence the exam asks for every time: <i>"the dual variable $y_i$ corresponds to the
+  primal constraint [name it]."</i></p>
 </div>
 
 <div class="box why">
   <span class="label">Where the dual actually comes from</span>
   <p>It is not an arbitrary transformation. It is the search for the best <b>provable upper bound</b> on
   the primal.</p>
-  <p>Suppose you want to bound <code>max c<sup>T</sup>x</code>. Take non negative multipliers
-  <code>y&#8321;, ..., y<sub>m</sub></code>, multiply constraint i by <code>y<sub>i</sub></code>, and add them
-  all up. Since every <code>y<sub>i</sub> &ge; 0</code>, the inequalities survive, and you get</p>
-  <pre><code>(&sum;&#7522; y&#7522;a&#7522;&#8321;)x&#8321; + ... + (&sum;&#7522; y&#7522;a&#7522;&#8345;)x&#8345;  &le;  &sum;&#7522; y&#7522;b&#7522;</code></pre>
-  <p>If the coefficient of each <code>x<sub>j</sub></code> on the left is <b>at least</b>
-  <code>c<sub>j</sub></code>, then because <code>x &ge; 0</code>, the left side is at least the objective.
-  So <code>c<sup>T</sup>x &le; b<sup>T</sup>y</code>: you have proved an upper bound.</p>
-  <p>The requirement "coefficient of <code>x<sub>j</sub></code> is at least <code>c<sub>j</sub></code>" is
-  exactly <code>A<sup>T</sup>y &ge; c</code>. Minimising <code>b<sup>T</sup>y</code> is asking for the
-  <b>tightest</b> such bound. That is the dual, and weak duality is true by construction.</p>
+  <p>Suppose you want to bound $\max c^{\mathsf T} x$. Take non negative multipliers
+  $y_1, \ldots, y_m$, multiply constraint $i$ by $y_i$, and add them all up. Since every
+  $y_i \ge 0$, the inequalities survive, and you get</p>
+
+  <div class="eq">
+  $$\left(\sum_{i=1}^{m} y_i a_{i1}\right) x_1 + \cdots + \left(\sum_{i=1}^{m} y_i a_{in}\right) x_n
+    \;\le\; \sum_{i=1}^{m} y_i b_i .$$
+  </div>
+
+  <p>If the coefficient of each $x_j$ on the left is <b>at least</b> $c_j$, then because $x \ge 0$ the
+  left side is at least the objective, so</p>
+
+  <div class="eq">
+  $$c^{\mathsf T} x \;\le\; b^{\mathsf T} y .$$
+  </div>
+
+  <p>The requirement "coefficient of $x_j$ is at least $c_j$" is exactly $A^{\mathsf T} y \ge c$, and
+  minimising $b^{\mathsf T} y$ is asking for the <b>tightest</b> such bound. That is the dual, and weak
+  duality is true by construction.</p>
 </div>
 
 <h2 id="duality">The duality theorem</h2>
@@ -204,40 +221,53 @@ examined.</p>
 
 <div class="box tpl">
   <span class="label">Trick 1: minimising an absolute value</span>
-  <p>To minimise <code>&sum;<sub>i</sub> |g<sub>i</sub>(x)|</code>, introduce a new variable
-  <code>e<sub>i</sub></code> for each term and write</p>
-  <pre><code>min  e&#8321; + ... + e&#8345;
-s.t. e&#7522; &ge;  g&#7522;(x)     for all i
-     e&#7522; &ge; -g&#7522;(x)     for all i</code></pre>
-  <p><b>Why it works.</b> The two constraints say
-  <code>e<sub>i</sub> &ge; max(g<sub>i</sub>, -g<sub>i</sub>) = |g<sub>i</sub>|</code>. Since the objective is
-  <i>minimising</i> the sum of the <code>e<sub>i</sub></code>, nothing pushes them higher than they must
-  be, so at an optimum each <code>e<sub>i</sub></code> is exactly <code>|g<sub>i</sub>|</code>.</p>
-  <p>This <b>only</b> works when the objective pushes <code>e<sub>i</sub></code> down. Trying it inside a
-  maximisation lets <code>e<sub>i</sub></code> float up to infinity and the model is wrong.</p>
+  <p>To minimise $\sum_{i} \lvert g_i(x) \rvert$, introduce a new variable $e_i$ for each term and
+  write</p>
+
+  <div class="eq">
+  $$\begin{array}{ll}
+  \min &amp; e_1 + \cdots + e_n \\[2pt]
+  \text{s.t.} &amp; e_i \ge \phantom{-}g_i(x) \quad \text{for all } i \\
+   &amp; e_i \ge -g_i(x) \quad \text{for all } i
+  \end{array}$$
+  </div>
+
+  <p><b>Why it works.</b> The two constraints together say</p>
+  <div class="eq">
+  $$e_i \;\ge\; \max\{\,g_i(x),\, -g_i(x)\,\} \;=\; \lvert g_i(x) \rvert .$$
+  </div>
+  <p>Since the objective <i>minimises</i> the sum of the $e_i$, nothing pushes them higher than they
+  must be, so at an optimum each $e_i$ equals $\lvert g_i(x) \rvert$ exactly.</p>
+  <p>This <b>only</b> works when the objective pushes $e_i$ down. Trying it inside a maximisation lets
+  $e_i$ float up to infinity and the model is wrong.</p>
 </div>
 
 <div class="box tpl">
   <span class="label">Trick 2: minimising a maximum</span>
-  <p>To minimise <code>max<sub>i</sub> |g<sub>i</sub>(x)|</code>, use a <b>single</b> variable t:</p>
-  <pre><code>min  t
-s.t. t &ge;  g&#7522;(x)     for all i
-     t &ge; -g&#7522;(x)     for all i</code></pre>
+  <p>To minimise $\max_{i} \lvert g_i(x) \rvert$, use a <b>single</b> variable $t$:</p>
+
+  <div class="eq">
+  $$\begin{array}{ll}
+  \min &amp; t \\[2pt]
+  \text{s.t.} &amp; t \ge \phantom{-}g_i(x) \quad \text{for all } i \\
+   &amp; t \ge -g_i(x) \quad \text{for all } i
+  \end{array}$$
+  </div>
+
   <p>One variable bounded below by every term is bounded below by their maximum, and minimising drives
   it down to exactly that maximum.</p>
-  <p>One <code>e<sub>i</sub></code> each gives the <b>sum</b> of absolute errors. One shared t gives the
-  <b>maximum</b> absolute error. That single difference is the whole distinction, and it has been
-  examined both ways.</p>
+  <p>One $e_i$ each gives the <b>sum</b> of absolute errors. One shared $t$ gives the <b>maximum</b>
+  absolute error. That single difference is the whole distinction, and it has been examined both
+  ways.</p>
 </div>
 
 <div class="box note">
   <span class="label">Line fitting, the recurring example</span>
-  <p>Given points <code>(x<sub>i</sub>, y<sub>i</sub>)</code>, fit <code>y = ax + b</code>. Least squares
-  minimises <code>&sum;(ax<sub>i</sub> + b - y<sub>i</sub>)<sup>2</sup></code>, which is <b>not</b> an LP,
-  though it does have a closed form. Minimising <code>&sum;|ax<sub>i</sub> + b - y<sub>i</sub>|</code> is
-  an LP by trick 1 and is less sensitive to outliers. Minimising the worst single error is an LP by
-  trick 2. Variables are <code>a</code> and <code>b</code>, both free, so both get split when you go to
-  standard form.</p>
+  <p>Given points $(x_i, y_i)$, fit $y = ax + b$. Least squares minimises
+  $\sum_i (a x_i + b - y_i)^{2}$, which is <b>not</b> an LP, though it does have a closed form.
+  Minimising $\sum_i \lvert a x_i + b - y_i \rvert$ is an LP by trick 1 and is less sensitive to
+  outliers. Minimising $\max_i \lvert a x_i + b - y_i \rvert$ is an LP by trick 2. The variables are
+  $a$ and $b$, both free, so both get split when you go to standard form.</p>
 </div>
 
 <div class="box trap">
@@ -267,10 +297,14 @@ s.t. t &ge;  g&#7522;(x)     for all i
 
 <div class="box note">
   <span class="label">The question</span>
-  <pre><code>Maximize  5x&#8321; + x&#8322;
-s.t.      x&#8322; &le; 1 - x&#8321;
-          2x&#8322; &ge; x&#8321;
-          x&#8321; &isin; &#8477;,  x&#8322; &ge; 0</code></pre>
+  <div class="eq">
+  $$\begin{array}{ll}
+  \text{Maximize} &amp; 5x_1 + x_2 \\[2pt]
+  \text{s.t.} &amp; x_2 \le 1 - x_1 \\
+   &amp; 2x_2 \ge x_1 \\[2pt]
+   &amp; x_1 \in \mathbb{R}, \quad x_2 \ge 0
+  \end{array}$$
+  </div>
   <p>(a) Convert to standard form. (b) Write the dual, saying which dual variable goes with which
   primal constraint.</p>
 </div>
@@ -280,42 +314,49 @@ s.t.      x&#8322; &le; 1 - x&#8321;
 
 <p><b>(a) Standard form.</b></p>
 
-<p>Move variables left: <code>x&#8321; + x&#8322; &le; 1</code> and <code>-x&#8321; + 2x&#8322; &ge; 0</code>.</p>
+<p>Move variables left: &nbsp; $x_1 + x_2 \le 1$ &nbsp; and &nbsp; $-x_1 + 2x_2 \ge 0$.</p>
 
-<p>Flip the second: <code>x&#8321; - 2x&#8322; &le; 0</code>.</p>
+<p>Flip the second: &nbsp; $x_1 - 2x_2 \le 0$.</p>
 
-<p><code>x&#8321;</code> is free, so replace it with <code>x&#8321;&#8314; - x&#8321;&#8315;</code> where both are
-non negative, everywhere including the objective:</p>
+<p>$x_1$ is free, so replace it with $x_1^{+} - x_1^{-}$ where both are non negative, everywhere
+including the objective:</p>
 
-<pre><code>max  5x&#8321;&#8314; - 5x&#8321;&#8315; + x&#8322;
-s.t. x&#8321;&#8314; - x&#8321;&#8315; +  x&#8322; &le; 1
-     x&#8321;&#8314; - x&#8321;&#8315; - 2x&#8322; &le; 0
-     x&#8321;&#8314;, x&#8321;&#8315;, x&#8322; &ge; 0</code></pre>
+<div class="eq">
+$$\begin{array}{ll}
+\max &amp; 5x_1^{+} - 5x_1^{-} + x_2 \\[2pt]
+\text{s.t.} &amp; x_1^{+} - x_1^{-} + \phantom{2}x_2 \le 1 \\
+ &amp; x_1^{+} - x_1^{-} - 2x_2 \le 0 \\[2pt]
+ &amp; x_1^{+},\, x_1^{-},\, x_2 \ge 0
+\end{array}$$
+</div>
 
 <p><b>(b) The dual.</b> Two primal constraints, so two dual variables. Three primal variables, so three
 dual constraints.</p>
 
 <ul>
-  <li><code>y&#8321;</code> corresponds to the first primal constraint,
-  <code>x&#8321;&#8314; - x&#8321;&#8315; + x&#8322; &le; 1</code>;</li>
-  <li><code>y&#8322;</code> corresponds to the second, <code>x&#8321;&#8314; - x&#8321;&#8315; - 2x&#8322; &le; 0</code>.</li>
+  <li>$y_1$ corresponds to the first primal constraint, $x_1^{+} - x_1^{-} + x_2 \le 1$;</li>
+  <li>$y_2$ corresponds to the second, $x_1^{+} - x_1^{-} - 2x_2 \le 0$.</li>
 </ul>
 
-<p>The objective coefficients come from the primal right hand side <code>(1, 0)</code>. Each dual
-constraint reads the column of one primal variable:</p>
+<p>The objective coefficients come from the primal right hand side $(1, 0)$. Each dual constraint
+reads the column of one primal variable:</p>
 
-<pre><code>min  y&#8321;
-s.t.  y&#8321; +  y&#8322; &ge;  5        (column of x&#8321;&#8314;)
-     -y&#8321; -  y&#8322; &ge; -5        (column of x&#8321;&#8315;)
-      y&#8321; - 2y&#8322; &ge;  1        (column of x&#8322;)
-      y&#8321;, y&#8322; &ge; 0</code></pre>
+<div class="eq">
+$$\begin{array}{lll}
+\min &amp; y_1 &amp; \\[2pt]
+\text{s.t.} &amp; \phantom{-}y_1 + \phantom{2}y_2 \ge \phantom{-}5 &amp; \text{(column of } x_1^{+})\\
+ &amp; -y_1 - \phantom{2}y_2 \ge -5 &amp; \text{(column of } x_1^{-})\\
+ &amp; \phantom{-}y_1 - 2y_2 \ge \phantom{-}1 &amp; \text{(column of } x_2)\\[2pt]
+ &amp; y_1,\, y_2 \ge 0 &amp;
+\end{array}$$
+</div>
 
 <div class="box why">
   <span class="label">The thing worth noticing</span>
-  <p>The first two dual constraints are <code>y&#8321; + y&#8322; &ge; 5</code> and
-  <code>y&#8321; + y&#8322; &le; 5</code>, which together force <code>y&#8321; + y&#8322; = 5</code>. That is not a
-  coincidence: a <b>free primal variable</b> always produces an <b>equality dual constraint</b>, because
-  splitting it into a plus and a minus part generates a matched pair of opposite inequalities.</p>
+  <p>The first two dual constraints are $y_1 + y_2 \ge 5$ and $y_1 + y_2 \le 5$, which together
+  force $y_1 + y_2 = 5$. That is not a coincidence: a <b>free primal variable</b> always produces an
+  <b>equality dual constraint</b>, because splitting it into a plus and a minus part generates a
+  matched pair of opposite inequalities.</p>
   <p>The mirror image also holds: a primal equality constraint gives a free dual variable. If you take
   the dual of a program that was not in standard form and get something with equalities or free
   variables in it, that is why. Writing the pair of inequalities is safer on an exam, but knowing they
@@ -325,8 +366,8 @@ s.t.  y&#8321; +  y&#8322; &ge;  5        (column of x&#8321;&#8314;)
 <div class="box tpl">
   <span class="label">The ten second check</span>
   <p>Count. Two primal constraints and two dual variables. Three primal variables and three dual
-  constraints. Max became min. Every <code>&le;</code> became <code>&ge;</code>. All variables still
-  non negative. If any of those five does not hold, you transposed something wrong.</p>
+  constraints. Max became min. Every $\le$ became $\ge$. All variables still non negative. If any of
+  those five does not hold, you transposed something wrong.</p>
 </div>
 </details>
 
@@ -337,8 +378,8 @@ s.t.  y&#8321; +  y&#8322; &ge;  5        (column of x&#8321;&#8314;)
     constraints is the single most common error.</li>
     <li><b>Skipping "which dual variable corresponds to which constraint".</b> The question asks for it
     in words, so it is marked, and it is one line.</li>
-    <li><b>Flipping the objective sense but not the inequalities.</b> Max pairs with <code>&le;</code>
-    and min with <code>&ge;</code>. Mixing them gives a program that is not in either standard form.</li>
+    <li><b>Flipping the objective sense but not the inequalities.</b> Max pairs with $\le$ and min
+    with $\ge$. Mixing them gives a program that is not in either standard form.</li>
   </ul>
 </div>
 
@@ -572,5 +613,22 @@ function clr(s) { while (s.firstChild) s.removeChild(s.firstChild); }
 })();
 </script>
 
+<script defer src="katex/katex.min.js"></script>
+<script defer src="katex/auto-render.min.js"></script>
+<script>
+// Render math after the DOM is up. Deferred scripts run before DOMContentLoaded,
+// so katex and renderMathInElement are both defined by the time this fires.
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$',  right: '$',  display: false }
+    ],
+    // pseudocode stays monospace, it is code and not maths
+    ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option'],
+    throwOnError: false
+  });
+});
+</script>
 </body>
 </html>

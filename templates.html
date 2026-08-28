@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Exam Answer Templates</title>
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="katex/katex.min.css">
 </head>
 <body>
 
@@ -130,7 +131,7 @@ tells you the recurrence before you have read the problem: two halves, linear me
   <p><b>2. Justify it with the case split.</b> The justification is always the same two sentences,
   rewritten for the problem:</p>
   <p><i>"Consider an optimal solution for [subproblem i]. Either it [uses item i], in which case the rest
-  of it must be an optimal solution to [the smaller subproblem], giving <code>A[i-1] + v<sub>i</sub></code>;
+  of it must be an optimal solution to [the smaller subproblem], giving $A[i-1] + v_{i}$;
   or it does not, in which case it is an optimal solution to [the other smaller subproblem], giving
   <code>A[i-1]</code>. Since these two cases are exhaustive, the optimum is the better of the two, which
   is what the recurrence takes."</i></p>
@@ -313,13 +314,13 @@ s.t. a&#8321;&#8321;x&#8321; + ... + a&#8321;&#8345;x&#8345; &le; b&#8321;
      x&#8321;, ..., x&#8345; &ge; 0</code></pre>
   <p>Four moves, applied in this order:</p>
   <ol>
-    <li><b>Move every variable to the left.</b> <code>x&#8322; &le; 1 - x&#8321;</code> becomes
-    <code>x&#8321; + x&#8322; &le; 1</code>. Do this first, it prevents most sign errors.</li>
-    <li><b>Flip every &ge; constraint</b> by multiplying both sides by -1. <code>2x&#8322; &ge; x&#8321;</code>
-    becomes <code>x&#8321; - 2x&#8322; &le; 0</code>.</li>
+    <li><b>Move every variable to the left.</b> $x_{2} \le 1 - x_{1}$ becomes
+    $x_{1} + x_{2} \le 1$. Do this first, it prevents most sign errors.</li>
+    <li><b>Flip every &ge; constraint</b> by multiplying both sides by -1. $2x_{2} \ge x_{1}$
+    becomes $x_{1} - 2x_{2} \le 0$.</li>
     <li><b>Split every equality</b> into two inequalities, then flip the &ge; one.</li>
-    <li><b>Split every free variable.</b> If <code>x&#8321; &isin; &#8477;</code>, replace every occurrence of
-    <code>x&#8321;</code> with <code>x&#8321;&#8314; - x&#8321;&#8315;</code> and add <code>x&#8321;&#8314;, x&#8321;&#8315; &ge; 0</code>.
+    <li><b>Split every free variable.</b> If $x_{1} \in \mathbb{R}$, replace every occurrence of
+    $x_{1}$ with $x_{1}^{+} - x_{1}^{-}$ and add $x_{1}^{+}, x_{1}^{-} \ge 0$.
     Every occurrence, in the objective too.</li>
   </ol>
   <p>If the objective is a min, either negate it into a max, or leave it as a min and use the min
@@ -328,14 +329,14 @@ s.t. a&#8321;&#8321;x&#8321; + ... + a&#8321;&#8345;x&#8345; &le; b&#8321;
 
 <div class="box tpl">
   <span class="label">Template, part (b): the dual</span>
-  <p>From <code>max c<sup>T</sup>x, Ax &le; b, x &ge; 0</code> to <code>min b<sup>T</sup>y, A<sup>T</sup>y &ge; c, y &ge; 0</code>.
+  <p>From $max c^{T}x, Ax \le b, x \ge 0$ to $min b^{T}y, A^{T}y \ge c, y \ge 0$.
   Mechanically:</p>
   <ul>
     <li>max becomes min.</li>
     <li>One dual variable <b>per primal constraint</b>. m constraints give m dual variables.</li>
     <li>The old right hand side b becomes the new objective coefficients.</li>
     <li>The old objective coefficients c become the new right hand sides.</li>
-    <li>The constraint matrix is transposed: the coefficients of <code>x<sub>j</sub></code> down the primal
+    <li>The constraint matrix is transposed: the coefficients of $x_{j}$ down the primal
     constraints become the j-th dual constraint.</li>
     <li>&le; becomes &ge;. Both variable sets stay &ge; 0.</li>
   </ul>
@@ -389,7 +390,7 @@ Write the free half first even if you cannot see the reduction yet.</p>
 <div class="box trap">
   <span class="label">The direction, which people reverse every year</span>
   <p>To show your problem <b>Y</b> is hard, you reduce a known hard problem <b>X</b> into it:
-  <code>X &le;<sub>P</sub> Y</code>. You are saying "if I could solve Y, I could solve X, and X is known
+  $X \le _{P} Y$. You are saying "if I could solve Y, I could solve X, and X is known
   to be hard". Reducing <b>Y to X</b> proves only that Y is no harder than X, which is worth nothing.
   Reduction arrows point <b>from</b> the known hard problem <b>to</b> your new problem.</p>
 </div>
@@ -583,5 +584,22 @@ Write the free half first even if you cannot see the reduction yet.</p>
 })();
 </script>
 
+<script defer src="katex/katex.min.js"></script>
+<script defer src="katex/auto-render.min.js"></script>
+<script>
+// Render math after the DOM is up. Deferred scripts run before DOMContentLoaded,
+// so katex and renderMathInElement are both defined by the time this fires.
+document.addEventListener('DOMContentLoaded', function () {
+  renderMathInElement(document.body, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '$',  right: '$',  display: false }
+    ],
+    // pseudocode stays monospace, it is code and not maths
+    ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option'],
+    throwOnError: false
+  });
+});
+</script>
 </body>
 </html>
