@@ -3,7 +3,9 @@
 Eleven pages covering the whole of CSC373 (Algorithm Design, Analysis and Complexity), built around
 the structure of the actual exam paper rather than the order of the lectures.
 
-Open `index.html` in a browser. No build step, no server, no internet connection needed.
+Live at **https://aeripsen.github.io/csc373-study-guide/**
+
+Or open `index.html` locally. No build step, no server, no internet connection needed.
 
 ## Why it is organised this way
 
