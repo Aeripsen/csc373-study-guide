@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exam Answer Templates</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="backlink" href="index.html">&larr; CSC373 study guide</a>
+    <p class="kicker">Write it down</p>
+    <h1>The seven answer skeletons</h1>
+    <p class="sub">Copy the shape, swap in the problem. Under time pressure the format is the answer.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="toc">
+  <p>On this page</p>
+  <ul>
+    <li><a href="#clock">The clock and the order of attack</a></li>
+    <li><a href="#t1">Q1 skeleton: divide and conquer</a></li>
+    <li><a href="#t2">Q2 skeleton: dynamic programming</a></li>
+    <li><a href="#t3">Q3 skeleton: greedy</a></li>
+    <li><a href="#t4">Q4 skeleton: flow, mechanical</a></li>
+    <li><a href="#t5">Q5 skeleton: flow, modelling</a></li>
+    <li><a href="#t6">Q6 skeleton: linear programming</a></li>
+    <li><a href="#t7">Q7 skeleton: NP completeness</a></li>
+    <li><a href="#phrases">Phrases that earn marks</a></li>
+  </ul>
+</div>
+
+<p>Every model solution in this course has a visible skeleton. The marker is looking for specific
+moves, and the moves are the same whatever the story in the question is. What follows is each
+skeleton written out, with the sentences you can write before you have solved anything.</p>
+
+<h2 id="clock">The clock and the order of attack</h2>
+
+<p>3 hours, 90 marks. That is exactly 2 minutes a mark, which sounds generous and is not, because
+Q3 and Q5 will eat more than their share. Do the mechanical questions first: they bank marks at high
+speed and they warm you up.</p>
+
+<div class="anim">
+  <h4>Time budget</h4>
+  <p class="cap">Tap a question to see what it costs you. Switch the order to see why doing the paper
+  front to back is a mistake.</p>
+  <div class="stage"><svg id="clockSvg" viewBox="0 0 640 220" role="img" aria-label="Exam time budget across seven questions"></svg></div>
+  <div class="ctrls">
+    <button id="clkOrder" class="primary">Order: recommended</button>
+    <button id="clkReset">Reset</button>
+  </div>
+  <div class="readout" id="clkOut">180 minutes total. The recommended order front loads the two
+  questions with nothing to invent, so 20 marks are safe before you meet a hard one.</div>
+</div>
+
+<div class="box why">
+  <span class="label">Why this order</span>
+  <p>Q4 and Q6 have no design step. You either know the procedure or you do not, and knowing it takes
+  under 30 minutes combined. Doing them first means that if you then get stuck on Q5 for 40 minutes,
+  you have already passed the 40% bar and the panic is survivable. Doing the paper in order means Q1,
+  a design question, decides your mood for the next two hours.</p>
+</div>
+
+<h2 id="t1">Q1 skeleton: divide and conquer <span class="marks">15 marks &middot; 25 min</span></h2>
+
+<p>The question always states the target running time, and it is nearly always O(n log n). That
+tells you the recurrence before you have read the problem: two halves, linear merge.</p>
+
+<div class="box tpl">
+  <span class="label">Template</span>
+  <p><b>1. State the contract.</b> One sentence, and it is worth writing first because everything else
+  depends on it.</p>
+  <p><i>"We implement a procedure <code>Solve(A, l, u)</code> which returns [exactly what it returns] for
+  the subarray <code>A[l..u]</code>. The algorithm calls <code>Solve(A, 1, n)</code> and outputs [the
+  answer]."</i></p>
+  <p><b>2. Pseudocode.</b> Numbered lines. Base case first, then split, then two recursive calls, then
+  the combine step.</p>
+  <p><b>3. Explain the combine step in words.</b> This is where the marks are. The split and the
+  recursion are trivial. Say precisely what work the merge does and why it is linear.</p>
+  <p><b>4. Correctness.</b> <i>"We prove correctness by induction on n. The base case n = 1 is
+  immediate since [...]. For the inductive step, assume the recursive calls return correct answers for
+  the two halves. Then [...] so the combine step produces the correct answer for A[l..u]."</i></p>
+  <p><b>5. Running time.</b> <i>"The two recursive calls are on inputs of size n/2, and the combine step
+  takes O(n) time, so T(n) &le; 2T(n/2) + O(n). By the master theorem with a = 2, b = 2, c =
+  log<sub>2</sub>2 = 1 and f(n) = O(n) = &Theta;(n<sup>c</sup>), this gives T(n) = O(n log n)."</i></p>
+</div>
+
+<div class="box note">
+  <span class="label">The two extras that come up constantly</span>
+  <p><b>Sort first.</b> If the input is unsorted and you need it sorted, say "we first sort in
+  O(n log n), which does not change the overall bound" and move on. Do not fold sorting into the
+  recursion by accident.</p>
+  <p><b>Return two things.</b> The counting inversions algorithm returns the count <i>and</i> the sorted
+  array. If your combine step needs sorted halves, your recursive procedure has to promise to sort.
+  Say so explicitly in the contract, or the correctness proof has a hole.</p>
+</div>
+
+<div class="box note">
+  <span class="label">Pseudocode or a written description?</span>
+  <p>Course staff have answered this directly: <b>write pseudocode if you have the time</b>. Marking on
+  the exam is more relaxed about the level of detail than marking on the assignments, so a clear prose
+  description that contains all the relevant details and the main ideas will also earn the marks.</p>
+  <p>The practical reading: pseudocode is faster to write and harder to be vague in, so default to it.
+  If you are running out of time, a precise paragraph beats half a page of half-finished pseudocode.
+  What you cannot do is be vague, in either format.</p>
+</div>
+
+<h2 id="t2">Q2 skeleton: dynamic programming <span class="marks">15 marks &middot; 25 min</span></h2>
+
+<p>This question is split into three parts and they are marked separately, which is a gift. Part (a) is
+2 or 3 marks for one sentence. Never leave it blank, even if you cannot do (b) and (c).</p>
+
+<div class="box tpl">
+  <span class="label">Template, part (a): define the array</span>
+  <p>Three things, no more:</p>
+  <p><i>"For i = 0, 1, ..., n define <code>A[i]</code> to be the maximum [quantity] achievable using only
+  [the first i items / a budget of i]. We also define <code>A[0] = 0</code>. The final answer is
+  <code>A[n]</code>."</i></p>
+  <p>Say what the index ranges over, say what the entry holds in words (not as a formula), and say
+  which entry is the answer. If the array is two dimensional, do it for both indices.</p>
+</div>
+
+<div class="box tpl">
+  <span class="label">Template, part (b): the Bellman equation</span>
+  <p><b>1. Write the recurrence</b>, with the base cases labelled as base cases.</p>
+  <p><b>2. Justify it with the case split.</b> The justification is always the same two sentences,
+  rewritten for the problem:</p>
+  <p><i>"Consider an optimal solution for [subproblem i]. Either it [uses item i], in which case the rest
+  of it must be an optimal solution to [the smaller subproblem], giving <code>A[i-1] + v<sub>i</sub></code>;
+  or it does not, in which case it is an optimal solution to [the other smaller subproblem], giving
+  <code>A[i-1]</code>. Since these two cases are exhaustive, the optimum is the better of the two, which
+  is what the recurrence takes."</i></p>
+  <p>The phrase doing the work is <b>"exhaustive"</b>. You are claiming every optimal solution falls into
+  one of your cases. If it does not, the recurrence is wrong, and that is the only way to lose these
+  marks.</p>
+</div>
+
+<div class="box tpl">
+  <span class="label">Template, part (c): bottom up and running time</span>
+  <p><b>1. Say the fill order</b> so the marker can see the dependencies are already computed:
+  <i>"We compute the entries in the order i = 0, 1, ..., n [and for each i, j = 1 up to B]."</i></p>
+  <p><b>2. Pseudocode.</b> Initialise base cases, nested loops, apply the recurrence, return the answer
+  cell.</p>
+  <p><b>3. Running time by counting the loops:</b> <i>"There are n&middot;B entries and each is computed in
+  O(1) time from previously computed entries, so the total running time is O(nB)."</i></p>
+  <p><b>4. If it asks for the actual solution, not just its value</b>, add a second array:
+  <i>"We also store <code>J[i]</code>, the choice that achieved the maximum in the recurrence for entry i.
+  To recover the solution, start at i = n and repeatedly follow <code>J</code> backwards, outputting the
+  choice at each step, until i = 0."</i> Then give the four line while loop.</p>
+</div>
+
+<div class="box trap">
+  <span class="label">The trap in part (c)</span>
+  <p>When the question says "compute how many shares to buy from each company", it is asking for the
+  <b>traceback</b>, not just the max value. Students write a perfect table fill and lose 3 or 4 marks
+  because the algorithm never outputs the actual choices. If the question names a thing to output,
+  your pseudocode has to output that thing.</p>
+</div>
+
+<h2 id="t3">Q3 skeleton: greedy <span class="marks">15 marks &middot; 28 min</span></h2>
+
+<p>The algorithm is usually three lines and you will find it in two minutes. Roughly two thirds of the
+marks are on the proof, so budget accordingly. Write the algorithm fast and spend the time on the
+induction.</p>
+
+<div class="box tpl">
+  <span class="label">Template, the algorithm</span>
+  <p><i>"Sort the input by [key]. Then repeatedly take the [first / smallest / earliest finishing]
+  remaining item that keeps the solution feasible, and remove everything it conflicts with."</i></p>
+  <p>Then the pseudocode, then: <i>"Sorting takes O(n log n) and the single pass does O(1) work per item,
+  so the total running time is O(n log n)."</i> If the question says the input arrives sorted, that
+  becomes O(n) and you should say so explicitly, because that is the "for full credit" bound.</p>
+</div>
+
+<div class="box tpl">
+  <span class="label">Template, the optimality proof (learn this one by heart)</span>
+  <p><b>Claim.</b> <i>"For every i, after the algorithm has processed the first i items, its partial
+  solution S<sub>i</sub> is contained in some optimal solution."</i></p>
+  <p><b>Base case.</b> <i>"For i = 0, S<sub>0</sub> is empty and is contained in every optimal solution."</i></p>
+  <p><b>Inductive step.</b> <i>"Suppose S<sub>i-1</sub> is contained in an optimal solution O. There are
+  three cases.</i></p>
+  <ul>
+    <li><i>If the algorithm does not add item i, then S<sub>i</sub> = S<sub>i-1</sub> and we are done by
+    the hypothesis.</i></li>
+    <li><i>If it adds item i and item i is already in O, then S<sub>i</sub> is still contained in O and we
+    are done.</i></li>
+    <li><i>If it adds item i and item i is not in O, we construct a different optimal solution that does
+    contain it. [The exchange.] Let e be [the item of O that conflicts with item i]. Set O' = O minus e
+    plus item i. Then O' is feasible because [reason], and |O'| = |O| so O' is also optimal. Since
+    S<sub>i-1</sub> is contained in O and does not contain e, S<sub>i</sub> is contained in O'."</i></li>
+  </ul>
+  <p><b>Conclusion.</b> <i>"Hence the final solution S<sub>n</sub> is contained in some optimal solution O.
+  Since no further item can be added to S<sub>n</sub> without breaking feasibility, and O is feasible,
+  S<sub>n</sub> = O, so the algorithm is optimal."</i></p>
+</div>
+
+<div class="box why">
+  <span class="label">The one sentence you have to invent</span>
+  <p>Every line of that proof is boilerplate except <b>"O' is feasible because [reason]"</b>. That
+  reason is the entire content of the greedy argument, and it always comes straight from the greedy
+  rule. For earliest finish time: the swapped in interval finishes no later than the one removed, so
+  nothing that fit after e stops fitting. For the shelves problem: the books fit because they fit on
+  greedy's shelf. Find that sentence and the proof writes itself around it.</p>
+</div>
+
+<div class="box note">
+  <span class="label">The other accepted proof shape</span>
+  <p>Some questions ask instead for induction on the <b>size of the input</b>: solve the first piece
+  greedily, argue an optimal solution agrees with you on that piece, then apply the induction
+  hypothesis to what remains. Both are accepted. Use whichever is cleaner, but say which one you are
+  doing in the first line.</p>
+</div>
+
+<h2 id="t4">Q4 skeleton: flow, mechanical <span class="marks">10 marks &middot; 15 min</span></h2>
+
+<p>No justification is asked for. This is 10 marks of following a procedure, and it is the single best
+value question on the paper.</p>
+
+<div class="box tpl">
+  <span class="label">Template</span>
+  <p><b>(a) Build the network.</b> Add a source s and a sink t. Direct every original edge from the
+  left side to the right side. Label every single capacity, including the ones that are 1. Say
+  "all capacities are 1" only if that is literally true for every edge.</p>
+  <p><b>(b) Run Ford Fulkerson.</b> Write each augmenting path as a node list with its bottleneck:</p>
+  <pre><code>s, a, B, t   bottleneck 1
+s, b, A, t   bottleneck 1
+s, c, D, t   bottleneck 1</code></pre>
+  <p>Then the final flow, edge by edge: <code>f(s,a) = 1, f(a,B) = 1, ...</code>. Then, if asked, the
+  matching: <code>M = {(a,B), (b,A), (c,D)}</code>.</p>
+  <p><b>(c) The min cut.</b> One sentence and it is always the same one:</p>
+  <p><i>"Let A be the set of vertices reachable from s in the residual network G<sub>f</sub>, and B = V \ A.
+  Then A = {...} and B = {...}, and the capacity of this cut equals val(f), so it is a minimum cut."</i></p>
+</div>
+
+<div class="box trap">
+  <span class="label">Three ways people throw away these marks</span>
+  <ul>
+    <li><b>Forgetting backward edges in the residual network.</b> If f(u,v) = 3 with capacity 5, the
+    residual has (u,v) with 2 <i>and</i> (v,u) with 3. Augmenting paths are allowed to use the backward
+    one, and on most exam networks the last augmenting path does exactly that.</li>
+    <li><b>Reading the cut off the original graph.</b> The cut comes from reachability in the
+    <b>residual</b> network, never the original.</li>
+    <li><b>Only counting forward edges in the cut capacity.</b> c(A,B) sums capacities of edges going
+    from A to B and ignores edges coming back from B to A. It does not subtract them.</li>
+  </ul>
+</div>
+
+<h2 id="t5">Q5 skeleton: flow, modelling <span class="marks">15 marks &middot; 25 min</span></h2>
+
+<p>A word problem about assigning things to other things, with limits on both sides. The network is
+almost always four layers, and the limits become capacities.</p>
+
+<div class="box tpl">
+  <span class="label">Template</span>
+  <p><b>1. Construct the network, in prose, naming every capacity.</b></p>
+  <p><i>"Construct a flow network G' = (V', E') as follows. The vertices are a source s, a sink t, a
+  vertex u<sub>i</sub> for each [left thing] i, and a vertex v<sub>j</sub> for each [right thing] j. The edges
+  are:</i></p>
+  <ul>
+    <li><i>(s, u<sub>i</sub>) with capacity [the per left thing limit], for each i;</i></li>
+    <li><i>(u<sub>i</sub>, v<sub>j</sub>) with capacity 1, for each pair that is allowed;</i></li>
+    <li><i>(v<sub>j</sub>, t) with capacity [the per right thing limit], for each j."</i></li>
+  </ul>
+  <p><b>2. State the algorithm.</b> <i>"Compute an integral maximum s-t flow f in G' using Ford Fulkerson.
+  Then assign [left thing] i to [right thing] j exactly when f(u<sub>i</sub>, v<sub>j</sub>) = 1."</i></p>
+  <p><b>3. Correctness, in two directions.</b> Both are needed for full marks.</p>
+  <p><i>"Every valid assignment of size k gives an integral flow of value k: route one unit along
+  (s, u<sub>i</sub>), (u<sub>i</sub>, v<sub>j</sub>), (v<sub>j</sub>, t) for each assigned pair. Capacities are
+  respected precisely because [the constraint] holds.</i></p>
+  <p><i>Conversely, every integral flow of value k gives a valid assignment of size k: since capacities
+  are integers, Ford Fulkerson returns an integral flow, so each f(u<sub>i</sub>, v<sub>j</sub>) is 0 or 1.
+  Flow conservation at u<sub>i</sub> bounds its assignments by the capacity of (s, u<sub>i</sub>), and
+  conservation at v<sub>j</sub> bounds its assignments by the capacity of (v<sub>j</sub>, t).</i></p>
+  <p><i>Therefore the maximum flow value equals the maximum size of a valid assignment."</i></p>
+  <p><b>4. Running time.</b> <i>"The network has |V'| = O(n + m) vertices and |E'| = O(n + m + L) edges,
+  where L is the total number of allowed pairs. Building it takes O(|V'| + |E'|). Ford Fulkerson with
+  the shortest augmenting path rule (Edmonds Karp) runs in O(|E'|<sup>2</sup>|V'|), which is polynomial in
+  n + m. Reading off the assignment takes O(|E'|)."</i></p>
+</div>
+
+<div class="box why">
+  <span class="label">Why integrality is the load bearing word</span>
+  <p>You are using a continuous object (a flow) to answer a discrete question (an assignment). The
+  bridge is the integrality theorem: if all capacities are integers, Ford Fulkerson terminates with an
+  integral flow. Without that sentence, a max flow could put 0.5 on an edge and "assign half a student
+  to a club", and your correctness proof is broken. Markers look for it.</p>
+</div>
+
+<div class="box note">
+  <span class="label">When you need a fifth layer</span>
+  <p>If the problem caps the <b>total</b> as well as the per item amounts ("exactly c slots get a TA"),
+  add one extra node t' before t and a single edge (t', t) with capacity c. Every path is then forced
+  through that one edge and the global cap is enforced by it alone.</p>
+</div>
+
+<h2 id="t6">Q6 skeleton: linear programming <span class="marks">10 marks &middot; 12 min</span></h2>
+
+<p>Two mechanical parts. There is nothing to understand at exam time, only a procedure to apply
+without slipping. Practice this until it is muscle memory, because it is the cheapest 10 marks on the
+paper.</p>
+
+<div class="box tpl">
+  <span class="label">Template, part (a): standard form</span>
+  <p>Target shape, for a maximisation:</p>
+  <pre><code>max  c&#8321;x&#8321; + ... + c&#8345;x&#8345;
+s.t. a&#8321;&#8321;x&#8321; + ... + a&#8321;&#8345;x&#8345; &le; b&#8321;
+     ...
+     a&#8344;&#8321;x&#8321; + ... + a&#8344;&#8345;x&#8345; &le; b&#8344;
+     x&#8321;, ..., x&#8345; &ge; 0</code></pre>
+  <p>Four moves, applied in this order:</p>
+  <ol>
+    <li><b>Move every variable to the left.</b> <code>x&#8322; &le; 1 - x&#8321;</code> becomes
+    <code>x&#8321; + x&#8322; &le; 1</code>. Do this first, it prevents most sign errors.</li>
+    <li><b>Flip every &ge; constraint</b> by multiplying both sides by -1. <code>2x&#8322; &ge; x&#8321;</code>
+    becomes <code>x&#8321; - 2x&#8322; &le; 0</code>.</li>
+    <li><b>Split every equality</b> into two inequalities, then flip the &ge; one.</li>
+    <li><b>Split every free variable.</b> If <code>x&#8321; &isin; &#8477;</code>, replace every occurrence of
+    <code>x&#8321;</code> with <code>x&#8321;&#8314; - x&#8321;&#8315;</code> and add <code>x&#8321;&#8314;, x&#8321;&#8315; &ge; 0</code>.
+    Every occurrence, in the objective too.</li>
+  </ol>
+  <p>If the objective is a min, either negate it into a max, or leave it as a min and use the min
+  standard form, where constraints are &ge;. Say which one you are using.</p>
+</div>
+
+<div class="box tpl">
+  <span class="label">Template, part (b): the dual</span>
+  <p>From <code>max c<sup>T</sup>x, Ax &le; b, x &ge; 0</code> to <code>min b<sup>T</sup>y, A<sup>T</sup>y &ge; c, y &ge; 0</code>.
+  Mechanically:</p>
+  <ul>
+    <li>max becomes min.</li>
+    <li>One dual variable <b>per primal constraint</b>. m constraints give m dual variables.</li>
+    <li>The old right hand side b becomes the new objective coefficients.</li>
+    <li>The old objective coefficients c become the new right hand sides.</li>
+    <li>The constraint matrix is transposed: the coefficients of <code>x<sub>j</sub></code> down the primal
+    constraints become the j-th dual constraint.</li>
+    <li>&le; becomes &ge;. Both variable sets stay &ge; 0.</li>
+  </ul>
+  <p>Then the sentence that is explicitly asked for every time: <i>"The dual variable y<sub>i</sub>
+  corresponds to the primal constraint [name it]."</i> It is worth marks on its own. Do not skip it.</p>
+</div>
+
+<div class="box trap">
+  <span class="label">Sign errors are the only real risk here</span>
+  <p>Check your answer in ten seconds: the number of dual variables must equal the number of primal
+  constraints, and the number of dual constraints must equal the number of primal variables. If those
+  two counts do not match, you have transposed something wrong. Do this check before moving on.</p>
+</div>
+
+<h2 id="t7">Q7 skeleton: NP completeness <span class="marks">10 marks &middot; 20 min</span></h2>
+
+<p>Two halves. The first is nearly free and takes three minutes. The second is where the thinking is.
+Write the free half first even if you cannot see the reduction yet.</p>
+
+<div class="box tpl">
+  <span class="label">Template, half 1: the problem is in NP</span>
+  <p>Two sentences, always the same two:</p>
+  <p><i>"The certificate is [the object being asked for, for example the set R of representatives]. The
+  certifier checks that |R| &le; k, and that for each club c<sub>i</sub>, the set C<sub>i</sub> contains at
+  least one member of R. This can be done in time O([something obviously polynomial]), so the problem
+  is in NP."</i></p>
+  <p>The certificate is the thing the question says "decide if there is a ...". Nothing clever is
+  required and nothing clever is wanted.</p>
+</div>
+
+<div class="box tpl">
+  <span class="label">Template, half 2: the problem is NP hard</span>
+  <p><b>1. Name the source problem and the direction.</b> <i>"We show Vertex-Cover &le;<sub>P</sub>
+  Representatives. Since Vertex-Cover is NP complete, this shows Representatives is NP hard."</i></p>
+  <p><b>2. Give the reduction as a construction.</b> <i>"Given an instance (G = (V, E), k) of
+  Vertex-Cover, construct an instance of Representatives as follows: for each vertex u of V create a
+  student s<sub>u</sub>; for each edge (u, v) of E create a club with membership set
+  C<sub>(u,v)</sub> = {s<sub>u</sub>, s<sub>v</sub>}; keep the same bound k. This takes O(|V| + |E|) time, so it
+  is polynomial."</i></p>
+  <p><b>3. Prove both directions.</b> Both. Half marks for one.</p>
+  <p><i>"(&rArr;) If G has a vertex cover S of size at most k, take R = {s<sub>u</sub> : u &isin; S}. For any
+  club C<sub>(u,v)</sub>, the edge (u,v) is covered, so u or v is in S, so R contains a member of that
+  club. Hence R is a valid set of representatives with |R| &le; k."</i></p>
+  <p><i>"(&lArr;) If there is a set of representatives R with |R| &le; k, take S = {u : s<sub>u</sub> &isin; R}.
+  For any edge (u,v), the club C<sub>(u,v)</sub> contains a representative, which must be s<sub>u</sub> or
+  s<sub>v</sub>, so u or v is in S. Hence S is a vertex cover of size at most k."</i></p>
+  <p><b>4. Conclude.</b> <i>"Representatives is in NP and is NP hard, therefore it is NP complete."</i>
+  Write that line. It is the thing the question literally asked for.</p>
+</div>
+
+<div class="box trap">
+  <span class="label">The direction, which people reverse every year</span>
+  <p>To show your problem <b>Y</b> is hard, you reduce a known hard problem <b>X</b> into it:
+  <code>X &le;<sub>P</sub> Y</code>. You are saying "if I could solve Y, I could solve X, and X is known
+  to be hard". Reducing <b>Y to X</b> proves only that Y is no harder than X, which is worth nothing.
+  Reduction arrows point <b>from</b> the known hard problem <b>to</b> your new problem.</p>
+</div>
+
+<div class="box why">
+  <span class="label">Picking the source problem in 30 seconds</span>
+  <p>Match the shape, not the story.</p>
+  <ul>
+    <li>"pick a small set that touches every group" &rarr; Vertex-Cover or Set-Cover</li>
+    <li>"pick a large set with no two conflicting" &rarr; Independent-Set</li>
+    <li>"pick a large set that are all mutually compatible" &rarr; Clique</li>
+    <li>"hit a numeric target exactly with a subset" &rarr; Subset-Sum</li>
+    <li>"satisfy a list of either-or conditions" &rarr; 3-SAT</li>
+    <li>"visit everything once in a sequence" &rarr; Hamiltonian-Path or Cycle</li>
+  </ul>
+  <p>The exam hint usually names the shape for you. In the 2024 final it said "this is a type of
+  covering problem", which is the marker telling you to use Vertex-Cover or Set-Cover.</p>
+</div>
+
+<h2 id="phrases">Phrases that earn marks</h2>
+
+<p>Keep these exact wordings. Each one is a thing markers look for, and each is one line.</p>
+
+<div class="scroll">
+<table>
+<thead><tr><th>Situation</th><th>Write this</th></tr></thead>
+<tbody>
+<tr><td>Solving any recurrence</td><td>"By the master theorem with a = _, b = _, c = log<sub>b</sub>a = _, and f(n) = _, we are in case _, so T(n) = _."</td></tr>
+<tr><td>Justifying a Bellman equation</td><td>"These two cases are exhaustive, so the optimum is the better of the two."</td></tr>
+<tr><td>Greedy optimality</td><td>"We prove by induction that after each step, the partial solution is contained in some optimal solution."</td></tr>
+<tr><td>Finishing a greedy proof</td><td>"Since nothing further can be added to S without breaking feasibility, and O is feasible and contains S, we get S = O."</td></tr>
+<tr><td>Any flow modelling question</td><td>"Since all capacities are integers, Ford Fulkerson returns an integral maximum flow."</td></tr>
+<tr><td>Producing a min cut</td><td>"A is the set of vertices reachable from s in the residual network G<sub>f</sub>."</td></tr>
+<tr><td>Second distinct min cut</td><td>"B is the set of vertices that can reach t in the residual network G<sub>f</sub>."</td></tr>
+<tr><td>Any dual</td><td>"The dual variable y<sub>i</sub> corresponds to the primal constraint _."</td></tr>
+<tr><td>Membership in NP</td><td>"The certificate is _, and the certifier checks _ in polynomial time."</td></tr>
+<tr><td>Closing an NP completeness proof</td><td>"X is in NP and is NP hard, therefore X is NP complete."</td></tr>
+<tr><td>Running time of any flow algorithm</td><td>"Edmonds Karp runs in O(|E|<sup>2</sup>|V|), which is polynomial in the input size."</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="box note">
+  <span class="label">If you run out of time on a question</span>
+  <p>Write the skeleton with gaps rather than nothing. "The certificate is the set R. The certifier
+  checks |R| &le; k and that every club contains a member of R." is worth real marks on its own even
+  with no reduction underneath it. Part marks in this course are generous and are awarded per move, so
+  an incomplete answer with the right structure beats a blank page by a wide margin.</p>
+</div>
+
+<div class="pagenav">
+  <a href="index.html">&larr; Index</a>
+  <a href="drill.html">Past paper drill &rarr;</a>
+</div>
+
+<footer class="bot">
+  <p>Templates reconstructed from the structure of published model solutions. Wording is written from
+  scratch, not copied.</p>
+</footer>
+
+</div>
+
+<script>
+(function () {
+  var svg = document.getElementById('clockSvg');
+  if (!svg) return;
+  var NS = 'http://www.w3.org/2000/svg';
+
+  var Q = [
+    { id: 1, name: 'Q1 D&C',      marks: 15, min: 25, kind: 'design' },
+    { id: 2, name: 'Q2 DP',       marks: 15, min: 25, kind: 'mixed'  },
+    { id: 3, name: 'Q3 Greedy',   marks: 15, min: 28, kind: 'design' },
+    { id: 4, name: 'Q4 Flow',     marks: 10, min: 15, kind: 'mech'   },
+    { id: 5, name: 'Q5 Flow mod', marks: 15, min: 25, kind: 'design' },
+    { id: 6, name: 'Q6 LP',       marks: 10, min: 12, kind: 'mech'   },
+    { id: 7, name: 'Q7 NP',       marks: 10, min: 20, kind: 'mixed'  }
+  ];
+  var RECOMMENDED = [4, 6, 2, 7, 1, 3, 5];
+  var COLOR = { mech: 'var(--fl)', mixed: 'var(--dp)', design: 'var(--cx)' };
+
+  var recommended = true, picked = null;
+  var out = document.getElementById('clkOut');
+
+  function el(n, a) {
+    var e = document.createElementNS(NS, n);
+    for (var k in a) e.setAttribute(k, a[k]);
+    return e;
+  }
+
+  function order() {
+    if (!recommended) return Q.slice();
+    return RECOMMENDED.map(function (id) {
+      return Q.filter(function (q) { return q.id === id; })[0];
+    });
+  }
+
+  function draw() {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var list = order();
+    var X0 = 14, X1 = 626, W = X1 - X0, TOTAL = 180, Y = 60, H = 46;
+
+    svg.appendChild(el('text', { x: X0, y: 22, class: 'svg-lbl-b' })).textContent =
+      recommended ? 'Recommended order' : 'Front to back order';
+
+    // the 180 minute ruler
+    for (var m = 0; m <= 180; m += 30) {
+      var x = X0 + (m / TOTAL) * W;
+      svg.appendChild(el('line', { x1: x, y1: Y - 8, x2: x, y2: Y, stroke: 'var(--line2)', 'stroke-width': 1 }));
+      var t = el('text', { x: x, y: Y - 12, class: 'svg-lbl', 'text-anchor': 'middle' });
+      t.textContent = m + 'm';
+      svg.appendChild(t);
+    }
+
+    var cum = 0, safeAt = null, cumMarks = 0;
+    list.forEach(function (q, i) {
+      var x = X0 + (cum / TOTAL) * W;
+      var w = (q.min / TOTAL) * W;
+      var g = el('g', { style: 'cursor:pointer' });
+
+      g.appendChild(el('rect', {
+        x: x + 1, y: Y, width: Math.max(w - 2, 2), height: H, rx: 4,
+        fill: COLOR[q.kind],
+        opacity: picked === null || picked === q.id ? 0.85 : 0.28,
+        stroke: picked === q.id ? 'var(--ink)' : 'none', 'stroke-width': 2
+      }));
+
+      var lb = el('text', { x: x + w / 2, y: Y + 20, class: 'svg-lbl-b', 'text-anchor': 'middle', fill: '#fff' });
+      lb.textContent = 'Q' + q.id;
+      g.appendChild(lb);
+      var lb2 = el('text', { x: x + w / 2, y: Y + 35, 'text-anchor': 'middle', fill: '#fff',
+        style: 'font-family:var(--mono);font-size:10px;opacity:.9' });
+      lb2.textContent = q.marks + 'm';
+      g.appendChild(lb2);
+
+      g.addEventListener('click', function () { picked = picked === q.id ? null : q.id; draw(); });
+      svg.appendChild(g);
+
+      cum += q.min;
+      cumMarks += q.marks;
+      if (safeAt === null && cumMarks >= 36) safeAt = cum;
+    });
+
+    // where the 40% pass floor is cleared
+    if (safeAt !== null) {
+      var sx = X0 + (safeAt / TOTAL) * W;
+      svg.appendChild(el('line', {
+        x1: sx, y1: Y - 4, x2: sx, y2: Y + H + 30,
+        stroke: 'var(--trap-line)', 'stroke-width': 2, 'stroke-dasharray': '4 3'
+      }));
+      var st = el('text', { x: Math.min(sx + 5, X1 - 150), y: Y + H + 26, class: 'svg-lbl', fill: 'var(--trap-line)' });
+      st.textContent = '36 marks banked at ' + safeAt + ' min';
+      svg.appendChild(st);
+    }
+
+    // legend
+    var lx = X0, ly = Y + H + 56;
+    [['mech', 'nothing to invent'], ['mixed', 'format heavy'], ['design', 'needs an idea']].forEach(function (p) {
+      svg.appendChild(el('rect', { x: lx, y: ly - 9, width: 11, height: 11, rx: 2, fill: COLOR[p[0]], opacity: .85 }));
+      var t = el('text', { x: lx + 16, y: ly, class: 'svg-lbl' });
+      t.textContent = p[1];
+      svg.appendChild(t);
+      lx += 30 + p[1].length * 6.4;
+    });
+
+    svg.appendChild(el('text', { x: X0, y: ly + 22, class: 'svg-lbl' })).textContent =
+      'Total planned: ' + cum + ' min, leaving ' + (180 - cum) + ' min of slack.';
+
+    if (picked !== null) {
+      var q = Q.filter(function (z) { return z.id === picked; })[0];
+      out.innerHTML = '<b>' + q.name + '</b>: ' + q.marks + ' marks in ' + q.min + ' minutes, which is ' +
+        (q.min / q.marks).toFixed(1) + ' min per mark. ' +
+        (q.kind === 'mech' ? 'Purely procedural. If you are slower than this, the fix is drilling the procedure, not thinking harder.'
+         : q.kind === 'mixed' ? 'Most marks come from the fixed format, so write the skeleton first and fill gaps after.'
+         : 'You have to find an idea here. If nothing comes in 6 minutes, write the skeleton and the parts you can justify, then move on and come back.');
+    } else if (safeAt !== null) {
+      out.innerHTML = recommended
+        ? '<b>36 marks banked by minute ' + safeAt + '.</b> The 40% pass floor is cleared before you meet a question that needs an original idea.'
+        : '<b>36 marks not banked until minute ' + safeAt + '.</b> Going front to back means two design questions stand between you and the pass floor.';
+    }
+  }
+
+  document.getElementById('clkOrder').addEventListener('click', function () {
+    recommended = !recommended;
+    this.textContent = 'Order: ' + (recommended ? 'recommended' : 'front to back');
+    this.className = recommended ? 'primary' : '';
+    draw();
+  });
+  document.getElementById('clkReset').addEventListener('click', function () { picked = null; draw(); });
+
+  draw();
+})();
+</script>
+
+</body>
+</html>

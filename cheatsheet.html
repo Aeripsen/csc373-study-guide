@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aid Sheet Plan</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="backlink" href="index.html">&larr; CSC373 study guide</a>
+    <p class="kicker">One double sided handwritten 8.5x11 sheet</p>
+    <h1>What goes on your aid sheet</h1>
+    <p class="sub">Space is the constraint. Anything you would derive in under a minute is a waste of it.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="box why">
+  <span class="label">The principle</span>
+  <p>An aid sheet is not a summary of the course. It is a <b>list of things you would otherwise get
+  wrong or slow under pressure</b>. Two categories earn space: exact statements you cannot risk
+  misremembering (the master theorem, the dual rule), and answer skeletons that save you from writing
+  yourself into a corner.</p>
+  <p>Concepts you understand do not go on it. If you understand why the backward edge exists, writing
+  "backward edge = f(u,v)" costs a line and buys nothing. Write the things that are <b>arbitrary</b>,
+  not the things that are <b>reasoned</b>.</p>
+</div>
+
+<div class="box trap">
+  <span class="label">Read this before you make the sheet</span>
+  <p>On the final it is <b>not the instructor</b> who checks your aid sheet, it is an invigilator sent
+  by the Faculty of Arts and Science, and they are strict. If it is not <b>handwritten on a piece of
+  paper</b>, they will make you put it away or confiscate it, and write you up. Screen grabs of PDFs
+  pasted onto a sheet, printed text, or anything that does not look like something you could have
+  written by hand will be treated as an unauthorised aid.</p>
+  <p>Students have been badly rattled by this at the start of an exam. Do not take the risk for the sake
+  of a neater sheet. Write it by hand, on paper, in pen.</p>
+</div>
+
+<h2>Side 1: the exact statements</h2>
+
+<h3>Master theorem, written out in full</h3>
+
+<div class="box tpl">
+  <span class="label">Copy this verbatim</span>
+  <p><code>T(n) &le; aT(&lceil;n/b&rceil;) + f(n)</code>, &nbsp; <code>a &ge; 1</code>,
+  <code>b &gt; 1</code>, &nbsp; <code>c = log<sub>b</sub>(a)</code>.</p>
+  <ul>
+    <li><code>f(n) = O(n<sup>c-&epsilon;</sup>)</code>, some <code>&epsilon; &gt; 0</code>
+    &nbsp;&rArr;&nbsp; <code>T(n) = O(n<sup>c</sup>)</code></li>
+    <li><code>f(n) = &Theta;(n<sup>c</sup> log(n)<sup>k</sup>)</code>, <code>k &ge; 0</code>
+    &nbsp;&rArr;&nbsp; <code>T(n) = O(n<sup>c</sup> log(n)<sup>k+1</sup>)</code></li>
+    <li><code>f(n) = &Omega;(n<sup>c+&epsilon;</sup>)</code>, some <code>&epsilon; &gt; 0</code>, and
+    <code>af(n/b) &le; df(n)</code> for a constant <code>d &lt; 1</code>
+    &nbsp;&rArr;&nbsp; <code>T(n) = O(f(n))</code></li>
+  </ul>
+  <p>Plus the four worked values: <code>log&#8322;2 = 1</code>, <code>log&#8322;3 &asymp; 1.585</code>,
+  <code>log&#8322;8 = 3</code>, <code>log&#8324;2 = 0.5</code>.</p>
+</div>
+
+<div class="box note">
+  <span class="label">It is very likely given to you</span>
+  <p>The instructor has said outright that a statement of the master theorem is provided on the exam
+  sheet, and it was printed at the top of both past midterms. So this is insurance rather than a
+  necessity. It costs six lines, and if it turns out to be printed on the paper you have lost almost
+  nothing. The four log values are worth keeping regardless, since those are not provided.</p>
+</div>
+
+<h3>LP standard form and dual, as a single block</h3>
+
+<div class="box tpl">
+  <span class="label">Copy this verbatim</span>
+  <pre><code>PRIMAL                     DUAL
+max c&#740;x                    min b&#740;y
+    Ax &le; b                     A&#740;y &ge; c
+    x &ge; 0                      y &ge; 0
+m constraints              m variables
+n variables                n constraints
+
+min standard form: min c&#740;x, Ax &ge; b, x &ge; 0
+
+TO STANDARD FORM
+1. variables left, constants right
+2. flip &ge; by multiplying by -1
+3. equality  &rarr;  two inequalities
+4. free x  &rarr;  x&#8314; - x&#8315;, both &ge; 0, IN THE OBJECTIVE TOO
+
+free primal variable  &rarr;  equality dual constraint
+equality primal constraint  &rarr;  free dual variable</code></pre>
+</div>
+
+<h3>Modelling tricks that are pure formula</h3>
+
+<div class="box tpl">
+  <span class="label">Copy this verbatim</span>
+  <pre><code>min &sum;|g&#7522;(x)|      &rarr;   min &sum;e&#7522;  s.t.  e&#7522; &ge; g&#7522;(x),  e&#7522; &ge; -g&#7522;(x)
+min max|g&#7522;(x)|    &rarr;   min t    s.t.  t &ge; g&#7522;(x),  t &ge; -g&#7522;(x)   (one shared t)
+
+only valid when the objective pushes e&#7522; or t DOWNWARD</code></pre>
+</div>
+
+<h3>Complexity definitions, exactly worded</h3>
+
+<div class="box tpl">
+  <span class="label">Copy this verbatim</span>
+  <pre><code>X &isin; NP:  poly-time B and poly p with
+           x &isin; X  &hArr;  &exist;y, |y| &le; p(|x|), B(x,y) = Yes
+
+X &le;&#7527; Y:   poly-time R with  x &isin; X  &hArr;  R(x) &isin; Y
+
+NP-hard:      Y &le;&#7527; X  for every Y &isin; NP
+NP-complete:  in NP  AND  NP-hard
+
+TO PROVE Y NP-COMPLETE:
+1. certificate + certifier            (Y &isin; NP)
+2. pick known NPC X, give R           (X &le;&#7527; Y, X is the SOURCE)
+3. Yes for X  &rArr;  Yes for R(X)
+4. Yes for R(X)  &rArr;  Yes for X
+5. "in NP and NP-hard, therefore NP-complete"
+
+ARROW POINTS FROM THE KNOWN HARD PROBLEM INTO YOURS
+
+known NPC you may reduce FROM (confirmed by course staff):
+  3-SAT, Subset-Sum, Independent-Set, Vertex-Cover,
+  Set-Cover, 3-Colouring, BILP
+  stuck? 3-SAT works in most cases
+
+S independent in G  &hArr;  V\S is a vertex cover  &hArr;  S is a clique in Ḡ</code></pre>
+</div>
+
+<h2>Side 2: the answer skeletons</h2>
+
+<p>These are the ones that stop you writing yourself into a corner at minute 90. Write them as
+compressed prompts, not full sentences, since you only need the cue.</p>
+
+<div class="box tpl">
+  <span class="label">Greedy proof skeleton</span>
+  <pre><code>Claim: after step i, S&#7522; &sube; some optimal O
+base: S&#8320; = &empty;
+step: (1) skipped i  &rarr;  done
+      (2) took i, i &isin; O  &rarr;  done
+      (3) took i, i &notin; O  &rarr;  e = conflicting elt of O,
+          O' = O - e + i
+          feasible BECAUSE [greedy rule]   &larr; the only real content
+          |O'| = |O| so optimal;  S&#7522; &sube; O'
+end:  S maximal + O feasible + S &sube; O  &rArr;  S = O</code></pre>
+</div>
+
+<div class="box tpl">
+  <span class="label">DP skeleton</span>
+  <pre><code>(a) For [range], A[i] = [max/min/count of] ... . Answer = A[n].
+(b) recurrence + BASE CASES labelled
+    justify: "optimal soln either does X (&rarr; A[..] + v)
+              or not (&rarr; A[..]); exhaustive; take the better"
+(c) fill order (all deps have smaller index)
+    pseudocode, nested loops
+    "nB entries, O(1) each  &rArr;  O(nB)"
+(d) IF OUTPUT ASKED: second array J[i] = argmax,
+    walk backwards from n</code></pre>
+</div>
+
+<div class="box tpl">
+  <span class="label">Flow modelling skeleton</span>
+  <pre><code>V' = s, t, u&#7522; per left thing, v&#11431; per right thing
+(s,u&#7522;) cap = per-left limit
+(u&#7522;,v&#11431;) cap = 1,  ONLY for permitted pairs
+(v&#11431;,t) cap = per-right limit
+global cap c?  &rarr;  extra node t', edge (t',t) cap c
+
+algorithm: integral max flow by Edmonds-Karp; assign when f = 1
+correctness BOTH WAYS:
+  assignment size k  &rarr;  flow value k  (capacities hold because ...)
+  integral flow k  &rarr;  assignment k  (INTEGRALITY + conservation)
+time: |V'|, |E'| counted, then O(|E'|²|V'|)</code></pre>
+</div>
+
+<div class="box tpl">
+  <span class="label">Flow mechanics</span>
+  <pre><code>residual: forward c-f,  backward f       BOTH, ALWAYS
+min cut:  A = reachable from s in G_f
+2nd cut:  B = can reach t in G_f
+c(A,B) = sum of caps A&rarr;B only, B&rarr;A contributes 0
+check:   c(A,B) must equal val(f)
+
+FF: O(|E|·C), pseudo-poly
+Edmonds-Karp (shortest path): O(|E|²|V|), polynomial
+bipartite matching: O(mn)</code></pre>
+</div>
+
+<div class="box tpl">
+  <span class="label">D&amp;C skeleton</span>
+  <pre><code>"Procedure Solve(A,l,u) returns [exact contract]"
+  &larr; if combine is too slow, make the recursion ALSO return
+    something (usually sorted order)
+pseudocode: base, split, 2 recursive calls, combine
+correctness: induction on n
+time: T(n) &le; aT(n/b) + f(n), master theorem sentence</code></pre>
+</div>
+
+<h2>What not to write</h2>
+
+<div class="box trap">
+  <span class="label">These waste space</span>
+  <ul>
+    <li><b>Full pseudocode for algorithms from class.</b> You are never asked to reproduce mergesort or
+    Ford Fulkerson verbatim, only to apply or adapt them. A one line reminder of the idea is enough.</li>
+    <li><b>Worked examples.</b> They eat enormous space and the exam's numbers will differ anyway.</li>
+    <li><b>Definitions you understand.</b> Flow conservation, what a matching is, what a cut is. If you
+    could explain it to someone, you do not need it written down.</li>
+    <li><b>Big-O rules and log identities.</b> If you need <code>log(ab) = log a + log b</code> written
+    down, the aid sheet is not your problem.</li>
+    <li><b>The proof of max flow min cut.</b> You will not be asked to reproduce it. The three
+    equivalent statements are worth a line, the proof is not.</li>
+  </ul>
+</div>
+
+<div class="box why">
+  <span class="label">A test for every line</span>
+  <p>Ask: "if this were not on the sheet, would I get it wrong or would I just be slower?" Write down
+  the things you would get <b>wrong</b>. Being slower is survivable, being wrong is not, and the
+  arbitrary conventions (which way the dual flips, which reduction direction, whether case 3 has a side
+  condition) are exactly the things that go wrong at minute 100 of a three hour exam.</p>
+</div>
+
+<h2>A suggested layout</h2>
+
+<div class="scroll">
+<table>
+<thead><tr><th>Where</th><th>What</th><th>Roughly</th></tr></thead>
+<tbody>
+<tr><td>Side 1, top left</td><td>Master theorem plus the four log values</td><td>8 lines</td></tr>
+<tr><td>Side 1, top right</td><td>LP standard form, dual rule, four conversion moves</td><td>14 lines</td></tr>
+<tr><td>Side 1, middle</td><td>Absolute value and min max tricks</td><td>4 lines</td></tr>
+<tr><td>Side 1, bottom</td><td>NP definitions, the five step proof, the NPC list, the IS/VC/Clique identity</td><td>16 lines</td></tr>
+<tr><td>Side 2, top</td><td>Greedy proof skeleton</td><td>10 lines</td></tr>
+<tr><td>Side 2, upper middle</td><td>DP four part skeleton</td><td>10 lines</td></tr>
+<tr><td>Side 2, lower middle</td><td>Flow modelling skeleton, both correctness directions</td><td>12 lines</td></tr>
+<tr><td>Side 2, bottom left</td><td>Flow mechanics and the running times table</td><td>8 lines</td></tr>
+<tr><td>Side 2, bottom right</td><td>D&amp;C skeleton, and the time plan</td><td>8 lines</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="box note">
+  <span class="label">Write it by hand, twice</span>
+  <p>The rule says handwritten, which is an accident that works in your favour. Writing it out is
+  itself a revision pass, and writing it out <b>twice</b>, a first draft and then a tighter final,
+  forces you to decide what actually matters. Most people find the second version is half the length
+  and twice as useful.</p>
+  <p>Do the final version at least two days before the exam, not the night before, so you have time to
+  practise with the sheet you will actually take in. A sheet you have never used under time pressure is
+  a sheet you will not be able to find anything on.</p>
+</div>
+
+<h2>The time plan, in the corner</h2>
+
+<p>Write this small somewhere on side 2. It is four lines and it removes every timing decision from the
+exam room.</p>
+
+<div class="box tpl">
+  <span class="label">Copy this verbatim</span>
+  <pre><code>ORDER: Q4, Q6, Q2, Q7, Q1, Q3, Q5
+       15  12  25  20  25  28  25   = 150 min, 30 spare
+
+36 marks = the 40% pass floor. Banked after Q4+Q6+Q2 (40 marks, 52 min).
+
+STUCK 6 MIN?  write the skeleton, leave gaps, move on, come back.</code></pre>
+</div>
+
+<div class="pagenav">
+  <a href="drill.html">&larr; Past paper drill</a>
+  <a href="index.html">Index &rarr;</a>
+</div>
+
+<footer class="bot">
+  <p>Written from scratch. No course material is reproduced.</p>
+</footer>
+
+</div>
+</body>
+</html>

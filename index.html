@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CSC373 Study Guide</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <p class="kicker">CSC373 &middot; Algorithm Design, Analysis and Complexity</p>
+    <h1>The whole course, built around the exam paper</h1>
+    <p class="sub">Seven units, seven exam questions, and the exact answer skeleton each one wants.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<p>This course looks like six unrelated topics. It is not. It is <b>seven question types</b>, and the
+exam asks one of each, in the same order, every year. Every page here is organised around that fact:
+what the question looks like, why the technique works, and the precise thing you write on the paper.</p>
+
+<h2>What the exam actually is</h2>
+
+<p>From the December 2024 paper: 3 hours, 90 marks, 7 questions, 18 pages. Aid allowed is
+<b>one double sided handwritten 8.5x11 sheet</b>. One line on the front page matters more than the
+rest of it put together:</p>
+
+<div class="box trap">
+  <span class="label">The 40% rule</span>
+  <p>"In order to pass the course, you must achieve a grade of at least 40% on this final examination."
+  That is 36 of 90 marks. You cannot bank enough term work to skip this. The safest 36 marks on the
+  paper are Q4 (flow, mechanical) and Q6 (LP, mechanical), plus the first part of Q2 and the
+  certificate half of Q7. Learn those cold before you touch anything hard.</p>
+</div>
+
+<div class="box note">
+  <span class="label">Where the final sits in the course mark</span>
+  <p>Quizzes 3%, four homework assignments 24%, the embedded ethics module 5%, term test 1 20%,
+  term test 2 10%, and the <b>final exam 38%</b>. Term test 1 covers divide and conquer, dynamic
+  programming and greedy. Term test 2 covers network flow, linear programming and complexity. The
+  final is <b>comprehensive</b>, which is why this site is organised by question type rather than by
+  week.</p>
+</div>
+
+<div class="scroll">
+<table>
+<thead><tr><th class="num">Q</th><th>Topic</th><th class="num">Marks</th><th>What it asks for</th></tr></thead>
+<tbody>
+<tr><td class="num">1</td><td><a href="divide-conquer.html">Divide and conquer</a></td><td class="num">15</td><td>Algorithm, brief correctness, recurrence solved by master theorem</td></tr>
+<tr><td class="num">2</td><td><a href="dp.html">Dynamic programming</a></td><td class="num">15</td><td>Split in three: define the array (2), Bellman equation with base cases (6), bottom up pseudocode plus running time (7)</td></tr>
+<tr><td class="num">3</td><td><a href="greedy.html">Greedy</a></td><td class="num">15</td><td>Algorithm, running time, and an induction proof that the partial solution extends to an optimal one</td></tr>
+<tr><td class="num">4</td><td><a href="flow.html">Network flow, mechanical</a></td><td class="num">10</td><td>Build the network, run Ford Fulkerson, list augmenting paths, give a min cut. No justification asked</td></tr>
+<tr><td class="num">5</td><td><a href="flow-apps.html">Network flow, modelling</a></td><td class="num">15</td><td>Design a network for a word problem, justify correctness, bound the running time</td></tr>
+<tr><td class="num">6</td><td><a href="lp.html">Linear programming</a></td><td class="num">10</td><td>Convert to standard form (5), write the dual (5). Purely mechanical</td></tr>
+<tr><td class="num">7</td><td><a href="complexity.html">NP completeness</a></td><td class="num">10</td><td>Show it is in NP, then reduce a known NP complete problem to it</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="box why">
+  <span class="label">Read the mark split before you read the question</span>
+  <p>Q4 and Q6 are 20 marks of pure procedure with nothing to invent. Q2 hands you 2 marks just for
+  saying what the array holds. Q7 hands you roughly 3 for naming a certificate and a certifier. That
+  is about 25 marks available to anyone who has memorised a format, before a single creative idea.
+  The creative marks live in Q1, Q3, Q5 and the reduction half of Q7.</p>
+</div>
+
+<h2>The seven units</h2>
+
+<div class="cards">
+
+  <a class="card" href="divide-conquer.html" style="--c:var(--dc)">
+    <span class="n">Unit 1 &middot; Q1</span>
+    <div class="t">Divide and conquer</div>
+    <div class="d">Counting inversions, the master theorem, closest pair, Karatsuba. The recurrence
+    is the whole running time answer.</div>
+  </a>
+
+  <a class="card" href="greedy.html" style="--c:var(--gr)">
+    <span class="n">Unit 3 &middot; Q3</span>
+    <div class="t">Greedy</div>
+    <div class="d">Interval scheduling, minimising lateness, and the exchange argument. The algorithm
+    is three lines, the proof is the question.</div>
+  </a>
+
+  <a class="card" href="dp.html" style="--c:var(--dp)">
+    <span class="n">Unit 2 &middot; Q2</span>
+    <div class="t">Dynamic programming</div>
+    <div class="d">Bundling, subset sum, edit distance, shelves. Array, Bellman equation, bottom up
+    loop, traceback array.</div>
+  </a>
+
+  <a class="card" href="flow.html" style="--c:var(--fl)">
+    <span class="n">Unit 4 &middot; Q4</span>
+    <div class="t">Network flow</div>
+    <div class="d">Residual networks, Ford Fulkerson, max flow min cut. The most mechanical marks on
+    the paper, so the least excusable to lose.</div>
+  </a>
+
+  <a class="card" href="flow-apps.html" style="--c:var(--fa)">
+    <span class="n">Unit 5 &middot; Q5</span>
+    <div class="t">Flow applications</div>
+    <div class="d">Bipartite matching, image segmentation, and the four layer pattern that solves
+    every "assign these to those" word problem.</div>
+  </a>
+
+  <a class="card" href="lp.html" style="--c:var(--lp)">
+    <span class="n">Unit 6 &middot; Q6</span>
+    <div class="t">Linear programming</div>
+    <div class="d">Standard form, the dual, duality theorem, and the absolute value trick that turns
+    a non linear objective into an LP.</div>
+  </a>
+
+  <a class="card" href="complexity.html" style="--c:var(--cx)">
+    <span class="n">Unit 7 &middot; Q7</span>
+    <div class="t">NP completeness</div>
+    <div class="d">Certificates and certifiers, reductions, and the direction of the arrow that
+    students get backwards every single year.</div>
+  </a>
+
+  <a class="card" href="templates.html" style="--c:var(--accent)">
+    <span class="n">Write it down</span>
+    <div class="t">Exam answer templates</div>
+    <div class="d">The seven skeletons, word for word, with timing. Copy the shape, swap in the
+    problem. This is the page to drill.</div>
+  </a>
+
+</div>
+
+<div class="cards">
+  <a class="card" href="drill.html" style="--c:var(--ink2)">
+    <span class="n">Practice</span>
+    <div class="t">Past paper drill</div>
+    <div class="d">Real questions from the 2024 final and both term tests, each with a full model
+    answer written the way you would write it under time pressure.</div>
+  </a>
+
+  <a class="card" href="cheatsheet.html" style="--c:var(--ink2)">
+    <span class="n">Aid sheet</span>
+    <div class="t">What goes on your one page</div>
+    <div class="d">You get one double sided handwritten sheet. Here is what earns its space and what
+    is a waste of it.</div>
+  </a>
+</div>
+
+<h2>How to use this if you are short on time</h2>
+
+<div class="scroll">
+<table>
+<thead><tr><th>Time left</th><th>Do exactly this</th></tr></thead>
+<tbody>
+<tr><td><b>One evening</b></td><td><a href="templates.html">Templates</a>, then <a href="flow.html">flow</a> and <a href="lp.html">LP</a>. That is the 40% floor and the two topics where the marks are procedural.</td></tr>
+<tr><td><b>Two or three days</b></td><td>Add <a href="dp.html">DP</a> and <a href="complexity.html">complexity</a>. Both are format heavy, so they pay back fastest per hour.</td></tr>
+<tr><td><b>A week</b></td><td>Everything, then <a href="drill.html">the drill page</a> under a timer with your aid sheet and nothing else.</td></tr>
+<tr><td><b>Right before the exam</b></td><td><a href="cheatsheet.html">The aid sheet page</a>, and the trap boxes on each unit. Nothing new.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>Three things that decide your grade</h2>
+
+<h3>1. The question tells you the technique</h3>
+<p>Every exam question is titled with its unit. Q1 says "Divide and Conquer" above it. You are never
+asked to work out which paradigm applies, which means the hard part of algorithm design is deleted
+for you. Your job is to fit the problem to a shape you already know.</p>
+
+<h3>2. The running time is stated in the question</h3>
+<p>"For full credit, your algorithm should run in time O(n)". That is not a constraint, it is a hint.
+O(n log n) means sort first, or divide and conquer with linear merging. O(nB) means a DP table with n
+rows and B columns. O(n) means one pass, so greedy. Read the bound and it tells you the answer shape
+before you have thought about the problem.</p>
+
+<h3>3. Marks come from structure, not insight</h3>
+<p>Compare the model solutions and they all have the same skeleton. Q2 gives 2 marks for one sentence
+defining the array. Q3 gives half the marks for a proof whose first line is always "we prove by
+induction that after step i, the greedy partial solution is contained in some optimal solution". You
+can write that first line before you have solved the problem.</p>
+
+<div class="box note">
+  <span class="label">On notation</span>
+  <p>Everything here uses the notation from the course itself: <code>c[j]</code> style arrays,
+  <code>f<sup>in</sup>(v)</code> and <code>f<sup>out</sup>(v)</code> for flow, <code>X &le;<sub>P</sub> Y</code> for
+  polynomial time reduction, and the master theorem stated with <code>c = log<sub>b</sub>(a)</code>. If a
+  symbol here looks unfamiliar, it is a typo on this site, not a new convention.</p>
+</div>
+
+<footer class="bot">
+  <p>Built from the course slides, tutorials, assignments and past papers for CSC373 at the University
+  of Toronto. No course material is reproduced here: no slides, no handouts, no assignment or exam PDFs.
+  Worked answers are written from scratch.</p>
+</footer>
+
+</div>
+</body>
+</html>

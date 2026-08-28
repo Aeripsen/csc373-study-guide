@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Divide and Conquer</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="backlink" href="index.html">&larr; CSC373 study guide</a>
+    <p class="kicker">Unit 1 &middot; Exam question 1 &middot; 15 marks</p>
+    <h1>Divide and conquer</h1>
+    <p class="sub">Split, recurse, combine. The combine step is the algorithm, and the recurrence is the running time answer.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="toc">
+  <p>On this page</p>
+  <ul>
+    <li><a href="#shape">The shape of every D&amp;C question</a></li>
+    <li><a href="#inv">Counting inversions, with the merge animated</a></li>
+    <li><a href="#master">The master theorem, and a tree that shows why it is true</a></li>
+    <li><a href="#pair">Closest pair of points, and the 11 point window</a></li>
+    <li><a href="#kara">Karatsuba, where 4 becomes 3</a></li>
+    <li><a href="#exam">Exam answer, written out</a></li>
+  </ul>
+</div>
+
+<h2 id="shape">The shape of every D&amp;C question</h2>
+
+<p>Three steps, and only one of them is ever interesting.</p>
+
+<ol>
+  <li><b>Divide</b> the input into similar subproblems, usually two halves.</li>
+  <li><b>Recurse</b> to solve them.</li>
+  <li><b>Combine</b> the sub-answers into the answer for the whole.</li>
+</ol>
+
+<div class="box why">
+  <span class="label">Where the thinking goes</span>
+  <p>Divide is always "cut it in half". Recurse is always "call yourself". Neither earns marks. The
+  entire question is the combine step: <b>what do you have to compute that neither half knows about?</b></p>
+  <p>For counting inversions, the halves know their own inversions, so combine has to count the pairs
+  that straddle the split. For closest pair, the halves know their own closest pairs, so combine has
+  to find any closer pair with one point on each side. Once you name the straddling quantity, you have
+  the algorithm.</p>
+</div>
+
+<div class="box tpl">
+  <span class="label">The move that makes combining fast</span>
+  <p>The linear time combine almost always comes from <b>demanding more from the recursion than the
+  problem asks for</b>. Counting inversions is fast because each recursive call also returns its half
+  <i>sorted</i>. That extra promise costs nothing (the merge does it anyway) and turns an O(n<sup>2</sup>)
+  combine into an O(n) one.</p>
+  <p>On the exam, if your combine step is too slow, ask what extra thing the recursion could return
+  that would speed it up. That is nearly always the intended trick.</p>
+</div>
+
+<h2 id="inv">Counting inversions</h2>
+
+<p><b>Input:</b> an array <code>A[1..n]</code> of distinct integers.<br>
+<b>Output:</b> the number of pairs <code>i &lt; j</code> with <code>A[i] &gt; A[j]</code>.</p>
+
+<p>The brute force is to check all pairs, O(n<sup>2</sup>). It measures how far from sorted A is, which is
+also the Kendall tau distance between two rankings, used in voting theory and rank aggregation.</p>
+
+<p>Split A into B (left half) and C (right half). Every inversion is one of three kinds: both indices
+in B, both in C, or one in each. The first two are what the recursive calls return. The third is what
+combine has to count.</p>
+
+<div class="anim">
+  <h4>Merge and count</h4>
+  <p class="cap">B and C arrive sorted. Every time we take an element from C, it is smaller than
+  everything still left in B, so it forms an inversion with each of them. Add the count of what remains
+  in B.</p>
+  <div class="stage"><svg id="invSvg" viewBox="0 0 620 250" role="img" aria-label="Merging two sorted halves while counting inversions"></svg></div>
+  <div class="ctrls">
+    <button id="invStep" class="primary">Step</button>
+    <button id="invPlay">Play</button>
+    <button id="invReset">Reset</button>
+  </div>
+  <div class="readout" id="invOut">Two sorted halves. Compare the front of each. Press Step.</div>
+</div>
+
+<div class="box why">
+  <span class="label">Why taking from C is the counting moment</span>
+  <p>B and C are both sorted, and everything in B started to the left of everything in C. So if the
+  front of C is smaller than the front of B, it is smaller than <b>every</b> remaining element of B,
+  and each of those is a pair <code>i &lt; j</code> with <code>A[i] &gt; A[j]</code>. That is
+  <code>|B remaining|</code> inversions discovered in one comparison, which is how a whole quadratic
+  count collapses into a linear pass.</p>
+  <p>Taking from B tells you nothing new, because a B element being smaller is the non inverted case.</p>
+</div>
+
+<h3>The algorithm</h3>
+
+<pre><code>Sort-and-Count(A)
+1  if A has length 1
+2      return (0, A)
+3  B = A[1 .. n/2]
+4  C = A[n/2 + 1 .. n]
+5  (inv_B, B) = Sort-and-Count(B)
+6  (inv_C, C) = Sort-and-Count(C)
+7  (inv_BC, A) = Merge-and-Count(B, C)
+8  return (inv_B + inv_C + inv_BC, A)</code></pre>
+
+<p>Line 7 is the merge from mergesort with a counter bolted on. Note the contract: the procedure
+returns a <b>pair</b>, the count and the sorted array. Lines 5 and 6 rely on that.</p>
+
+<p><b>Running time.</b> <code>T(n) = 2T(n/2) + O(n)</code>, and the master theorem gives
+<code>O(n log n)</code>.</p>
+
+<div class="box note">
+  <span class="label">The variant they actually ask</span>
+  <p>The October 2025 midterm asked for <b>significant inversions</b>: pairs with
+  <code>A[i] &gt; 2A[j]</code>. The fix is small and worth memorising as a pattern. Make a copy of the
+  sorted right half, double every entry, and run the counting merge against that copy. Then do a
+  <b>second, plain</b> merge of the two original halves to produce the sorted output.</p>
+  <p>Two passes, each O(n), so the recurrence is unchanged. The reason you need two is that the doubled
+  array is the right thing for counting and the wrong thing for sorting. Whenever the comparison used
+  for counting differs from the comparison used for ordering, you need separate passes.</p>
+</div>
+
+<h2 id="master">The master theorem</h2>
+
+<p>This is the tool for turning a recurrence into a bound, and it is stated on the exam paper in this
+form. It was printed on both past midterms as a reference. Put it on your aid sheet anyway.</p>
+
+<div class="box tpl">
+  <span class="label">Master theorem, as stated in this course</span>
+  <p>Let <code>a &ge; 1</code>, <code>b &gt; 1</code> be constants, and <code>T(n) &le; aT(&lceil;n/b&rceil;) + f(n)</code>.
+  Let <code>c = log<sub>b</sub>(a)</code>. Then:</p>
+  <ul>
+    <li><b>Case 1 (leaves win).</b> If <code>f(n) = O(n<sup>c-&epsilon;</sup>)</code> for some <code>&epsilon; &gt; 0</code>,
+    then <code>T(n) = O(n<sup>c</sup>)</code>.</li>
+    <li><b>Case 2 (tie).</b> If <code>f(n) = &Theta;(n<sup>c</sup> log(n)<sup>k</sup>)</code> for <code>k &ge; 0</code>,
+    then <code>T(n) = O(n<sup>c</sup> log(n)<sup>k+1</sup>)</code>.</li>
+    <li><b>Case 3 (root wins).</b> If <code>f(n) = &Omega;(n<sup>c+&epsilon;</sup>)</code> for some <code>&epsilon; &gt; 0</code>,
+    <b>and</b> <code>af(n/b) &le; df(n)</code> for some constant <code>d &lt; 1</code> and all large n,
+    then <code>T(n) = O(f(n))</code>.</li>
+  </ul>
+</div>
+
+<div class="anim">
+  <h4>Why the three cases exist</h4>
+  <p class="cap">Each bar is the total work done at one level of the recursion tree. Change a and b and
+  watch which level dominates. That is the whole content of the theorem.</p>
+  <div class="stage"><svg id="mtSvg" viewBox="0 0 620 300" role="img" aria-label="Recursion tree work per level"></svg></div>
+  <div class="ctrls" style="flex-direction:column;align-items:stretch">
+    <div class="slider"><label for="mtA">a = <b id="mtAv">2</b></label><input id="mtA" type="range" min="1" max="9" value="2" step="1"></div>
+    <div class="slider"><label for="mtB">b = <b id="mtBv">2</b></label><input id="mtB" type="range" min="2" max="5" value="2" step="1"></div>
+    <div class="slider"><label for="mtD">f(n) = n^<b id="mtDv">1</b></label><input id="mtD" type="range" min="0" max="3" value="1" step="1"></div>
+  </div>
+  <div class="readout" id="mtOut"></div>
+</div>
+
+<div class="box why">
+  <span class="label">The intuition in one line</span>
+  <p>At depth <code>i</code> there are <code>a<sup>i</sup></code> subproblems, each of size
+  <code>n/b<sup>i</sup></code>, so the work at that level is <code>a<sup>i</sup> f(n/b<sup>i</sup>)</code>.
+  That is a geometric series in disguise. If it grows going down, the <b>bottom</b> level dominates and
+  the answer is the number of leaves, <code>n<sup>c</sup></code>. If it shrinks, the <b>top</b> dominates
+  and the answer is <code>f(n)</code>. If it is flat, every one of the <code>log<sub>b</sub>n</code>
+  levels costs the same, so you multiply by a log.</p>
+  <p>You never need to remember which case is which. Compare <code>n<sup>c</sup></code> with
+  <code>f(n)</code>, and the bigger one wins. A tie costs you a log factor.</p>
+</div>
+
+<h3>Applying it in the exam, in 20 seconds</h3>
+
+<ol>
+  <li>Read off <code>a</code> (number of recursive calls) and <code>b</code> (shrink factor).</li>
+  <li>Compute <code>c = log<sub>b</sub>a</code>.</li>
+  <li>Compare <code>f(n)</code> to <code>n<sup>c</sup></code>. Bigger one wins, tie gives an extra log.</li>
+  <li>Write the sentence: <i>"With a = _, b = _, c = log<sub>b</sub>a = _, and f(n) = _, we are in case _,
+  so T(n) = _."</i></li>
+</ol>
+
+<div class="scroll">
+<table>
+<thead><tr><th>Recurrence</th><th class="num">c = log<sub>b</sub>a</th><th>Compare</th><th>Answer</th></tr></thead>
+<tbody>
+<tr><td><code>T(n) = 2T(n/2) + O(n)</code></td><td class="num">1</td><td>n vs n<sup>1</sup>, tie</td><td><code>O(n log n)</code></td></tr>
+<tr><td><code>T(n) = 3T(n/2) + O(n log n)</code></td><td class="num">log<sub>2</sub>3 &asymp; 1.58</td><td>n log n is smaller</td><td><code>O(n<sup>log&#8322;3</sup>)</code></td></tr>
+<tr><td><code>T(n) = 8T(n/2) + O(n<sup>2</sup>)</code></td><td class="num">3</td><td>n<sup>2</sup> is smaller</td><td><code>O(n<sup>3</sup>)</code></td></tr>
+<tr><td><code>T(n) = 8T(n/2) + O(n<sup>3</sup>)</code></td><td class="num">3</td><td>tie</td><td><code>O(n<sup>3</sup> log n)</code></td></tr>
+<tr><td><code>T(n) = 2T(n/4) + O(n)</code></td><td class="num">0.5</td><td>n is bigger</td><td><code>O(n)</code></td></tr>
+<tr><td><code>T(n) = 3T(n/2) + O(n)</code></td><td class="num">log<sub>2</sub>3 &asymp; 1.58</td><td>n is smaller</td><td><code>O(n<sup>log&#8322;3</sup>)</code></td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="box trap">
+  <span class="label">Case 1 needs a gap, not just "smaller"</span>
+  <p>Row 2 above catches people out. Is <code>n log n</code> smaller than <code>n<sup>1.58</sup></code>?
+  Yes, and by a polynomial factor: <code>n log n = O(n<sup>1.58-&epsilon;</sup>)</code> holds for small
+  <code>&epsilon;</code>, because <code>log n</code> grows slower than any <code>n<sup>&epsilon;</sup></code>.
+  So case 1 applies and the log disappears entirely from the answer.</p>
+  <p>The published solution spells this out: "because n log n = O(n<sup>1+&epsilon;</sup>) for any
+  &epsilon; &gt; 0, and log<sub>2</sub>(3) &gt; 1". Write that parenthetical. It is the justification the
+  question is asking for.</p>
+</div>
+
+<div class="box trap">
+  <span class="label">Case 3 has a second condition and people forget it</span>
+  <p><code>af(n/b) &le; df(n)</code> for some <code>d &lt; 1</code>. It is a regularity condition saying
+  f really does shrink as you go down. For every polynomial f it holds trivially, so on the exam you
+  check it in one line and move on: for <code>T(n) = 2T(n/4) + O(n)</code>,
+  <code>af(n/b) = 2(n/4) = n/2 = &frac12;f(n)</code>, so <code>d = &frac12;</code> works.</p>
+</div>
+
+<h2 id="pair">Closest pair of points</h2>
+
+<p><b>Input:</b> n points in the plane. <b>Output:</b> the two points at minimum Euclidean distance.
+Brute force is O(n<sup>2</sup>). In one dimension you would just sort and check adjacent pairs, but in two
+dimensions there is no single order that puts close points next to each other, so that fails.</p>
+
+<p><b>Divide</b> with a vertical line L into equal halves Q and R. <b>Recurse</b> to get the closest
+pair in each. Let <code>&delta;</code> be the smaller of the two distances. <b>Combine</b>: is there a
+pair closer than <code>&delta;</code> with one point in Q and one in R?</p>
+
+<div class="anim">
+  <h4>The strip, and why 11 comparisons suffice</h4>
+  <p class="cap">Only points within &delta; of the line can be part of a closer straddling pair. Sort
+  that strip by y, and each point needs to be compared with only the next 11.</p>
+  <div class="stage"><svg id="cpSvg" viewBox="0 0 620 320" role="img" aria-label="Closest pair strip construction"></svg></div>
+  <div class="ctrls">
+    <button id="cpStep" class="primary">Step</button>
+    <button id="cpReset">Reset</button>
+  </div>
+  <div class="readout" id="cpOut">Points in the plane. Press Step to divide.</div>
+</div>
+
+<div class="box why">
+  <span class="label">Where the 11 comes from</span>
+  <p>Cut the strip into squares of side <code>&delta;/2</code>. Each square holds <b>at most one</b>
+  point: it lies entirely on one side of L, and its diagonal is
+  <code>&delta;&radic;2/2 &asymp; 0.71&delta; &lt; &delta;</code>, so two points inside it would be closer than
+  <code>&delta;</code>, contradicting what the recursion already found.</p>
+  <p>The strip is <code>2&delta;</code> wide, so each row holds 4 squares. If two points in the y sorted
+  order are more than 11 positions apart, they are separated by at least 3 full rows, so their vertical
+  distance exceeds <code>&delta;</code> and they cannot be the pair you are looking for. Comparing each
+  point to the next 11 is therefore enough, and 11 is a constant, so the scan is O(n).</p>
+</div>
+
+<p><b>Running time.</b> Naively <code>T(n) = 2T(n/2) + O(n log n)</code> because the strip has to be
+sorted by y, giving <code>O(n log<sup>2</sup> n)</code>. Sort by both coordinates <b>once</b> at the start
+and reuse those orders, and the combine drops to O(n), giving <code>T(n) = 2T(n/2) + O(n)</code> and
+<code>O(n log n)</code>.</p>
+
+<h2 id="kara">Karatsuba, or 4 multiplications becoming 3</h2>
+
+<p><b>Input:</b> two n bit integers x and y. <b>Output:</b> their product. Grade school long
+multiplication is O(n<sup>2</sup>), and Kolmogorov conjectured that was optimal. Karatsuba disproved it.</p>
+
+<p>Split each number in half: <code>x = x&#8321;2<sup>n/2</sup> + x&#8320;</code> and
+<code>y = y&#8321;2<sup>n/2</sup> + y&#8320;</code>. Then</p>
+
+<pre><code>xy = x&#8321;y&#8321;&middot;2&#8319; + (x&#8321;y&#8320; + x&#8320;y&#8321;)&middot;2^(n/2) + x&#8320;y&#8320;</code></pre>
+
+<p>Computing all four products separately gives <code>T(n) = 4T(n/2) + O(n)</code>, and since
+<code>c = log&#8322;4 = 2</code>, that is <code>O(n<sup>2</sup>)</code>. No gain.</p>
+
+<div class="box tpl">
+  <span class="label">The trick</span>
+  <p>You do not need <code>x&#8321;y&#8320;</code> and <code>x&#8320;y&#8321;</code> separately, only their sum. And</p>
+  <pre><code>(x&#8321; + x&#8320;)(y&#8321; + y&#8320;) = x&#8321;y&#8321; + (x&#8321;y&#8320; + x&#8320;y&#8321;) + x&#8320;y&#8320;</code></pre>
+  <p>so the middle term is that product minus the two you already computed. Three recursive
+  multiplications instead of four:</p>
+  <ul>
+    <li><code>A = x&#8321;y&#8321;</code></li>
+    <li><code>B = x&#8320;y&#8320;</code></li>
+    <li><code>C = (x&#8321; + x&#8320;)(y&#8321; + y&#8320;)</code>, and the middle term is <code>C - A - B</code></li>
+  </ul>
+  <p><code>T(n) = 3T(n/2) + O(n)</code>, and <code>c = log&#8322;3 &asymp; 1.585</code> with
+  <code>f(n) = n</code> smaller, so case 1 gives <code>O(n<sup>1.585</sup>)</code>.</p>
+</div>
+
+<div class="box note">
+  <span class="label">Worth knowing, not worth memorising</span>
+  <p>Schonhage and Strassen got <code>O(n log n log log n)</code> in 1971 using the fast Fourier
+  transform, and Harvey and van der Hoeven reached <code>O(n log n)</code> in 2021. This is background,
+  not examinable procedure.</p>
+</div>
+
+<h2 id="exam">Exam answer, written out</h2>
+
+<p>The December 2024 Q1, done the way you would actually write it. The problem: n jobs, each with a
+salary <code>s<sub>i</sub></code> and a fun score <code>f<sub>i</sub></code>, all distinct. Job i
+<b>dominates</b> job j if <code>f<sub>i</sub> &gt; f<sub>j</sub></code> and
+<code>s<sub>i</sub> &gt; s<sub>j</sub></code>. A job is <b>good</b> if nothing dominates it. Output all good
+jobs in O(n log n).</p>
+
+<details>
+<summary>Think about it first, then open this</summary>
+
+<p><b>Algorithm.</b> Pre-process by sorting the jobs by salary in O(n log n). Then run
+<code>Good(l, u)</code>, which returns the list of jobs in <code>l..u</code> that are not dominated by
+any other job in <code>l..u</code>, sorted by salary.</p>
+
+<pre><code>Good(l, u)
+1  if l == u
+2      return [job l]
+3  m = (l + u) / 2
+4  L = Good(l, m)          // lower salaries
+5  R = Good(m + 1, u)      // higher salaries
+6  fmax = max fun score among jobs m+1 .. u
+7  L' = [ job in L with fun score &gt; fmax ]
+8  return L' followed by R</code></pre>
+
+<p><b>In words.</b> Split by salary at the median. Nothing in the low half can dominate anything in the
+high half, because domination needs a strictly higher salary. So every good job of the high half is
+still good overall, and R passes through untouched. A job in the low half survives only if no high half
+job dominates it. Every high half job already beats it on salary, so it survives exactly when its fun
+score beats <b>all</b> of them, that is, when it beats the maximum fun score in the high half. One
+number, computed in one linear pass, filters the whole left list.</p>
+
+<p><b>Correctness.</b> By induction on <code>u - l</code>. The base case of one job is immediate, since a
+single job is dominated by nothing. For the step, assume L and R are correct for their halves. A job in
+the high half dominated by nothing in its own half is dominated by nothing at all, since every low half
+job has a smaller salary, so returning R unchanged is right. A job x in the low half is dominated by
+some job in the whole range exactly when it is dominated within its own half (excluded already, by the
+induction hypothesis) or by some high half job y. Since <code>s<sub>y</sub> &gt; s<sub>x</sub></code>
+automatically, that happens exactly when some high half job has a larger fun score, that is, when
+<code>f<sub>x</sub> &lt; fmax</code>. Line 7 removes exactly those.</p>
+
+<p><b>Running time.</b> Sorting once costs O(n log n). Lines 6 and 7 are single passes over at most n
+elements, so the combine is O(n) and <code>T(n) = 2T(n/2) + O(n)</code>. By the master theorem with
+a = 2, b = 2, c = log<sub>2</sub>2 = 1 and f(n) = &Theta;(n), we are in case 2 with k = 0, so
+<code>T(n) = O(n log n)</code>. Adding the sort leaves the bound at <code>O(n log n)</code>.</p>
+
+<div class="box why">
+  <span class="label">The move to notice</span>
+  <p>The combine step compressed the entire right half into <b>one number</b>, its maximum fun score.
+  That is the recurring pattern in D&amp;C combine steps: find the single summary statistic of one half
+  that is enough to filter the other. Sorted order, a maximum, a count, a boundary strip. If your
+  combine is looping over both halves at once, you have missed the summary.</p>
+</div>
+</details>
+
+<div class="box tpl">
+  <span class="label">Recognising Q1 in 60 seconds</span>
+  <ul>
+    <li>Target is <b>O(n log n)</b> and the input is an array or a point set. Split in half.</li>
+    <li>The question hints at a <b>sort</b> or a <b>median</b> as a pre-processing step. That is the
+    divide rule handed to you.</li>
+    <li>Ask: what is true of a pair that <b>straddles</b> the split, and can I summarise one side into
+    something small enough to check it in one pass?</li>
+    <li>If the combine seems to need O(n log n), ask what the recursion could <b>also return</b> (usually
+    sorted order) to make it O(n).</li>
+  </ul>
+</div>
+
+<div class="pagenav">
+  <a href="index.html">&larr; Index</a>
+  <a href="greedy.html">Greedy &rarr;</a>
+</div>
+
+<footer class="bot">
+  <p>Worked answers written from scratch. No course material is reproduced.</p>
+</footer>
+
+</div>
+
+<script>
+/* ---------------- merge and count ---------------- */
+(function () {
+  var svg = document.getElementById('invSvg');
+  if (!svg) return;
+  var NS = 'http://www.w3.org/2000/svg';
+  function el(n, a) { var e = document.createElementNS(NS, n); for (var k in a) e.setAttribute(k, a[k]); return e; }
+
+  var B0 = [2, 4, 7, 9], C0 = [1, 3, 5, 8];
+  var B, C, bi, ci, merged, inv, log, done, timer = null;
+  var out = document.getElementById('invOut');
+
+  function reset() {
+    B = B0.slice(); C = C0.slice(); bi = 0; ci = 0; merged = []; inv = 0; done = false;
+    log = 'Two sorted halves. Compare the front of each. Press Step.';
+    draw();
+  }
+
+  function step() {
+    if (done) return;
+    if (bi >= B.length && ci >= C.length) {
+      done = true;
+      log = '<b>Done. ' + inv + ' straddling inversions.</b> Add the counts from the two recursive calls to get the total for this range.';
+      draw(); return;
+    }
+    if (ci >= C.length || (bi < B.length && B[bi] <= C[ci])) {
+      merged.push({ v: B[bi], from: 'B' });
+      log = 'Front of B is ' + B[bi] + ', not larger than the front of C. Take it. <b>No inversion</b>, because a B element being smaller is the correctly ordered case.';
+      bi++;
+    } else {
+      var rem = B.length - bi;
+      merged.push({ v: C[ci], from: 'C' });
+      inv += rem;
+      log = 'Front of C is ' + C[ci] + ', smaller than the front of B. Take it, and it is smaller than <b>all ' +
+            rem + '</b> remaining B elements, each of which sits to its left in A. <b>+' + rem +
+            ' inversions</b>, running total <b>' + inv + '</b>.';
+      ci++;
+    }
+    draw();
+  }
+
+  function cell(x, y, v, fill, stroke, faded) {
+    var g = el('g', { opacity: faded ? .25 : 1 });
+    g.appendChild(el('rect', { x: x, y: y, width: 42, height: 34, rx: 5, fill: fill, stroke: stroke, 'stroke-width': 1.8 }));
+    var t = el('text', { x: x + 21, y: y + 22, 'text-anchor': 'middle', class: 'svg-lbl-b' });
+    t.textContent = v;
+    g.appendChild(t);
+    return g;
+  }
+
+  function draw() {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var X = 90, W = 48;
+
+    svg.appendChild(el('text', { x: 14, y: 40, class: 'svg-lbl-b' })).textContent = 'B (left)';
+    B.forEach(function (v, i) {
+      svg.appendChild(cell(X + i * W, 20, v, i === bi && !done ? 'var(--tpl-bg)' : 'var(--bg)',
+        i === bi && !done ? 'var(--tpl-line)' : 'var(--line2)', i < bi));
+    });
+    // highlight the remaining-B block that gets counted
+    if (!done && ci < C.length && (bi >= B.length ? false : B[bi] > C[ci])) {
+      var n = B.length - bi;
+      svg.appendChild(el('rect', {
+        x: X + bi * W - 3, y: 15, width: n * W - 3, height: 44, rx: 6,
+        fill: 'none', stroke: 'var(--trap-line)', 'stroke-width': 2, 'stroke-dasharray': '5 3'
+      }));
+      var t = el('text', { x: X + bi * W, y: 72, class: 'svg-lbl', fill: 'var(--trap-line)' });
+      t.textContent = 'these ' + n + ' are all inverted with ' + C[ci];
+      svg.appendChild(t);
+    }
+
+    svg.appendChild(el('text', { x: 14, y: 118, class: 'svg-lbl-b' })).textContent = 'C (right)';
+    C.forEach(function (v, i) {
+      svg.appendChild(cell(X + i * W, 98, v, i === ci && !done ? 'var(--trap-bg)' : 'var(--bg)',
+        i === ci && !done ? 'var(--trap-line)' : 'var(--line2)', i < ci));
+    });
+
+    svg.appendChild(el('text', { x: 14, y: 196, class: 'svg-lbl-b' })).textContent = 'merged';
+    merged.forEach(function (m, i) {
+      svg.appendChild(cell(X + i * W, 176, m.v,
+        m.from === 'C' ? 'var(--trap-bg)' : 'var(--tpl-bg)',
+        m.from === 'C' ? 'var(--trap-line)' : 'var(--tpl-line)', false));
+    });
+
+    var it = el('text', { x: 14, y: 238, class: 'svg-lbl-b' });
+    it.textContent = 'inversions counted here: ' + inv;
+    svg.appendChild(it);
+
+    out.innerHTML = log;
+  }
+
+  document.getElementById('invStep').addEventListener('click', function () {
+    if (timer) { clearInterval(timer); timer = null; document.getElementById('invPlay').textContent = 'Play'; }
+    step();
+  });
+  document.getElementById('invPlay').addEventListener('click', function () {
+    var self = this;
+    if (timer) { clearInterval(timer); timer = null; self.textContent = 'Play'; return; }
+    self.textContent = 'Pause';
+    timer = setInterval(function () {
+      if (done) { clearInterval(timer); timer = null; self.textContent = 'Play'; return; }
+      step();
+    }, 1300);
+  });
+  document.getElementById('invReset').addEventListener('click', function () {
+    if (timer) { clearInterval(timer); timer = null; document.getElementById('invPlay').textContent = 'Play'; }
+    reset();
+  });
+
+  reset();
+})();
+
+/* ---------------- master theorem tree ---------------- */
+(function () {
+  var svg = document.getElementById('mtSvg');
+  if (!svg) return;
+  var NS = 'http://www.w3.org/2000/svg';
+  function el(n, a) { var e = document.createElementNS(NS, n); for (var k in a) e.setAttribute(k, a[k]); return e; }
+
+  var out = document.getElementById('mtOut');
+  var ia = document.getElementById('mtA'), ib = document.getElementById('mtB'), id = document.getElementById('mtD');
+
+  function draw() {
+    var a = +ia.value, b = +ib.value, d = +id.value;
+    document.getElementById('mtAv').textContent = a;
+    document.getElementById('mtBv').textContent = b;
+    document.getElementById('mtDv').textContent = d;
+
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+    var c = Math.log(a) / Math.log(b);
+    var n = 4096, levels = Math.min(6, Math.round(Math.log(n) / Math.log(b)));
+    // work at level i, relative to level 0, is (a / b^d)^i
+    var ratio = a / Math.pow(b, d);
+
+    var X0 = 150, X1 = 606, maxW = X1 - X0, Y0 = 34, LH = 34;
+    var works = [], maxWork = 0;
+    for (var i = 0; i <= levels; i++) {
+      var w = Math.pow(ratio, i);
+      works.push(w);
+      if (w > maxWork) maxWork = w;
+    }
+
+    svg.appendChild(el('text', { x: 14, y: 20, class: 'svg-lbl-b' })).textContent = 'work per level';
+    svg.appendChild(el('text', { x: X0, y: 20, class: 'svg-lbl' })).textContent =
+      'each bar = aⁱ · f(n/bⁱ)';
+
+    for (var i = 0; i <= levels; i++) {
+      var y = Y0 + i * LH;
+      var w = Math.max((works[i] / maxWork) * maxW, 2);
+      var isMax = works[i] === maxWork;
+      svg.appendChild(el('rect', {
+        x: X0, y: y, width: w, height: LH - 11, rx: 3,
+        fill: isMax ? 'var(--dc)' : 'var(--line2)',
+        opacity: isMax ? .9 : .55
+      }));
+      var lb = el('text', { x: 14, y: y + 14, class: 'svg-lbl' });
+      lb.textContent = i === 0 ? 'level 0 (root)' : (i === levels ? 'level ' + i + ' (leaves)' : 'level ' + i);
+      svg.appendChild(lb);
+      var cnt = el('text', { x: 100, y: y + 14, class: 'svg-lbl', 'text-anchor': 'end' });
+      cnt.textContent = a === 1 ? '1 call' : (Math.pow(a, i) > 9999 ? 'a^' + i : Math.pow(a, i) + '');
+      svg.appendChild(cnt);
+    }
+
+    var yB = Y0 + (levels + 1) * LH + 6;
+    var eps = 1e-9, msg, caseN;
+    if (d < c - eps) { caseN = 1; msg = 'Bars grow downward, so the <b>leaves dominate</b>. T(n) = O(n^' + round(c) + ').'; }
+    else if (Math.abs(d - c) <= eps) { caseN = 2; msg = 'Bars are equal, so <b>every level costs the same</b> and there are log_b n of them. T(n) = O(n^' + round(c) + ' log n).'; }
+    else { caseN = 3; msg = 'Bars shrink downward, so the <b>root dominates</b>. T(n) = O(n^' + d + ').'; }
+
+    var s1 = el('text', { x: 14, y: yB, class: 'svg-lbl-b' });
+    s1.textContent = 'T(n) = ' + a + 'T(n/' + b + ') + O(n' + (d === 1 ? '' : '^' + d) + ')';
+    svg.appendChild(s1);
+    var s2 = el('text', { x: 14, y: yB + 18, class: 'svg-lbl' });
+    s2.textContent = 'c = log_' + b + '(' + a + ') = ' + round(c) + ',  f(n) = n^' + d + '  →  case ' + caseN;
+    svg.appendChild(s2);
+
+    out.innerHTML = msg + ' <br>Compare <b>n^' + round(c) + '</b> (the leaves) against <b>n^' + d +
+      '</b> (the root). The larger exponent wins; a tie costs one log factor.';
+  }
+
+  function round(x) { return (Math.round(x * 100) / 100) + ''; }
+
+  [ia, ib, id].forEach(function (s) { s.addEventListener('input', draw); });
+  draw();
+})();
+
+/* ---------------- closest pair ---------------- */
+(function () {
+  var svg = document.getElementById('cpSvg');
+  if (!svg) return;
+  var NS = 'http://www.w3.org/2000/svg';
+  function el(n, a) { var e = document.createElementNS(NS, n); for (var k in a) e.setAttribute(k, a[k]); return e; }
+
+  var P = [
+    [40, 60], [95, 200], [130, 105], [180, 250], [210, 45],
+    [250, 160], [268, 190], [300, 90], [332, 118], [352, 235],
+    [400, 60], [440, 205], [478, 140], [520, 265], [560, 95], [590, 175]
+  ];
+  var MID = 310;
+  var stage = 0, out = document.getElementById('cpOut');
+  var DELTA = 46;
+
+  var STAGES = [
+    'Points in the plane. Press Step to divide.',
+    'Divide with a vertical line L so each side holds half the points. Recurse on each side.',
+    'The recursive calls return the closest pair on each side. Let <b>&delta;</b> be the smaller of the two distances. Any pair closer than &delta; must straddle L.',
+    'A straddling pair closer than &delta; has both points within &delta; of L. Everything outside the strip is now irrelevant, however many points that is.',
+    'Sort the strip by y. Cut it into squares of side &delta;/2. Each square holds <b>at most one</b> point, since its diagonal is about 0.71&delta; and it lies on one side of L.',
+    'So two points more than 11 positions apart in the y order are separated by 3 or more rows, hence further than &delta; apart. <b>Comparing each point to the next 11 is enough</b>, and 11 is a constant, so the scan is O(n).'
+  ];
+
+  function draw() {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+    svg.appendChild(el('rect', { x: 8, y: 8, width: 604, height: 284, rx: 6, fill: 'var(--bg)', stroke: 'var(--line)' }));
+
+    if (stage >= 3) {
+      svg.appendChild(el('rect', {
+        x: MID - DELTA, y: 8, width: DELTA * 2, height: 284,
+        fill: 'var(--tpl-bg)', opacity: .75
+      }));
+    }
+
+    if (stage >= 4) {
+      for (var y = 8; y < 292; y += DELTA / 2) {
+        svg.appendChild(el('line', { x1: MID - DELTA, y1: y, x2: MID + DELTA, y2: y, stroke: 'var(--tpl-line)', 'stroke-width': .6, opacity: .55 }));
+      }
+      for (var x = MID - DELTA; x <= MID + DELTA; x += DELTA / 2) {
+        svg.appendChild(el('line', { x1: x, y1: 8, x2: x, y2: 292, stroke: 'var(--tpl-line)', 'stroke-width': .6, opacity: .55 }));
+      }
+    }
+
+    if (stage >= 1) {
+      svg.appendChild(el('line', { x1: MID, y1: 8, x2: MID, y2: 292, stroke: 'var(--ink2)', 'stroke-width': 2, 'stroke-dasharray': '6 4' }));
+      var lt = el('text', { x: MID + 5, y: 24, class: 'svg-lbl-b' });
+      lt.textContent = 'L';
+      svg.appendChild(lt);
+    }
+
+    if (stage >= 2) {
+      // the closest pair found on each side
+      svg.appendChild(el('line', { x1: 250, y1: 160, x2: 268, y2: 190, stroke: 'var(--gr)', 'stroke-width': 2.5 }));
+      svg.appendChild(el('line', { x1: 400, y1: 60, x2: 440, y2: 205, stroke: 'var(--gr)', 'stroke-width': 2.5, opacity: .35 }));
+      var dt = el('text', { x: 175, y: 178, class: 'svg-lbl-b', fill: 'var(--gr)' });
+      dt.textContent = 'δ = closer of the two';
+      svg.appendChild(dt);
+    }
+
+    if (stage >= 3) {
+      var st = el('text', { x: MID - DELTA, y: 288, class: 'svg-lbl', fill: 'var(--tpl-line)', 'text-anchor': 'start' });
+      st.textContent = 'width 2δ';
+      svg.appendChild(st);
+    }
+
+    P.forEach(function (p) {
+      var inStrip = Math.abs(p[0] - MID) <= DELTA;
+      var dim = stage >= 3 && !inStrip;
+      svg.appendChild(el('circle', {
+        cx: p[0], cy: p[1], r: 4.5,
+        fill: dim ? 'var(--line2)' : (p[0] < MID ? 'var(--dc)' : 'var(--fl)'),
+        opacity: dim ? .35 : 1
+      }));
+    });
+
+    if (stage >= 5) {
+      var strip = P.filter(function (p) { return Math.abs(p[0] - MID) <= DELTA; })
+                   .sort(function (a, b) { return a[1] - b[1]; });
+      strip.forEach(function (p, i) {
+        var t = el('text', { x: p[0] + 8, y: p[1] + 4, class: 'svg-lbl', fill: 'var(--ink)' });
+        t.textContent = (i + 1);
+        svg.appendChild(t);
+      });
+    }
+
+    out.innerHTML = STAGES[stage];
+  }
+
+  document.getElementById('cpStep').addEventListener('click', function () {
+    stage = Math.min(stage + 1, STAGES.length - 1); draw();
+  });
+  document.getElementById('cpReset').addEventListener('click', function () { stage = 0; draw(); });
+
+  draw();
+})();
+</script>
+
+</body>
+</html>

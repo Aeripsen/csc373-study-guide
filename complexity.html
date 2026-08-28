@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NP Completeness</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="backlink" href="index.html">&larr; CSC373 study guide</a>
+    <p class="kicker">Unit 7 &middot; Exam question 7 &middot; 10 marks</p>
+    <h1>NP completeness</h1>
+    <p class="sub">Half the marks are two sentences you can write without thinking. The other half is one arrow, pointed the right way.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="toc">
+  <p>On this page</p>
+  <ul>
+    <li><a href="#np">NP, via certificates and certifiers</a></li>
+    <li><a href="#notnp">A problem that is not obviously in NP</a></li>
+    <li><a href="#red">Reductions, and the direction</a></li>
+    <li><a href="#classes">P, NP, NP hard, NP complete</a></li>
+    <li><a href="#zoo">The problems you are allowed to reduce from</a></li>
+    <li><a href="#triangle">Independent set, vertex cover, clique: one graph, three problems</a></li>
+    <li><a href="#exam">Exam answer, written out</a></li>
+  </ul>
+</div>
+
+<h2 id="np">NP, via certificates and certifiers</h2>
+
+<p>A <b>decision problem</b> has a yes or no answer. X is in <b>NP</b> if there is a polynomial time
+algorithm B (the <b>certifier</b>) and a polynomial p, such that for every input x:</p>
+
+<pre><code>x is a Yes instance   &lArr;&rArr;   there exists y with |y| &le; p(|x|) and B(x, y) = Yes</code></pre>
+
+<p>That y is the <b>certificate</b>. Informally: a Yes answer has a short proof that can be checked
+quickly. Nothing is claimed about finding it.</p>
+
+<div class="box tpl">
+  <span class="label">The two sentences that answer this part, every time</span>
+  <p><i>"The certificate is <b>[the object the question asks whether one exists]</b>. The certifier checks
+  that <b>[it has the required size]</b> and that <b>[it satisfies the defining property]</b>, which takes
+  polynomial time."</i></p>
+  <p>The certificate is always the thing after "decide if there is a ...". You are not required to be
+  clever, and being clever here loses time.</p>
+</div>
+
+<div class="scroll">
+<table>
+<thead><tr><th>Problem</th><th>Certificate</th><th>Certifier checks</th></tr></thead>
+<tbody>
+<tr><td>Independent Set</td><td>the set S</td><td><code>|S| = k</code>, and no edge has both endpoints in S</td></tr>
+<tr><td>Vertex Cover</td><td>the set S</td><td><code>|S| &le; k</code>, and every edge has an endpoint in S</td></tr>
+<tr><td>k-Clique</td><td>the set S</td><td><code>|S| = k</code>, and every pair in S is joined by an edge</td></tr>
+<tr><td>Subset Sum</td><td>the subset S</td><td><code>&sum;<sub>i&isin;S</sub> a<sub>i</sub> = W</code></td></tr>
+<tr><td>3-SAT</td><td>the truth assignment</td><td>every clause has at least one true literal</td></tr>
+<tr><td>Hamiltonian Path</td><td>the order the path visits vertices</td><td>consecutive pairs are edges, starts at s, ends at t, every vertex appears exactly once</td></tr>
+<tr><td>3-Colouring</td><td>the map <code>&phi;: V &rarr; {1,2,3}</code></td><td><code>&phi;(u) &ne; &phi;(v)</code> for every edge <code>(u,v)</code></td></tr>
+<tr><td>Dominating Set</td><td>the set S</td><td><code>|S| &le; k</code>, and every vertex is in S or has a neighbour in S</td></tr>
+<tr><td>Large Cut</td><td>the partition <code>(A, B)</code></td><td>A and B are non empty, disjoint, cover V, and at least k edges cross</td></tr>
+<tr><td>Degree Bounded Spanning Tree</td><td>the edges of T</td><td>T is connected via DFS, has exactly <code>|V| - 1</code> edges, every degree at most k</td></tr>
+<tr><td>Composite</td><td>a factor b</td><td><code>1 &lt; b &lt; a</code> and <code>b</code> divides <code>a</code></td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="box note">
+  <span class="label">Why "exactly k edges" appears in the spanning tree row</span>
+  <p>A graph on <code>|V|</code> vertices that is connected and has <code>|V| - 1</code> edges is
+  necessarily acyclic, so those two checks together certify "tree" without a separate cycle hunt. Small
+  facts like this are what makes a certifier obviously polynomial.</p>
+</div>
+
+<h2 id="notnp">A problem that is not obviously in NP</h2>
+
+<p><b>No Long Path:</b> given a directed graph G and an integer k, decide whether <b>every</b> simple
+path in G has at most k edges.</p>
+
+<div class="box why">
+  <span class="label">Why the certificate approach fails here</span>
+  <p>A Yes instance is one where <i>all</i> paths are short. To convince someone of that, you would have
+  to account for every simple path, and there can be exponentially many. There is no obvious short
+  object that proves a universal statement.</p>
+  <p>The pattern: NP is good at <b>existence</b> claims ("there is a set", "there is an assignment") and
+  bad at <b>universal</b> ones ("every path", "no subset"). Negating an NP problem generally lands you
+  in co-NP, and whether NP equals co-NP is open. If an exam problem is phrased with "every" or "no",
+  check whether it can be rewritten as an existence claim before assuming it is in NP.</p>
+</div>
+
+<h2 id="red">Reductions, and the direction</h2>
+
+<p>X is <b>polynomial time reducible</b> to Y, written <code>X &le;<sub>P</sub> Y</code>, if there is a
+polynomial time algorithm R turning any instance x of X into an instance <code>R(x)</code> of Y such
+that</p>
+
+<pre><code>x is a Yes instance of X   &lArr;&rArr;   R(x) is a Yes instance of Y</code></pre>
+
+<p>Read it as "X is no harder than Y", because a solver for Y gives you a solver for X.</p>
+
+<div class="anim">
+  <h4>The arrow, and what happens when you reverse it</h4>
+  <p class="cap">You are proving a new problem Y is hard. Switch the direction and watch the argument
+  collapse.</p>
+  <div class="stage"><svg id="rdSvg" viewBox="0 0 440 250" role="img" aria-label="Direction of a reduction proof"></svg></div>
+  <div class="ctrls">
+    <button id="rdDir" class="primary">Direction: correct</button>
+  </div>
+  <div class="readout" id="rdOut"></div>
+</div>
+
+<div class="box trap">
+  <span class="label">The single most common exam error in this course</span>
+  <p>To prove <b>your</b> problem Y is NP hard, you reduce a <b>known</b> NP complete problem X into it:
+  <code>X &le;<sub>P</sub> Y</code>. The known hard problem is the <b>source</b>. Your new problem is the
+  <b>target</b>.</p>
+  <p>Sanity check before you write anything: your reduction should take an instance of
+  <b>Vertex-Cover</b> (or whichever you chose) as <b>input</b>, and produce an instance of the exam's
+  problem as <b>output</b>. If it is the other way round, you have proved the useless direction.</p>
+</div>
+
+<div class="box why">
+  <span class="label">The lemma that makes reductions worth anything</span>
+  <p>If <code>X &le;<sub>P</sub> Y</code> and <code>Y &isin; P</code>, then <code>X &isin; P</code>.</p>
+  <p><i>Proof.</i> Let R be the reduction, running in time <code>O(n<sup>d</sup>)</code>, and let A be a
+  polynomial time algorithm for Y. Then <code>A(R(x))</code> decides X. It is correct because R
+  preserves Yes and No. It is polynomial because R takes <code>O(n<sup>d</sup>)</code>, and <b>the output
+  of R has size at most <code>O(n<sup>d</sup>)</code></b> since an algorithm cannot write more than it has
+  time for, so A runs on an input of polynomial size and therefore in polynomial time.</p>
+  <p>That bracketed step is the one people skip. Without it the composition might not be polynomial.</p>
+</div>
+
+<h2 id="classes">P, NP, NP hard, NP complete</h2>
+
+<div class="scroll">
+<table>
+<thead><tr><th>Class</th><th>Definition</th><th>In plain terms</th></tr></thead>
+<tbody>
+<tr><td><b>P</b></td><td>Solvable in polynomial time</td><td>You can find the answer fast</td></tr>
+<tr><td><b>NP</b></td><td>Has a polynomial time certifier</td><td>You can check a Yes answer fast</td></tr>
+<tr><td><b>NP hard</b></td><td><code>Y &le;<sub>P</sub> X</code> for every <code>Y &isin; NP</code></td><td>At least as hard as everything in NP. Need not be in NP itself</td></tr>
+<tr><td><b>NP complete</b></td><td>In NP <b>and</b> NP hard</td><td>The hardest problems that are still checkable</td></tr>
+</tbody>
+</table>
+</div>
+
+<p><b>P &sube; NP.</b> If A solves X in polynomial time, use a certifier that ignores the certificate
+entirely and just runs A. That is the whole proof.</p>
+
+<p><b>If one NP complete problem is in P, then P = NP.</b> Every problem in NP reduces to it, and
+reductions preserve membership in P.</p>
+
+<div class="box tpl">
+  <span class="label">Cook and Levin, 1971 and 1973</span>
+  <p>NP complete problems exist. In particular <b>Circuit-SAT</b> and <b>3-SAT</b> are NP complete.</p>
+  <p>This is the bootstrap. Every later NP completeness proof is a reduction chain back to SAT, so you
+  never have to argue about "every problem in NP" yourself. Karp added 21 more in 1972, and there are
+  now thousands.</p>
+</div>
+
+<div class="box note">
+  <span class="label">A boolean circuit, since Circuit-SAT is defined by one</span>
+  <p>A directed acyclic graph where the sources are labelled by constants 0 or 1 or by distinct
+  variables, every other node is labelled AND, OR or NOT, and there is a single sink giving the output.
+  Circuit-SAT asks whether some assignment to the variables makes the output 1.</p>
+</div>
+
+<h2 id="zoo">The problems you are allowed to reduce from</h2>
+
+<div class="scroll">
+<table>
+<thead><tr><th>Known NP complete problem</th><th>Reduce from it when your problem says</th></tr></thead>
+<tbody>
+<tr><td><b>3-SAT</b></td><td>Satisfy a list of either-or conditions. The universal fallback when nothing else fits</td></tr>
+<tr><td><b>Vertex-Cover</b></td><td>Pick a small set touching every edge or every group</td></tr>
+<tr><td><b>Set-Cover</b></td><td>Pick few sets whose union is everything. Covering with arbitrary groups, not just pairs</td></tr>
+<tr><td><b>Independent-Set</b></td><td>Pick a large set with no two conflicting</td></tr>
+<tr><td><b>Clique</b></td><td>Pick a large set that are all mutually compatible</td></tr>
+<tr><td><b>Subset-Sum</b></td><td>Hit a numeric target exactly using a subset of given numbers</td></tr>
+<tr><td><b>Hamiltonian Path / Cycle</b></td><td>Visit everything exactly once in sequence</td></tr>
+<tr><td><b>3-Colouring</b></td><td>Assign one of three labels with conflicting things labelled differently</td></tr>
+<tr><td><b>BILP</b> (binary integer LP)</td><td>Choose 0 or 1 for each variable subject to linear constraints. The bridge back to the LP unit</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="box note">
+  <span class="label">Which source problems are fair game</span>
+  <p>Course staff have confirmed you only need the NP complete problems covered in class: <b>3-SAT</b>
+  and the problems reduced from it in lectures, namely <b>subset sum, independent set, vertex cover,
+  set cover, 3-colouring</b> and <b>binary integer linear programming</b>. Any of those may be used as
+  the source of your reduction.</p>
+  <p>The practical advice that came with it: <b>3-SAT works in most cases</b>. If you cannot see a
+  match to a more specific problem within a couple of minutes, build a 3-SAT reduction, because a
+  clause-and-literal gadget can encode almost anything.</p>
+</div>
+
+<div class="box why">
+  <span class="label">Match the shape, not the story</span>
+  <p>The exam dresses these up as students, clubs, jobs and roads. Strip the story and ask what the
+  <b>combinatorial object</b> is. "Every club must contain a representative and there are at most k
+  representatives" is a covering problem where the clubs are the things to cover, which is Set-Cover, or
+  Vertex-Cover when every club has exactly two members.</p>
+  <p>The exam hint usually names the shape outright. December 2024 said "this is a type of covering
+  problem", which is the paper telling you which row of that table to use.</p>
+</div>
+
+<h2 id="triangle">Independent set, vertex cover, clique: one graph, three problems</h2>
+
+<p>These three are the same question asked in three ways, and the relationship between them is the
+cheapest reduction in the course.</p>
+
+<div class="anim">
+  <h4>One graph, three readings</h4>
+  <p class="cap">S is independent exactly when V \ S is a vertex cover, and exactly when S is a clique
+  in the complement graph. Toggle the view.</p>
+  <div class="ctrls" style="margin-bottom:.7rem">
+    <button data-tri="0" class="primary">Independent set S</button>
+    <button data-tri="1">Vertex cover V \ S</button>
+    <button data-tri="2">Clique in the complement</button>
+  </div>
+  <div class="stage"><svg id="triSvg" viewBox="0 0 440 250" role="img" aria-label="Independent set, vertex cover and clique on the same graph"></svg></div>
+  <div class="readout" id="triOut"></div>
+</div>
+
+<div class="box tpl">
+  <span class="label">The identity, worth memorising</span>
+  <p><b>S is an independent set in G &nbsp;&hArr;&nbsp; V \ S is a vertex cover of G.</b></p>
+  <p><i>Proof, both ways at once.</i> S is independent means no edge has both endpoints in S, which means
+  every edge has at least one endpoint outside S, which means every edge is covered by
+  <code>V \ S</code>. Each step is a restatement, so it reads in either direction.</p>
+  <p>Immediately: G has an independent set of size <code>&ge; k</code> exactly when it has a vertex cover
+  of size <code>&le; n - k</code>. That is a reduction in one line, in both directions.</p>
+</div>
+
+<h2 id="exam">Exam answer, written out</h2>
+
+<p>December 2024 Q7. Students <code>s&#8321;, ..., s<sub>m</sub></code>, clubs
+<code>c&#8321;, ..., c<sub>n</sub></code>, with <code>C<sub>i</sub></code> the members of club i. Decide if
+there is a set <code>R</code> of at most k students such that every club contains at least one member of
+R. Prove this problem, called <b>Representatives</b>, is NP complete.</p>
+
+<details>
+<summary>Try it, then open this</summary>
+
+<p><b>Part 1: Representatives is in NP.</b></p>
+
+<p>The certificate is the set <code>R &sube; {s&#8321;, ..., s<sub>m</sub>}</code>. The certifier checks that
+<code>|R| &le; k</code>, and that for each club <code>c<sub>i</sub></code> the set
+<code>C<sub>i</sub> &cap; R</code> is non empty. The first check takes <code>O(m)</code> time and the
+second takes <code>O(&sum;<sub>i</sub>|C<sub>i</sub>|)</code>, both polynomial in the input size. So
+Representatives is in NP.</p>
+
+<p><b>Part 2: Representatives is NP hard.</b></p>
+
+<p>We show <code>Vertex-Cover &le;<sub>P</sub> Representatives</code>. Since Vertex-Cover is NP complete,
+this makes Representatives NP hard.</p>
+
+<p><i>The reduction.</i> Given an instance <code>(G = (V, E), k)</code> of Vertex-Cover, construct an
+instance of Representatives as follows:</p>
+<ul>
+  <li>for each vertex <code>u &isin; V</code>, create a student <code>s<sub>u</sub></code>;</li>
+  <li>for each edge <code>(u,v) &isin; E</code>, create a club with membership set
+  <code>C<sub>(u,v)</sub> = {s<sub>u</sub>, s<sub>v</sub>}</code>;</li>
+  <li>keep the same bound k.</li>
+</ul>
+<p>This writes <code>|V|</code> students and <code>|E|</code> clubs of two members each, so it runs in
+<code>O(|V| + |E|)</code> time, which is polynomial.</p>
+
+<p><i>Correctness, forward direction.</i> Suppose G has a vertex cover S with <code>|S| &le; k</code>. Let
+<code>R = {s<sub>u</sub> : u &isin; S}</code>, so <code>|R| = |S| &le; k</code>. Take any club
+<code>C<sub>(u,v)</sub></code>. Since S covers the edge <code>(u,v)</code>, at least one of u, v is in S,
+so at least one of <code>s<sub>u</sub>, s<sub>v</sub></code> is in R. Hence every club contains a
+representative and R is a Yes certificate for the constructed instance.</p>
+
+<p><i>Correctness, reverse direction.</i> Suppose the constructed instance has a valid set R with
+<code>|R| &le; k</code>. Let <code>S = {u : s<sub>u</sub> &isin; R}</code>, so <code>|S| = |R| &le; k</code>.
+Take any edge <code>(u,v) &isin; E</code>. The club <code>C<sub>(u,v)</sub> = {s<sub>u</sub>, s<sub>v</sub>}</code>
+contains a member of R, which must be <code>s<sub>u</sub></code> or <code>s<sub>v</sub></code>, so u or v is
+in S. Hence every edge is covered and S is a vertex cover of size at most k.</p>
+
+<p>The two directions give: <code>(G,k)</code> is a Yes instance of Vertex-Cover exactly when its image
+is a Yes instance of Representatives. So the reduction is correct.</p>
+
+<p><b>Conclusion.</b> Representatives is in NP and is NP hard, therefore Representatives is NP
+complete.</p>
+
+<div class="box why">
+  <span class="label">Why Vertex-Cover and not Set-Cover</span>
+  <p>Either works. Set-Cover is the more natural fit, since a club is an arbitrary set of students and
+  Set-Cover allows arbitrary sets. But Vertex-Cover is a <b>special case</b> where every set has size
+  two, and reducing from a special case is still a valid proof and produces a simpler construction.
+  Pick whichever gives you the shorter reduction, and reducing from the more restricted problem usually
+  does.</p>
+  <p>Reducing <b>from</b> a special case is fine, because the special case is itself NP complete.
+  Reducing <b>to</b> a special case is where you have to be careful, since your construction has to land
+  inside the restriction.</p>
+</div>
+</details>
+
+<div class="box tpl">
+  <span class="label">Q7 in six lines</span>
+  <ol>
+    <li>Name the certificate and the certifier. Two sentences, three minutes, worth about 3 marks.</li>
+    <li>Name your source problem and state the direction: <code>X &le;<sub>P</sub> Y</code>.</li>
+    <li>Give the construction as a bulleted mapping, and say it is polynomial time.</li>
+    <li>Forward direction: a Yes for X builds a Yes for Y.</li>
+    <li>Reverse direction: a Yes for Y builds a Yes for X.</li>
+    <li>Write the closing sentence: "in NP and NP hard, therefore NP complete".</li>
+  </ol>
+</div>
+
+<div class="box note">
+  <span class="label">The follow up question they like to attach</span>
+  <p>"You have a pseudo-polynomial algorithm for this problem. Why does that not prove P = NP?"</p>
+  <p>Because polynomial time means polynomial in the number of <b>bits</b> of input. An O(nP) algorithm
+  where P is a sum of input numbers is exponential in the length of those numbers, since P written in
+  binary takes only <code>log P</code> bits. See <a href="dp.html#pseudo">the DP page</a> for the full
+  version of this.</p>
+</div>
+
+<div class="pagenav">
+  <a href="lp.html">&larr; Linear programming</a>
+  <a href="drill.html">Past paper drill &rarr;</a>
+</div>
+
+<footer class="bot">
+  <p>Worked answers written from scratch. No course material is reproduced.</p>
+</footer>
+
+</div>
+
+<script>
+var NSG = 'http://www.w3.org/2000/svg';
+function mk(n, a) { var e = document.createElementNS(NSG, n); for (var k in a) e.setAttribute(k, a[k]); return e; }
+function clr(s) { while (s.firstChild) s.removeChild(s.firstChild); }
+
+/* ---------------- reduction direction ---------------- */
+(function () {
+  var svg = document.getElementById('rdSvg');
+  if (!svg) return;
+  var out = document.getElementById('rdOut');
+  var correct = true;
+
+  function box(x, y, w, h, label, sub, fill, stroke) {
+    var g = mk('g', {});
+    g.appendChild(mk('rect', { x: x, y: y, width: w, height: h, rx: 7, fill: fill, stroke: stroke, 'stroke-width': 2 }));
+    var t = mk('text', { x: x + w / 2, y: y + 24, 'text-anchor': 'middle', class: 'svg-lbl-b', fill: 'var(--ink)' });
+    t.textContent = label;
+    g.appendChild(t);
+    var s = mk('text', { x: x + w / 2, y: y + 42, 'text-anchor': 'middle', class: 'svg-lbl' });
+    s.textContent = sub;
+    g.appendChild(s);
+    return g;
+  }
+
+  function draw() {
+    clr(svg);
+
+    svg.appendChild(box(20, 58, 160, 58, '3-SAT / Vertex-Cover',
+      'known NP complete', 'var(--trap-bg)', 'var(--trap-line)'));
+    svg.appendChild(box(260, 58, 160, 58, 'your exam problem',
+      'hardness unknown', 'var(--bg2)', 'var(--ink2)'));
+
+    var x1 = correct ? 182 : 258, x2 = correct ? 258 : 182;
+    svg.appendChild(mk('line', { x1: x1, y1: 87, x2: x2, y2: 87, stroke: correct ? 'var(--fa)' : 'var(--trap-line)', 'stroke-width': 3 }));
+    var dir = correct ? 1 : -1;
+    svg.appendChild(mk('path', {
+      d: 'M ' + x2 + ' 87 L ' + (x2 - dir * 10) + ' 82 L ' + (x2 - dir * 10) + ' 92 Z',
+      fill: correct ? 'var(--fa)' : 'var(--trap-line)'
+    }));
+    var lt = mk('text', { x: 220, y: 74, 'text-anchor': 'middle', class: 'svg-lbl-b',
+      fill: correct ? 'var(--fa)' : 'var(--trap-line)' });
+    lt.textContent = correct ? 'X ≤ₚ Y' : 'Y ≤ₚ X';
+    svg.appendChild(lt);
+
+    var l1 = mk('text', { x: 20, y: 148, class: 'svg-lbl-b' });
+    l1.textContent = correct ? 'reads as: X is no harder than Y' : 'reads as: Y is no harder than X';
+    svg.appendChild(l1);
+
+    var lines = correct
+      ? ['Your reduction takes a Vertex-Cover instance in,',
+         'and puts an instance of your problem out.',
+         'A fast solver for your problem would solve Vertex-Cover,',
+         'so your problem is at least as hard. This is what NP hard means.']
+      : ['Your reduction takes your problem in,',
+         'and puts a Vertex-Cover instance out.',
+         'That only says your problem is no harder than a hard problem,',
+         'which every problem in NP already satisfies. It proves nothing.'];
+
+    lines.forEach(function (t, i) {
+      var e = mk('text', { x: 20, y: 170 + i * 17, class: 'svg-lbl',
+        fill: correct ? 'var(--ink2)' : 'var(--trap-line)' });
+      e.textContent = t;
+      svg.appendChild(e);
+    });
+
+    out.innerHTML = correct
+      ? '<b>This is the direction you want.</b> Input to your reduction: an instance of the known hard problem. Output: an instance of the exam’s problem. Check that before you write a line of the construction.'
+      : '<b>This proves nothing.</b> Every problem in NP reduces to an NP complete problem, so this direction is free and carries no information about your problem. It is the most common way to lose the whole second half of Q7.';
+  }
+
+  document.getElementById('rdDir').addEventListener('click', function () {
+    correct = !correct;
+    this.textContent = 'Direction: ' + (correct ? 'correct' : 'reversed');
+    this.className = correct ? 'primary' : '';
+    draw();
+  });
+  draw();
+})();
+
+/* ---------------- IS / VC / Clique ---------------- */
+(function () {
+  var svg = document.getElementById('triSvg');
+  if (!svg) return;
+  var out = document.getElementById('triOut');
+
+  var N = [[80, 60], [220, 40], [355, 70], [110, 175], [250, 190], [370, 165]];
+  var E = [[0, 1], [1, 2], [0, 3], [1, 4], [2, 5], [3, 4], [4, 5], [1, 3]];
+  var LBL = ['1', '2', '3', '4', '5', '6'];
+  var S = [0, 2, 4];   // an independent set
+  var cur = 0;
+
+  function has(a, b) {
+    return E.some(function (e) { return (e[0] === a && e[1] === b) || (e[0] === b && e[1] === a); });
+  }
+
+  function draw() {
+    clr(svg);
+    var complement = cur === 2;
+    var inS = function (i) { return S.indexOf(i) >= 0; };
+
+    var edges = [];
+    if (!complement) edges = E.slice();
+    else {
+      for (var i = 0; i < N.length; i++)
+        for (var j = i + 1; j < N.length; j++)
+          if (!has(i, j)) edges.push([i, j]);
+    }
+
+    var ttl = mk('text', { x: 10, y: 20, class: 'svg-lbl-b' });
+    ttl.textContent = complement ? 'the complement graph  Ḡ  (edges exactly where G had none)' : 'the graph  G';
+    svg.appendChild(ttl);
+
+    edges.forEach(function (e) {
+      var a = N[e[0]], b = N[e[1]];
+      var col = 'var(--line2)', w = 1.8;
+      if (cur === 0) { col = 'var(--line2)'; }
+      if (cur === 1) {
+        // every edge is covered by V\S: highlight the covering endpoint
+        col = 'var(--fa)'; w = 2.4;
+      }
+      if (cur === 2 && inS(e[0]) && inS(e[1])) { col = 'var(--cx)'; w = 3.2; }
+      svg.appendChild(mk('line', { x1: a[0], y1: a[1], x2: b[0], y2: b[1], stroke: col, 'stroke-width': w }));
+    });
+
+    N.forEach(function (p, i) {
+      var hot = cur === 1 ? !inS(i) : inS(i);
+      var fill = hot ? (cur === 0 ? 'var(--fa)' : (cur === 1 ? 'var(--dp)' : 'var(--cx)')) : 'var(--bg2)';
+      svg.appendChild(mk('circle', {
+        cx: p[0], cy: p[1], r: 15, fill: fill,
+        stroke: hot ? fill : 'var(--ink2)', 'stroke-width': 2
+      }));
+      var t = mk('text', { x: p[0], y: p[1] + 5, 'text-anchor': 'middle', class: 'svg-lbl-b',
+        fill: hot ? '#fff' : 'var(--ink)' });
+      t.textContent = LBL[i];
+      svg.appendChild(t);
+    });
+
+    var MSG = [
+      '<b>S = {1, 3, 5} is an independent set.</b> No edge of G joins two of them. Size 3.',
+      '<b>V \\ S = {2, 4, 6} is a vertex cover.</b> Same graph, complementary set. Every edge has at least one endpoint highlighted, and it must, because if some edge had neither endpoint in V \\ S then both would be in S and S would not be independent. Size 6 - 3 = 3.',
+      '<b>S = {1, 3, 5} is a clique in the complement.</b> Every pair among them is joined in Ḡ, precisely because no pair was joined in G. Independent set in G and clique in Ḡ are literally the same condition.'
+    ];
+    out.innerHTML = MSG[cur];
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('[data-tri]'), function (b) {
+    b.addEventListener('click', function () {
+      cur = +this.getAttribute('data-tri');
+      Array.prototype.forEach.call(document.querySelectorAll('[data-tri]'), function (x) { x.className = ''; });
+      this.className = 'primary';
+      draw();
+    });
+  });
+  draw();
+})();
+</script>
+
+</body>
+</html>

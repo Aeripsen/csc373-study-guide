@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Linear Programming</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="backlink" href="index.html">&larr; CSC373 study guide</a>
+    <p class="kicker">Unit 6 &middot; Exam question 6 &middot; 10 marks</p>
+    <h1>Linear programming</h1>
+    <p class="sub">Ten marks with nothing to invent. Two procedures, applied without slipping a sign.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="toc">
+  <p>On this page</p>
+  <ul>
+    <li><a href="#what">What an LP is, and the geometry</a></li>
+    <li><a href="#std">Standard form, and the four moves</a></li>
+    <li><a href="#convert">Converting one, animated</a></li>
+    <li><a href="#dual">The dual, and where it comes from</a></li>
+    <li><a href="#duality">The duality theorem</a></li>
+    <li><a href="#model">Modelling: absolute values and min max</a></li>
+    <li><a href="#exam">Exam answer, written out</a></li>
+  </ul>
+</div>
+
+<h2 id="what">What an LP is, and the geometry</h2>
+
+<p>A linear program optimises a linear objective subject to linear inequalities. Every constraint is a
+half plane, their intersection is a convex polyhedron (the <b>feasible region</b>), and you slide the
+objective as far as it will go inside it.</p>
+
+<div class="anim">
+  <h4>Why the optimum sits at a corner</h4>
+  <p class="cap">Drag the objective direction. The dashed line is a level set of the objective, pushed
+  as far as it goes. It stops at a vertex, and only ties at an edge.</p>
+  <div class="stage"><svg id="lpSvg" viewBox="0 0 440 300" role="img" aria-label="Feasible region with a sliding objective line"></svg></div>
+  <div class="ctrls">
+    <div class="slider" style="flex:1">
+      <label for="lpAng">objective direction</label>
+      <input id="lpAng" type="range" min="0" max="90" value="30" step="1">
+    </div>
+  </div>
+  <div class="readout" id="lpOut"></div>
+</div>
+
+<div class="box why">
+  <span class="label">The consequence that matters</span>
+  <p>An optimum is always attained at a <b>vertex</b> of the polyhedron (whenever one exists and is
+  finite). There are finitely many vertices, so the problem is finite, which is why algorithms exist at
+  all.</p>
+  <p><b>Simplex</b> walks from vertex to neighbouring vertex, improving each time. It is fast in
+  practice and exponential in the worst case. <b>Interior point methods</b> cut through the middle and
+  run in time polynomial in the number of bits of the input, about
+  <code>O((m+n)<sup>3.5</sup>L)</code> for m constraints, n variables, and L bit coefficients. You need
+  the fact that LP is solvable in polynomial time, not the algorithms themselves.</p>
+</div>
+
+<h2 id="std">Standard form, and the four moves</h2>
+
+<div class="box tpl">
+  <span class="label">The two standard forms</span>
+  <div class="scroll">
+  <table>
+  <thead><tr><th>Maximisation</th><th>Minimisation</th></tr></thead>
+  <tbody><tr>
+    <td><pre style="margin:0;border:0;background:none;padding:0"><code>max  c&#8321;x&#8321; + ... + c&#8345;x&#8345;
+s.t. a&#8321;&#8321;x&#8321; + ... + a&#8321;&#8345;x&#8345; &le; b&#8321;
+     ...
+     a&#8344;&#8321;x&#8321; + ... + a&#8344;&#8345;x&#8345; &le; b&#8344;
+     x&#8321;, ..., x&#8345; &ge; 0</code></pre></td>
+    <td><pre style="margin:0;border:0;background:none;padding:0"><code>min  c&#8321;x&#8321; + ... + c&#8345;x&#8345;
+s.t. a&#8321;&#8321;x&#8321; + ... + a&#8321;&#8345;x&#8345; &ge; b&#8321;
+     ...
+     a&#8344;&#8321;x&#8321; + ... + a&#8344;&#8345;x&#8345; &ge; b&#8344;
+     x&#8321;, ..., x&#8345; &ge; 0</code></pre></td>
+  </tr></tbody>
+  </table>
+  </div>
+  <p>Max goes with <code>&le;</code>, min goes with <code>&ge;</code>, and every variable is
+  non negative in both. Remembering that pairing is most of the battle.</p>
+</div>
+
+<div class="box tpl">
+  <span class="label">The four moves, in this order</span>
+  <ol>
+    <li><b>Collect variables on the left, constants on the right.</b>
+    <code>x&#8322; &le; 1 - x&#8321;</code> becomes <code>x&#8321; + x&#8322; &le; 1</code>. Do this first, it
+    prevents most sign errors.</li>
+    <li><b>Flip the wrong direction inequalities</b> by multiplying by -1, which reverses the sign.
+    <code>2x&#8322; &ge; x&#8321;</code> becomes <code>x&#8321; - 2x&#8322; &le; 0</code>.</li>
+    <li><b>Split equalities.</b> <code>g(x) = b</code> becomes <code>g(x) &le; b</code> and
+    <code>g(x) &ge; b</code>, then flip the second.</li>
+    <li><b>Split free variables.</b> If <code>x<sub>i</sub></code> may be negative, replace every
+    occurrence with <code>x<sub>i</sub><sup>+</sup> - x<sub>i</sub><sup>-</sup></code> and add
+    <code>x<sub>i</sub><sup>+</sup>, x<sub>i</sub><sup>-</sup> &ge; 0</code>. In the objective too.</li>
+  </ol>
+  <p>To turn a min into a max, negate the objective: <code>min f</code> and <code>max -f</code> have the
+  same optimiser, and the optimal values differ by a sign. Say which convention you are using.</p>
+</div>
+
+<div class="box why">
+  <span class="label">Why splitting a free variable works</span>
+  <p>Every real number is a difference of two non negative reals, and the map is onto: given any
+  <code>x</code>, take <code>x<sup>+</sup> = max(x, 0)</code> and <code>x<sup>-</sup> = max(-x, 0)</code>.
+  So the feasible values of <code>x<sup>+</sup> - x<sup>-</sup></code> are exactly all of
+  <code>&#8477;</code>, and the LP is unchanged. The representation is not unique (you could add 5 to
+  both), but nothing in the LP can tell the difference, so it does not matter.</p>
+</div>
+
+<h2 id="convert">Converting one, animated</h2>
+
+<p>This is exactly December 2024 Q6(a). Step through it and the moves are visible one at a time.</p>
+
+<div class="anim">
+  <h4>Standard form conversion, then the dual</h4>
+  <p class="cap">Five steps to standard form, then three more to the dual.</p>
+  <div class="stage"><svg id="cvSvg" viewBox="0 0 440 300" role="img" aria-label="Converting a linear program to standard form and taking its dual"></svg></div>
+  <div class="ctrls">
+    <button id="cvStep" class="primary">Step</button>
+    <button id="cvReset">Reset</button>
+  </div>
+  <div class="readout" id="cvOut"></div>
+</div>
+
+<h2 id="dual">The dual, and where it comes from</h2>
+
+<div class="box tpl">
+  <span class="label">The mechanical rule</span>
+  <div class="scroll">
+  <table>
+  <thead><tr><th>Primal (max)</th><th>Dual (min)</th></tr></thead>
+  <tbody>
+  <tr><td><code>max c<sup>T</sup>x</code></td><td><code>min b<sup>T</sup>y</code></td></tr>
+  <tr><td><code>Ax &le; b</code></td><td><code>A<sup>T</sup>y &ge; c</code></td></tr>
+  <tr><td><code>x &ge; 0</code></td><td><code>y &ge; 0</code></td></tr>
+  <tr><td>m constraints</td><td>m variables</td></tr>
+  <tr><td>n variables</td><td>n constraints</td></tr>
+  </tbody>
+  </table>
+  </div>
+  <p>One dual variable per primal constraint. One dual constraint per primal variable. The old right
+  hand side becomes the new objective, the old objective becomes the new right hand side, and the
+  matrix is transposed.</p>
+  <p>Then the sentence the exam asks for every time: <i>"the dual variable y<sub>i</sub> corresponds to
+  the primal constraint [name it]."</i></p>
+</div>
+
+<div class="box why">
+  <span class="label">Where the dual actually comes from</span>
+  <p>It is not an arbitrary transformation. It is the search for the best <b>provable upper bound</b> on
+  the primal.</p>
+  <p>Suppose you want to bound <code>max c<sup>T</sup>x</code>. Take non negative multipliers
+  <code>y&#8321;, ..., y<sub>m</sub></code>, multiply constraint i by <code>y<sub>i</sub></code>, and add them
+  all up. Since every <code>y<sub>i</sub> &ge; 0</code>, the inequalities survive, and you get</p>
+  <pre><code>(&sum;&#7522; y&#7522;a&#7522;&#8321;)x&#8321; + ... + (&sum;&#7522; y&#7522;a&#7522;&#8345;)x&#8345;  &le;  &sum;&#7522; y&#7522;b&#7522;</code></pre>
+  <p>If the coefficient of each <code>x<sub>j</sub></code> on the left is <b>at least</b>
+  <code>c<sub>j</sub></code>, then because <code>x &ge; 0</code>, the left side is at least the objective.
+  So <code>c<sup>T</sup>x &le; b<sup>T</sup>y</code>: you have proved an upper bound.</p>
+  <p>The requirement "coefficient of <code>x<sub>j</sub></code> is at least <code>c<sub>j</sub></code>" is
+  exactly <code>A<sup>T</sup>y &ge; c</code>. Minimising <code>b<sup>T</sup>y</code> is asking for the
+  <b>tightest</b> such bound. That is the dual, and weak duality is true by construction.</p>
+</div>
+
+<h2 id="duality">The duality theorem</h2>
+
+<div class="box tpl">
+  <span class="label">Statement</span>
+  <p>For a primal and dual pair, exactly one of the following holds:</p>
+  <ol>
+    <li>Both are feasible, and their optimal values are <b>equal and finite</b>.</li>
+    <li>One is unbounded, and the other is infeasible.</li>
+    <li>Both are infeasible.</li>
+  </ol>
+  <p>Vocabulary: an LP is <b>feasible</b> if some point satisfies all its constraints, and
+  <b>unbounded</b> if its objective can be pushed to infinity (or minus infinity for a min).</p>
+</div>
+
+<div class="box why">
+  <span class="label">The connection to max flow min cut</span>
+  <p>Max flow min cut is a special case of this theorem. Write max flow as an LP: variables are the
+  <code>f(e)</code>, constraints are capacity and conservation. Take its dual and you get, after a
+  little work, the minimum cut LP. Strong duality then says the two optimal values are equal, which is
+  the max flow min cut theorem.</p>
+  <p>The pattern is the same one you saw in flow: a cut <b>certifies</b> that a flow is maximum, and a
+  dual solution <b>certifies</b> that a primal solution is optimal. If you can hand someone a feasible
+  primal and a feasible dual with the same objective value, both are optimal and no further argument is
+  needed. Assignment 4 used exactly this to bound the minimum flow by a forward cut.</p>
+</div>
+
+<h2 id="model">Modelling: absolute values and min max</h2>
+
+<p>An LP objective must be linear, so <code>|x|</code>, <code>max(...)</code> and
+<code>min(...)</code> are all illegal as written. Two tricks fix almost every case, and both have been
+examined.</p>
+
+<div class="box tpl">
+  <span class="label">Trick 1: minimising an absolute value</span>
+  <p>To minimise <code>&sum;<sub>i</sub> |g<sub>i</sub>(x)|</code>, introduce a new variable
+  <code>e<sub>i</sub></code> for each term and write</p>
+  <pre><code>min  e&#8321; + ... + e&#8345;
+s.t. e&#7522; &ge;  g&#7522;(x)     for all i
+     e&#7522; &ge; -g&#7522;(x)     for all i</code></pre>
+  <p><b>Why it works.</b> The two constraints say
+  <code>e<sub>i</sub> &ge; max(g<sub>i</sub>, -g<sub>i</sub>) = |g<sub>i</sub>|</code>. Since the objective is
+  <i>minimising</i> the sum of the <code>e<sub>i</sub></code>, nothing pushes them higher than they must
+  be, so at an optimum each <code>e<sub>i</sub></code> is exactly <code>|g<sub>i</sub>|</code>.</p>
+  <p>This <b>only</b> works when the objective pushes <code>e<sub>i</sub></code> down. Trying it inside a
+  maximisation lets <code>e<sub>i</sub></code> float up to infinity and the model is wrong.</p>
+</div>
+
+<div class="box tpl">
+  <span class="label">Trick 2: minimising a maximum</span>
+  <p>To minimise <code>max<sub>i</sub> |g<sub>i</sub>(x)|</code>, use a <b>single</b> variable t:</p>
+  <pre><code>min  t
+s.t. t &ge;  g&#7522;(x)     for all i
+     t &ge; -g&#7522;(x)     for all i</code></pre>
+  <p>One variable bounded below by every term is bounded below by their maximum, and minimising drives
+  it down to exactly that maximum.</p>
+  <p>One <code>e<sub>i</sub></code> each gives the <b>sum</b> of absolute errors. One shared t gives the
+  <b>maximum</b> absolute error. That single difference is the whole distinction, and it has been
+  examined both ways.</p>
+</div>
+
+<div class="box note">
+  <span class="label">Line fitting, the recurring example</span>
+  <p>Given points <code>(x<sub>i</sub>, y<sub>i</sub>)</code>, fit <code>y = ax + b</code>. Least squares
+  minimises <code>&sum;(ax<sub>i</sub> + b - y<sub>i</sub>)<sup>2</sup></code>, which is <b>not</b> an LP,
+  though it does have a closed form. Minimising <code>&sum;|ax<sub>i</sub> + b - y<sub>i</sub>|</code> is
+  an LP by trick 1 and is less sensitive to outliers. Minimising the worst single error is an LP by
+  trick 2. Variables are <code>a</code> and <code>b</code>, both free, so both get split when you go to
+  standard form.</p>
+</div>
+
+<div class="box trap">
+  <span class="label">What the LP graders actually mark you down for</span>
+  <p><b>Say what your variables mean, in English, before you write a single constraint.</b> Students
+  who skip this are the ones who then get confused about what they are solving. One line is enough:
+  "let <code>x<sub>i,j</sub></code> be the kilograms per month sent from roaster i to shop j".</p>
+  <p><b>Know which symbols are variables and which are constants.</b> Things like
+  <code>c<sub>j</sub></code>, <code>d<sub>j</sub></code> and <code>w<sub>i,j</sub></code> are given
+  numbers. They must never appear in the non-negativity constraints. Writing
+  <code>w<sub>i,j</sub> &ge; 0</code> signals you do not know what you are optimising over.</p>
+  <p><b>The dual is not the negative of the primal.</b> And no primal variable may appear anywhere in
+  the dual: if an <code>x</code> survives into your dual, the result is not even linear.</p>
+  <p><b>Count before you write.</b> If the primal has <code>m + n</code> constraints, the dual has
+  <code>m + n</code> variables, not <code>m &times; n</code>. Getting this count wrong is the single
+  most common way to lose the second half of the question.</p>
+  <p><b>Derive the dual constraint by comparing coefficients</b>, one primal variable at a time. Do not
+  sum over all the inequalities at once. For each <code>x<sub>i,j</sub></code>, ask what its coefficient
+  is on each side; since <code>x<sub>i,j</sub> &ge; 0</code>, it is enough that
+  <code>y<sub>i</sub> + z<sub>j</sub> &ge; w<sub>i,j</sub></code>, and that <i>is</i> the dual
+  constraint.</p>
+</div>
+
+<h2 id="exam">Exam answer, written out</h2>
+
+<p>December 2024 Q6, both parts.</p>
+
+<div class="box note">
+  <span class="label">The question</span>
+  <pre><code>Maximize  5x&#8321; + x&#8322;
+s.t.      x&#8322; &le; 1 - x&#8321;
+          2x&#8322; &ge; x&#8321;
+          x&#8321; &isin; &#8477;,  x&#8322; &ge; 0</code></pre>
+  <p>(a) Convert to standard form. (b) Write the dual, saying which dual variable goes with which
+  primal constraint.</p>
+</div>
+
+<details>
+<summary>Try it, then open this</summary>
+
+<p><b>(a) Standard form.</b></p>
+
+<p>Move variables left: <code>x&#8321; + x&#8322; &le; 1</code> and <code>-x&#8321; + 2x&#8322; &ge; 0</code>.</p>
+
+<p>Flip the second: <code>x&#8321; - 2x&#8322; &le; 0</code>.</p>
+
+<p><code>x&#8321;</code> is free, so replace it with <code>x&#8321;&#8314; - x&#8321;&#8315;</code> where both are
+non negative, everywhere including the objective:</p>
+
+<pre><code>max  5x&#8321;&#8314; - 5x&#8321;&#8315; + x&#8322;
+s.t. x&#8321;&#8314; - x&#8321;&#8315; +  x&#8322; &le; 1
+     x&#8321;&#8314; - x&#8321;&#8315; - 2x&#8322; &le; 0
+     x&#8321;&#8314;, x&#8321;&#8315;, x&#8322; &ge; 0</code></pre>
+
+<p><b>(b) The dual.</b> Two primal constraints, so two dual variables. Three primal variables, so three
+dual constraints.</p>
+
+<ul>
+  <li><code>y&#8321;</code> corresponds to the first primal constraint,
+  <code>x&#8321;&#8314; - x&#8321;&#8315; + x&#8322; &le; 1</code>;</li>
+  <li><code>y&#8322;</code> corresponds to the second, <code>x&#8321;&#8314; - x&#8321;&#8315; - 2x&#8322; &le; 0</code>.</li>
+</ul>
+
+<p>The objective coefficients come from the primal right hand side <code>(1, 0)</code>. Each dual
+constraint reads the column of one primal variable:</p>
+
+<pre><code>min  y&#8321;
+s.t.  y&#8321; +  y&#8322; &ge;  5        (column of x&#8321;&#8314;)
+     -y&#8321; -  y&#8322; &ge; -5        (column of x&#8321;&#8315;)
+      y&#8321; - 2y&#8322; &ge;  1        (column of x&#8322;)
+      y&#8321;, y&#8322; &ge; 0</code></pre>
+
+<div class="box why">
+  <span class="label">The thing worth noticing</span>
+  <p>The first two dual constraints are <code>y&#8321; + y&#8322; &ge; 5</code> and
+  <code>y&#8321; + y&#8322; &le; 5</code>, which together force <code>y&#8321; + y&#8322; = 5</code>. That is not a
+  coincidence: a <b>free primal variable</b> always produces an <b>equality dual constraint</b>, because
+  splitting it into a plus and a minus part generates a matched pair of opposite inequalities.</p>
+  <p>The mirror image also holds: a primal equality constraint gives a free dual variable. If you take
+  the dual of a program that was not in standard form and get something with equalities or free
+  variables in it, that is why. Writing the pair of inequalities is safer on an exam, but knowing they
+  collapse lets you sanity check the answer.</p>
+</div>
+
+<div class="box tpl">
+  <span class="label">The ten second check</span>
+  <p>Count. Two primal constraints and two dual variables. Three primal variables and three dual
+  constraints. Max became min. Every <code>&le;</code> became <code>&ge;</code>. All variables still
+  non negative. If any of those five does not hold, you transposed something wrong.</p>
+</div>
+</details>
+
+<div class="box trap">
+  <span class="label">Where the marks actually go on Q6</span>
+  <ul>
+    <li><b>Forgetting to substitute the free variable in the objective.</b> Splitting only in the
+    constraints is the single most common error.</li>
+    <li><b>Skipping "which dual variable corresponds to which constraint".</b> The question asks for it
+    in words, so it is marked, and it is one line.</li>
+    <li><b>Flipping the objective sense but not the inequalities.</b> Max pairs with <code>&le;</code>
+    and min with <code>&ge;</code>. Mixing them gives a program that is not in either standard form.</li>
+  </ul>
+</div>
+
+<div class="pagenav">
+  <a href="flow-apps.html">&larr; Flow applications</a>
+  <a href="complexity.html">NP completeness &rarr;</a>
+</div>
+
+<footer class="bot">
+  <p>Worked answers written from scratch. No course material is reproduced.</p>
+</footer>
+
+</div>
+
+<script>
+var NSG = 'http://www.w3.org/2000/svg';
+function mk(n, a) { var e = document.createElementNS(NSG, n); for (var k in a) e.setAttribute(k, a[k]); return e; }
+function clr(s) { while (s.firstChild) s.removeChild(s.firstChild); }
+
+/* ---------------- LP geometry ---------------- */
+(function () {
+  var svg = document.getElementById('lpSvg');
+  if (!svg) return;
+  var out = document.getElementById('lpOut');
+  var slider = document.getElementById('lpAng');
+
+  // feasible region vertices in problem coordinates
+  var V = [[0, 0], [4, 0], [4, 2], [2, 5], [0, 4]];
+  var OX = 50, OY = 258, SC = 42;
+  function px(p) { return [OX + p[0] * SC, OY - p[1] * SC]; }
+
+  function draw() {
+    clr(svg);
+    var ang = +slider.value * Math.PI / 180;
+    var cx = Math.cos(ang), cy = Math.sin(ang);
+
+    // axes
+    svg.appendChild(mk('line', { x1: OX, y1: 20, x2: OX, y2: OY, stroke: 'var(--line2)', 'stroke-width': 1.4 }));
+    svg.appendChild(mk('line', { x1: OX, y1: OY, x2: 420, y2: OY, stroke: 'var(--line2)', 'stroke-width': 1.4 }));
+    var ax = mk('text', { x: 424, y: OY + 4, class: 'svg-lbl' }); ax.textContent = 'x₁'; svg.appendChild(ax);
+    var ay = mk('text', { x: OX - 22, y: 24, class: 'svg-lbl' }); ay.textContent = 'x₂'; svg.appendChild(ay);
+
+    // feasible polygon
+    svg.appendChild(mk('polygon', {
+      points: V.map(function (v) { return px(v).join(','); }).join(' '),
+      fill: 'var(--lp)', opacity: .18, stroke: 'var(--lp)', 'stroke-width': 2
+    }));
+
+    // best vertex
+    var best = V[0], bv = -Infinity;
+    V.forEach(function (v) { var s = cx * v[0] + cy * v[1]; if (s > bv + 1e-9) { bv = s; best = v; } });
+    var ties = V.filter(function (v) { return Math.abs(cx * v[0] + cy * v[1] - bv) < 1e-9; });
+
+    // objective level line through the best vertex
+    var bp = px(best);
+    var L = 300;
+    svg.appendChild(mk('line', {
+      x1: bp[0] + cy * L, y1: bp[1] + cx * L, x2: bp[0] - cy * L, y2: bp[1] - cx * L,
+      stroke: 'var(--dp)', 'stroke-width': 2, 'stroke-dasharray': '6 4'
+    }));
+
+    // a couple of interior level lines to show the sweep
+    [0.45, 0.72].forEach(function (f) {
+      var ip = px([best[0] * f, best[1] * f]);
+      svg.appendChild(mk('line', {
+        x1: ip[0] + cy * L, y1: ip[1] + cx * L, x2: ip[0] - cy * L, y2: ip[1] - cx * L,
+        stroke: 'var(--dp)', 'stroke-width': 1, 'stroke-dasharray': '3 5', opacity: .4
+      }));
+    });
+
+    // objective arrow from origin
+    var o = px([0, 0]);
+    var AL = 78;
+    svg.appendChild(mk('line', { x1: o[0], y1: o[1], x2: o[0] + cx * AL, y2: o[1] - cy * AL, stroke: 'var(--dp)', 'stroke-width': 2.5 }));
+    svg.appendChild(mk('path', {
+      d: 'M ' + (o[0] + cx * AL) + ' ' + (o[1] - cy * AL) +
+         ' L ' + (o[0] + cx * (AL - 9) - cy * 5) + ' ' + (o[1] - cy * (AL - 9) - cx * 5) +
+         ' L ' + (o[0] + cx * (AL - 9) + cy * 5) + ' ' + (o[1] - cy * (AL - 9) + cx * 5) + ' Z',
+      fill: 'var(--dp)'
+    }));
+    var at = mk('text', { x: o[0] + cx * (AL + 8), y: o[1] - cy * (AL + 8), class: 'svg-lbl-b', fill: 'var(--dp)' });
+    at.textContent = 'c';
+    svg.appendChild(at);
+
+    // vertices
+    V.forEach(function (v) {
+      var p = px(v);
+      var isBest = ties.some(function (b) { return b[0] === v[0] && b[1] === v[1]; });
+      svg.appendChild(mk('circle', {
+        cx: p[0], cy: p[1], r: isBest ? 6 : 3.6,
+        fill: isBest ? 'var(--dp)' : 'var(--lp)', stroke: isBest ? 'var(--bg2)' : 'none', 'stroke-width': 2
+      }));
+    });
+
+    var ft = mk('text', { x: 120, y: 40, class: 'svg-lbl-b', fill: 'var(--lp)' });
+    ft.textContent = 'feasible region';
+    svg.appendChild(ft);
+
+    out.innerHTML = ties.length > 1
+      ? '<b>A tie.</b> The objective is parallel to an edge, so every point along that edge is optimal, including its two endpoints. Even here <b>a vertex is still among the optima</b>, which is all any algorithm needs.'
+      : '<b>The optimum is the single vertex (' + best[0] + ', ' + best[1] + ').</b> Push the objective line as far as it goes and it leaves the region at a corner. Since there are finitely many corners, a search over them is finite. That is what simplex does.';
+  }
+
+  slider.addEventListener('input', draw);
+  draw();
+})();
+
+/* ---------------- standard form + dual conversion ---------------- */
+(function () {
+  var svg = document.getElementById('cvSvg');
+  if (!svg) return;
+  var out = document.getElementById('cvOut');
+  var stage = 0;
+
+  var FRAMES = [
+    {
+      title: 'the given program',
+      lines: [
+        ['max  5x₁ + x₂', 0],
+        ['s.t. x₂ ≤ 1 - x₁', 0],
+        ['     2x₂ ≥ x₁', 0],
+        ['     x₁ ∈ ℝ,  x₂ ≥ 0', 0]
+      ],
+      msg: 'Three things are wrong for standard form: variables sit on the right of a constraint, one inequality points the wrong way, and x₁ is free rather than non negative. Press Step.'
+    },
+    {
+      title: 'move 1: variables to the left',
+      lines: [
+        ['max  5x₁ + x₂', 0],
+        ['s.t. x₁ + x₂ ≤ 1', 1],
+        ['     -x₁ + 2x₂ ≥ 0', 1],
+        ['     x₁ ∈ ℝ,  x₂ ≥ 0', 0]
+      ],
+      msg: 'Every variable is now on the left and every constant on the right. Doing this first is what stops sign errors later.'
+    },
+    {
+      title: 'move 2: flip the ≥ constraint',
+      lines: [
+        ['max  5x₁ + x₂', 0],
+        ['s.t. x₁ + x₂ ≤ 1', 0],
+        ['     x₁ - 2x₂ ≤ 0', 1],
+        ['     x₁ ∈ ℝ,  x₂ ≥ 0', 0]
+      ],
+      msg: 'Multiplying both sides by -1 reverses the inequality. Every sign on that row flipped, including the right hand side (0 stays 0 here).'
+    },
+    {
+      title: 'move 3: split the free variable',
+      lines: [
+        ['max  5x₁⁺ - 5x₁⁻ + x₂', 1],
+        ['s.t. x₁⁺ - x₁⁻ + x₂ ≤ 1', 1],
+        ['     x₁⁺ - x₁⁻ - 2x₂ ≤ 0', 1],
+        ['     x₁⁺, x₁⁻, x₂ ≥ 0', 1]
+      ],
+      msg: 'x₁ becomes x₁⁺ - x₁⁻ with both non negative. <b>Note the objective changed too</b>, which is where most marks are lost. This is standard form: a max, all ≤, all variables ≥ 0.'
+    },
+    {
+      title: 'the dual: count first',
+      lines: [
+        ['2 primal constraints  →  2 dual variables  y₁, y₂', 1],
+        ['3 primal variables    →  3 dual constraints', 1],
+        ['', 0],
+        ['y₁ ↔ the constraint  x₁⁺ - x₁⁻ + x₂ ≤ 1', 1]
+      ],
+      msg: 'Before writing anything, count. Dual variables match primal constraints, dual constraints match primal variables. y₂ corresponds to the second constraint.'
+    },
+    {
+      title: 'the dual: transpose',
+      lines: [
+        ['min  1·y₁ + 0·y₂', 1],
+        ['s.t.  y₁ + y₂ ≥ 5      (column of x₁⁺)', 1],
+        ['     -y₁ - y₂ ≥ -5     (column of x₁⁻)', 1],
+        ['      y₁ - 2y₂ ≥ 1     (column of x₂)', 1]
+      ],
+      msg: 'Old right hand side (1, 0) becomes the new objective. Old objective (5, -5, 1) becomes the new right hand sides. Each dual constraint reads down one primal variable’s column.'
+    },
+    {
+      title: 'the dual, finished',
+      lines: [
+        ['min  y₁', 1],
+        ['s.t.  y₁ + y₂ ≥ 5', 0],
+        ['     -y₁ - y₂ ≥ -5', 0],
+        ['      y₁ - 2y₂ ≥ 1', 0],
+        ['      y₁, y₂ ≥ 0', 1]
+      ],
+      msg: 'Done. Notice the first two constraints together say <b>y₁ + y₂ = 5</b>. A free primal variable always yields an equality in the dual, because splitting it produced a matched pair of opposite inequalities.'
+    }
+  ];
+
+  function draw() {
+    clr(svg);
+    var f = FRAMES[stage];
+
+    var t = mk('text', { x: 10, y: 22, class: 'svg-lbl-b' });
+    t.textContent = 'step ' + (stage + 1) + ' of ' + FRAMES.length + ':  ' + f.title;
+    svg.appendChild(t);
+
+    svg.appendChild(mk('rect', {
+      x: 10, y: 38, width: 420, height: 150, rx: 6,
+      fill: 'var(--code-bg)', stroke: 'var(--line)', 'stroke-width': 1
+    }));
+
+    f.lines.forEach(function (ln, i) {
+      var e = mk('text', {
+        x: 24, y: 66 + i * 26,
+        style: 'font-family:var(--mono);font-size:14px;font-weight:' + (ln[1] ? '700' : '400'),
+        fill: ln[1] ? 'var(--lp)' : 'var(--ink2)'
+      });
+      e.textContent = ln[0];
+      svg.appendChild(e);
+    });
+
+    // progress dots
+    FRAMES.forEach(function (_, i) {
+      svg.appendChild(mk('circle', {
+        cx: 20 + i * 18, cy: 210, r: 5,
+        fill: i <= stage ? 'var(--lp)' : 'var(--line2)', opacity: i <= stage ? .9 : .5
+      }));
+    });
+    var pl = mk('text', { x: 20 + FRAMES.length * 18 + 6, y: 214, class: 'svg-lbl' });
+    pl.textContent = stage < 4 ? 'converting to standard form' : 'taking the dual';
+    svg.appendChild(pl);
+
+    out.innerHTML = f.msg;
+  }
+
+  document.getElementById('cvStep').addEventListener('click', function () {
+    stage = Math.min(stage + 1, FRAMES.length - 1); draw();
+  });
+  document.getElementById('cvReset').addEventListener('click', function () { stage = 0; draw(); });
+  draw();
+})();
+</script>
+
+</body>
+</html>

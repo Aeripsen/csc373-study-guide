@@ -1,0 +1,13 @@
+# Never republish the instructor's material.
+*.pdf
+*.pptx
+*.docx
+*.ppt
+*.doc
+
+# Local scratch
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+*.log

@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Network Flow</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="backlink" href="index.html">&larr; CSC373 study guide</a>
+    <p class="kicker">Unit 4 &middot; Exam question 4 &middot; 10 marks</p>
+    <h1>Network flow</h1>
+    <p class="sub">The most mechanical marks on the paper. No justification is asked for, so there is no excuse for losing them.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="toc">
+  <p>On this page</p>
+  <ul>
+    <li><a href="#defs">Definitions you have to have exactly right</a></li>
+    <li><a href="#residual">The residual network, and the backward edge</a></li>
+    <li><a href="#ff">Ford Fulkerson, animated end to end</a></li>
+    <li><a href="#cut">Cuts, and reading the min cut off the residual</a></li>
+    <li><a href="#mfmc">Max flow min cut, and why the algorithm stops at the right place</a></li>
+    <li><a href="#time">Running time, and why Edmonds Karp exists</a></li>
+    <li><a href="#exam">Exam answer, written out</a></li>
+  </ul>
+</div>
+
+<h2 id="defs">Definitions you have to have exactly right</h2>
+
+<p>A <b>flow network</b> is a directed graph <code>G = (V, E)</code> with a source <code>s</code>, a sink
+<code>t</code>, and a capacity <code>c(e) &ge; 0</code> on every edge.</p>
+
+<p>An <b>s-t flow</b> is a function <code>f: E &rarr; &#8477;<sub>&ge;0</sub></code> satisfying:</p>
+
+<ul>
+  <li><b>Capacity:</b> <code>0 &le; f(e) &le; c(e)</code> for every edge.</li>
+  <li><b>Conservation:</b> <code>f<sup>in</sup>(v) = f<sup>out</sup>(v)</code> for every
+  <code>v &ne; s, t</code>, where <code>f<sup>in</sup>(v)</code> sums the flow on edges entering v and
+  <code>f<sup>out</sup>(v)</code> sums the flow on edges leaving it.</li>
+</ul>
+
+<p>The <b>value</b> is <code>val(f) = f<sup>out</sup>(s)</code>, the total pushed out of the source.</p>
+
+<div class="box note">
+  <span class="label">Conservation does not apply at s or t</span>
+  <p>That is the point of them. Every other vertex is a junction that passes on exactly what it
+  receives. If you find yourself checking conservation at s, you have misread the definition.</p>
+</div>
+
+<h2 id="residual">The residual network, and the backward edge</h2>
+
+<p>Given a flow f, the <b>residual network</b> <code>G<sub>f</sub></code> has the same vertices and, for
+each edge <code>(u,v)</code> of G carrying flow <code>f(u,v)</code> out of capacity
+<code>c(u,v)</code>, up to two edges:</p>
+
+<div class="box tpl">
+  <span class="label">The rule, memorise it</span>
+  <ul>
+    <li><b>Forward edge</b> <code>(u,v)</code> with residual capacity <code>c(u,v) - f(u,v)</code>, present
+    when that is positive. This is spare room.</li>
+    <li><b>Backward edge</b> <code>(v,u)</code> with residual capacity <code>f(u,v)</code>, present when
+    that is positive. This is the flow you are allowed to <b>cancel</b>.</li>
+  </ul>
+</div>
+
+<div class="box why">
+  <span class="label">What the backward edge is actually for</span>
+  <p>It is the algorithm's undo button, and it is the entire reason Ford Fulkerson is correct rather
+  than just a plausible heuristic.</p>
+  <p>Without it, a greedy path chooser could make an early commitment that blocks the optimum, with no
+  way to recover. The backward edge means a later augmenting path can route flow <b>against</b> an
+  earlier decision, reducing it, in exchange for a better route elsewhere. The net effect is a
+  rerouting, not a reduction, so the value still goes up.</p>
+  <p>You will see this happen in the animation below: the final augmenting path travels the wrong way
+  down an edge, and the total flow still increases.</p>
+</div>
+
+<h2 id="ff">Ford Fulkerson, animated end to end</h2>
+
+<pre><code>Ford-Fulkerson(G, s, t)
+1  f(e) = 0 for every edge e
+2  while there is an s-t path P in the residual network G_f
+3      b = min residual capacity along P        // the bottleneck
+4      augment f by b along P
+5  return f</code></pre>
+
+<p>Augmenting by b along P means: for each forward edge of P, add b to its flow; for each backward
+edge, <b>subtract</b> b from the flow on the corresponding original edge.</p>
+
+<div class="anim">
+  <h4>Ford Fulkerson, with the residual network underneath</h4>
+  <p class="cap">The network on top shows flow / capacity. The residual underneath is what the algorithm
+  actually searches. Watch the last augmenting path: it uses a backward edge.</p>
+  <div class="stage"><svg id="ffSvg" viewBox="0 0 440 548" role="img" aria-label="Ford Fulkerson algorithm running on a small network"></svg></div>
+  <div class="ctrls">
+    <button id="ffStep" class="primary">Step</button>
+    <button id="ffPlay">Play</button>
+    <button id="ffCut">Show min cut</button>
+    <button id="ffReset">Reset</button>
+  </div>
+  <div class="readout" id="ffOut"></div>
+</div>
+
+<div class="box trap">
+  <span class="label">The three ways people lose these marks</span>
+  <ul>
+    <li><b>Omitting backward edges from the residual.</b> If <code>f(u,v) = 3</code> and
+    <code>c(u,v) = 5</code>, the residual has <code>(u,v)</code> with 2 <b>and</b> <code>(v,u)</code>
+    with 3. On most exam networks the last augmenting path uses one of these, so leaving them out gives
+    a flow that is not maximum and a cut that does not match.</li>
+    <li><b>Reading the cut off the original graph.</b> Reachability is computed in the <b>residual</b>
+    network, always.</li>
+    <li><b>Subtracting backward capacities in the cut.</b> <code>c(A,B)</code> is the sum of
+    <code>c(u,v)</code> over edges with <code>u &isin; A</code> and <code>v &isin; B</code>. Edges going
+    from B back to A contribute nothing at all, they are not subtracted.</li>
+  </ul>
+</div>
+
+<h2 id="cut">Cuts, and reading the min cut off the residual</h2>
+
+<p>An <b>s-t cut</b> is a partition of V into <code>(A, B)</code> with <code>s &isin; A</code> and
+<code>t &isin; B</code>. Its <b>capacity</b> is</p>
+
+<pre><code>c(A, B) = &sum; c(u,v)   over edges (u,v) with u &isin; A and v &isin; B</code></pre>
+
+<p>Forward crossings only. An edge from B to A adds nothing.</p>
+
+<div class="box tpl">
+  <span class="label">How to produce a minimum cut, every time</span>
+  <p>Run Ford Fulkerson to completion. Then:</p>
+  <p><i>"Let A be the set of vertices reachable from s in the residual network
+  <code>G<sub>f</sub></code>, and let B = V \ A. Then <code>c(A,B) = val(f)</code>, so
+  <code>(A,B)</code> is a minimum cut."</i></p>
+  <p>A always contains s, and never contains t, because if t were reachable there would still be an
+  augmenting path and the algorithm would not have stopped.</p>
+</div>
+
+<div class="box why">
+  <span class="label">Why that cut is saturated, in two lines</span>
+  <p>Take any edge <code>(u,v)</code> with <code>u &isin; A, v &isin; B</code>. If it had spare capacity,
+  the residual would contain <code>(u,v)</code> and v would be reachable from s, so v would be in A.
+  Contradiction. Hence <b>every edge from A to B is full</b>.</p>
+  <p>Take any edge <code>(v,u)</code> with <code>v &isin; B, u &isin; A</code>. If it carried flow, the
+  residual would contain the backward edge <code>(u,v)</code>, again making v reachable. Hence
+  <b>every edge from B to A is empty</b>.</p>
+  <p>So <code>val(f) = c(A,B) - 0 = c(A,B)</code>. Since every flow is at most every cut, both are
+  optimal.</p>
+</div>
+
+<div class="box note">
+  <span class="label">When the exam asks for a second, different min cut</span>
+  <p>There is a symmetric construction and it is worth 3 marks when it comes up. Instead of vertices
+  <b>reachable from s</b>, take <code>B' =</code> the vertices that <b>can reach t</b> in the residual
+  network, and <code>A' = V \ B'</code>. That is also a minimum cut, and it is the <b>largest</b> one,
+  while the reachable-from-s version is the smallest. If they differ, you have your two distinct cuts.
+  If they are equal, the minimum cut is unique and you say so.</p>
+</div>
+
+<h2 id="mfmc">Max flow min cut</h2>
+
+<div class="box tpl">
+  <span class="label">The theorem, and the three equivalent statements</span>
+  <p>For any flow f in G, the following are equivalent:</p>
+  <ol>
+    <li>f is a maximum flow.</li>
+    <li>There is no augmenting path in <code>G<sub>f</sub></code>.</li>
+    <li>There is a cut <code>(A,B)</code> with <code>c(A,B) = val(f)</code>.</li>
+  </ol>
+  <p>In particular the maximum flow value equals the minimum cut capacity.</p>
+</div>
+
+<p>The three implications are short. <b>1 &rArr; 2</b>: an augmenting path would let you push more.
+<b>2 &rArr; 3</b>: that is the reachability construction above. <b>3 &rArr; 1</b>: weak duality says
+every flow is at most every cut, so a flow that matches a cut cannot be beaten.</p>
+
+<div class="box why">
+  <span class="label">Weak duality in one line, because it appears again in LP</span>
+  <p>Any unit of flow leaving s must eventually reach t, and to do so it must cross from A to B at some
+  point. So <code>val(f) &le; c(A,B)</code> for <b>every</b> flow and <b>every</b> cut. That gives an
+  instant certificate: exhibit a cut whose capacity equals your flow's value and you have proved your
+  flow is maximum without any further argument. This is the same certifying idea as LP duality, and
+  max flow min cut is literally a special case of the LP duality theorem.</p>
+</div>
+
+<div class="box tpl">
+  <span class="label">Integrality, the sentence you need for every Q5</span>
+  <p>If all capacities are integers, Ford Fulkerson terminates with an <b>integral</b> maximum flow,
+  meaning every <code>f(e)</code> is a whole number.</p>
+  <p><i>Why:</i> the flow starts at 0, every bottleneck is a minimum of integers, so every augmentation
+  adds an integer to integers. Induction does the rest.</p>
+  <p>This is what lets a flow answer a discrete question. Without it, a max flow could put 0.5 on an
+  edge and half-assign a student to a club.</p>
+</div>
+
+<h2 id="time">Running time, and why Edmonds Karp exists</h2>
+
+<div class="scroll">
+<table>
+<thead><tr><th>Version</th><th>Path chosen</th><th>Running time</th></tr></thead>
+<tbody>
+<tr><td>Plain Ford Fulkerson</td><td>Any augmenting path</td><td><code>O(|E| &middot; C)</code> where C is the max flow value</td></tr>
+<tr><td>Edmonds Karp</td><td>Shortest augmenting path, by BFS</td><td><code>O(|E|<sup>2</sup>|V|)</code></td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="box why">
+  <span class="label">Why plain Ford Fulkerson is not polynomial</span>
+  <p><code>O(|E| &middot; C)</code> depends on the flow <b>value</b>, not the input size. C is written in
+  <code>log C</code> bits, so this is pseudo-polynomial in exactly the same sense as the O(nB)
+  knapsack table.</p>
+  <p>The standard bad case: two paths of capacity 1000000 joined by a middle edge of capacity 1. Choose
+  augmenting paths badly and you route through that middle edge every time, alternating direction,
+  pushing one unit per iteration and taking two million iterations on a five edge graph.</p>
+  <p>Edmonds Karp fixes this by always taking the <b>shortest</b> augmenting path via BFS, which makes
+  the bound depend only on <code>|V|</code> and <code>|E|</code>. When a question asks for a polynomial
+  running time, cite Edmonds Karp, not plain Ford Fulkerson.</p>
+</div>
+
+<div class="box note">
+  <span class="label">Bipartite matching is faster</span>
+  <p>On a unit capacity bipartite matching network, the max flow is at most n, so plain Ford Fulkerson
+  is already <code>O(|E| &middot; n) = O(mn)</code>. Hopcroft and Karp improve it to
+  <code>O(m&radic;n)</code> by augmenting along many short paths at once.</p>
+</div>
+
+<h2 id="exam">Exam answer, written out</h2>
+
+<p>December 2024 Q4. A bipartite graph with left vertices a, b, c, d and right vertices A, B, C, D. Find
+a maximum cardinality matching using Ford Fulkerson. Three parts, no justification required.</p>
+
+<details>
+<summary>Open for the full written answer</summary>
+
+<p><b>(a) The network.</b> Build <code>G'</code> as follows. Vertices are a new source s, a new sink t,
+and all of the original vertices. Edges are:</p>
+<ul>
+  <li><code>(s, x)</code> with capacity 1, for each left vertex x in {a, b, c, d};</li>
+  <li><code>(x, Y)</code> with capacity 1, directed left to right, for each original edge;</li>
+  <li><code>(Y, t)</code> with capacity 1, for each right vertex Y in {A, B, C, D}.</li>
+</ul>
+<p>All capacities are 1. Draw it and write the 1 on every edge, including the obvious ones. The marker
+is checking that the capacities are labelled, not that they are surprising.</p>
+
+<p><b>(b) Running the algorithm.</b> Give each augmenting path as a node list with its bottleneck:</p>
+<pre><code>s, a, B, t   bottleneck 1
+s, b, A, t   bottleneck 1
+s, c, C, t   bottleneck 1
+s, d, D, t   bottleneck 1</code></pre>
+<p>Then the final flow: <code>f(s,a) = f(s,b) = f(s,c) = f(s,d) = 1</code>,
+<code>f(a,B) = f(b,A) = f(c,C) = f(d,D) = 1</code>,
+<code>f(A,t) = f(B,t) = f(C,t) = f(D,t) = 1</code>, and 0 on every other edge.</p>
+<p>Then the matching, which is just the middle layer edges carrying flow:
+<code>M = {(a,B), (b,A), (c,C), (d,D)}</code>, of size 4.</p>
+
+<p><b>(c) A minimum cut.</b> If every left vertex is saturated, the residual has no edge leaving s, so
+<code>A = {s}</code> and <code>B = </code> everything else, with capacity 4, matching the flow value.</p>
+<p>If the matching is smaller than the number of left vertices, then A is larger: it contains s, every
+left vertex still reachable, and every right vertex reachable from those. Compute it by running one BFS
+in the residual from s and listing what you reach.</p>
+
+<div class="box why">
+  <span class="label">The check that takes ten seconds and saves the question</span>
+  <p>Add up the capacities of the edges crossing your cut from A to B. That number must equal your flow
+  value. If it does not, either your flow is not maximum (you missed an augmenting path, probably one
+  using a backward edge) or your cut is wrong. This check is free and it catches essentially every
+  error in this question.</p>
+</div>
+</details>
+
+<div class="box tpl">
+  <span class="label">Q4 in ten lines, the whole procedure</span>
+  <ol>
+    <li>Add s and t, direct all edges left to right, label every capacity.</li>
+    <li>Set all flows to 0.</li>
+    <li>Find any s-t path in the residual. Write it as a node list.</li>
+    <li>Its bottleneck is the smallest residual capacity on it. Write that number down.</li>
+    <li>Add the bottleneck on forward edges, subtract it on backward ones.</li>
+    <li>Redraw the residual, <b>including backward edges</b>.</li>
+    <li>Repeat from 3 until no s-t path exists.</li>
+    <li>Write out the final flow, edge by edge.</li>
+    <li>A = what is reachable from s in the residual. B = the rest.</li>
+    <li>Check <code>c(A,B) = val(f)</code>. If they differ, go back to step 3.</li>
+  </ol>
+</div>
+
+<div class="pagenav">
+  <a href="dp.html">&larr; Dynamic programming</a>
+  <a href="flow-apps.html">Flow applications &rarr;</a>
+</div>
+
+<footer class="bot">
+  <p>Worked answers written from scratch. No course material is reproduced.</p>
+</footer>
+
+</div>
+
+<script>
+(function () {
+  var svg = document.getElementById('ffSvg');
+  if (!svg) return;
+  var NS = 'http://www.w3.org/2000/svg';
+  function el(n, a) { var e = document.createElementNS(NS, n); for (var k in a) e.setAttribute(k, a[k]); return e; }
+
+  // Positions, top graph. Bottom graph is the same shifted by DY.
+  var DY = 268;
+  var POS = { s: [40, 100], a: [170, 48], b: [170, 152], t: [300, 100] };
+  var EDGES = [
+    { u: 's', v: 'a', c: 10 },
+    { u: 's', v: 'b', c: 10 },
+    { u: 'a', v: 'b', c: 1  },
+    { u: 'a', v: 't', c: 10 },
+    { u: 'b', v: 't', c: 10 }
+  ];
+
+  var flow, paths, path, bneck, done, showCut, cutA, log, timer = null;
+  var out = document.getElementById('ffOut');
+
+  function key(u, v) { return u + '>' + v; }
+
+  function reset() {
+    flow = {};
+    EDGES.forEach(function (e) { flow[key(e.u, e.v)] = 0; });
+    paths = []; path = null; bneck = 0; done = false; showCut = false; cutA = null;
+    log = 'All flows start at 0. The residual below is just the original network, since nothing is used yet. Press Step to find the first augmenting path.';
+    draw();
+  }
+
+  // residual adjacency: forward edges first (in edge order), then backward edges.
+  // Paths are then found by DFS in that order, which is what you do by hand on paper.
+  function residual() {
+    var adj = {};
+    Object.keys(POS).forEach(function (k) { adj[k] = []; });
+    EDGES.forEach(function (e) {
+      var f = flow[key(e.u, e.v)];
+      if (e.c - f > 0) adj[e.u].push({ to: e.v, cap: e.c - f, u: e.u, v: e.v, back: false });
+    });
+    EDGES.forEach(function (e) {
+      var f = flow[key(e.u, e.v)];
+      if (f > 0) adj[e.v].push({ to: e.u, cap: f, u: e.u, v: e.v, back: true });
+    });
+    return adj;
+  }
+
+  function findPath() {
+    var adj = residual(), seen = {}, arcs = [];
+    function dfs(u) {
+      if (u === 't') return true;
+      seen[u] = 1;
+      for (var i = 0; i < adj[u].length; i++) {
+        var e = adj[u][i];
+        if (seen[e.to]) continue;
+        arcs.push({ from: u, e: e });
+        if (dfs(e.to)) return true;
+        arcs.pop();
+      }
+      return false;
+    }
+    return dfs('s') ? arcs : null;
+  }
+
+  function reachable() {
+    var adj = residual(), q = ['s'], seen = { s: 1 };
+    while (q.length) {
+      var u = q.shift();
+      adj[u].forEach(function (e) { if (!seen[e.to]) { seen[e.to] = 1; q.push(e.to); } });
+    }
+    return seen;
+  }
+
+  function val() {
+    var v = 0;
+    EDGES.forEach(function (e) { if (e.u === 's') v += flow[key(e.u, e.v)]; });
+    return v;
+  }
+
+  function step() {
+    if (done) return;
+    if (path) {
+      // apply the pending augmentation
+      path.forEach(function (a) {
+        var k = key(a.e.u, a.e.v);
+        flow[k] += a.e.back ? -bneck : bneck;
+      });
+      paths.push({ nodes: pathNodes(path), b: bneck, usedBack: path.some(function (a) { return a.e.back; }) });
+      path = null;
+      log = 'Augmented by ' + bneck + '. Flow value is now <b>' + val() + '</b>. The residual below has been redrawn. Press Step to look for another path.';
+      draw();
+      return;
+    }
+    var p = findPath();
+    if (!p) {
+      done = true;
+      log = '<b>No s-t path remains in the residual network, so the flow is maximum. val(f) = ' + val() +
+            '.</b> Press Show min cut to read the cut off the residual.';
+      draw();
+      return;
+    }
+    path = p;
+    bneck = Math.min.apply(null, p.map(function (a) { return a.e.cap; }));
+    var hasBack = p.some(function (a) { return a.e.back; });
+    log = 'Found the augmenting path <b>' + pathNodes(p).join(', ') + '</b> in the residual. ' +
+          'The bottleneck is the smallest residual capacity on it, <b>' + bneck + '</b>. ' +
+          (hasBack
+            ? '<b>This path uses a backward edge</b> (drawn in red), so augmenting will <i>cancel</i> ' +
+              bneck + ' unit of existing flow on that edge and reroute it. The total value still rises.'
+            : 'All edges are forward, so this just fills spare capacity.') +
+          ' Press Step to apply it.';
+    draw();
+  }
+
+  function pathNodes(p) {
+    var n = ['s'];
+    p.forEach(function (a) { n.push(a.e.back ? a.e.u : a.e.v); });
+    return n;
+  }
+
+  function arrow(x1, y1, x2, y2, col, w, dash) {
+    var g = el('g', {});
+    var dx = x2 - x1, dy = y2 - y1, L = Math.sqrt(dx * dx + dy * dy);
+    var ux = dx / L, uy = dy / L, R = 15;
+    var ax = x1 + ux * R, ay = y1 + uy * R, bx = x2 - ux * R, by = y2 - uy * R;
+    g.appendChild(el('line', {
+      x1: ax, y1: ay, x2: bx, y2: by, stroke: col, 'stroke-width': w,
+      'stroke-dasharray': dash || ''
+    }));
+    var px = -uy, py = ux, h = 7, s = 4.2;
+    g.appendChild(el('path', {
+      d: 'M ' + bx + ' ' + by + ' L ' + (bx - ux * h + px * s) + ' ' + (by - uy * h + py * s) +
+         ' L ' + (bx - ux * h - px * s) + ' ' + (by - uy * h - py * s) + ' Z',
+      fill: col
+    }));
+    return g;
+  }
+
+  function node(k, dy, hi, dim) {
+    var p = POS[k], g = el('g', {});
+    g.appendChild(el('circle', {
+      cx: p[0], cy: p[1] + dy, r: 15,
+      fill: hi ? 'var(--fl)' : 'var(--bg2)',
+      stroke: hi ? 'var(--fl)' : 'var(--ink2)', 'stroke-width': 1.8,
+      opacity: dim ? .3 : 1
+    }));
+    var t = el('text', {
+      x: p[0], y: p[1] + dy + 4, 'text-anchor': 'middle',
+      class: 'svg-lbl-b', fill: hi ? '#fff' : 'var(--ink)', opacity: dim ? .3 : 1
+    });
+    t.textContent = k;
+    g.appendChild(t);
+    return g;
+  }
+
+  function mid(u, v, dy, off) {
+    var a = POS[u], b = POS[v];
+    var mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2 + dy;
+    var dx = b[0] - a[0], dyy = b[1] - a[1], L = Math.sqrt(dx * dx + dyy * dyy);
+    return [mx + (-dyy / L) * (off || 0), my + (dx / L) * (off || 0)];
+  }
+
+  function draw() {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+    var onPath = {};
+    if (path) path.forEach(function (a) { onPath[key(a.e.u, a.e.v) + (a.e.back ? 'B' : 'F')] = a.e.cap; });
+
+    /* ---- top: the flow network ---- */
+    var h1 = el('text', { x: 8, y: 18, class: 'svg-lbl-b' });
+    h1.textContent = 'G  with  flow / capacity';
+    svg.appendChild(h1);
+
+    EDGES.forEach(function (e) {
+      var a = POS[e.u], b = POS[e.v];
+      var f = flow[key(e.u, e.v)];
+      var isPath = onPath[key(e.u, e.v) + 'F'] !== undefined;
+      var isBack = onPath[key(e.u, e.v) + 'B'] !== undefined;
+      var col = isPath ? 'var(--fl)' : (isBack ? 'var(--trap-line)' : (f > 0 ? 'var(--fa)' : 'var(--line2)'));
+      svg.appendChild(arrow(a[0], a[1], b[0], b[1], col, isPath || isBack ? 3 : 2));
+      var m = mid(e.u, e.v, 0, -11);
+      var t = el('text', {
+        x: m[0], y: m[1], 'text-anchor': 'middle',
+        class: f > 0 ? 'svg-lbl-b' : 'svg-lbl',
+        fill: f > 0 ? 'var(--fa)' : 'var(--ink2)'
+      });
+      t.textContent = f + ' / ' + e.c;
+      svg.appendChild(t);
+    });
+    Object.keys(POS).forEach(function (k) {
+      svg.appendChild(node(k, 0, showCut && cutA && cutA[k], false));
+    });
+
+    var vt = el('text', { x: 340, y: 104, class: 'svg-lbl-b' });
+    vt.textContent = 'val(f) = ' + val();
+    svg.appendChild(vt);
+
+    /* ---- divider ---- */
+    svg.appendChild(el('line', { x1: 8, y1: 232, x2: 432, y2: 232, stroke: 'var(--line)', 'stroke-width': 1 }));
+
+    /* ---- bottom: the residual network ---- */
+    var h2 = el('text', { x: 8, y: 256, class: 'svg-lbl-b' });
+    h2.textContent = 'residual  G_f  (what the algorithm searches)';
+    svg.appendChild(h2);
+
+    EDGES.forEach(function (e) {
+      var a = POS[e.u], b = POS[e.v], f = flow[key(e.u, e.v)];
+      // forward residual
+      if (e.c - f > 0) {
+        var isP = onPath[key(e.u, e.v) + 'F'] !== undefined;
+        svg.appendChild(arrow(a[0], a[1] + DY, b[0], b[1] + DY, isP ? 'var(--fl)' : 'var(--line2)', isP ? 3 : 1.9));
+        var m = mid(e.u, e.v, DY, -11);
+        var t = el('text', { x: m[0], y: m[1], 'text-anchor': 'middle', class: isP ? 'svg-lbl-b' : 'svg-lbl', fill: isP ? 'var(--fl)' : 'var(--ink2)' });
+        t.textContent = (e.c - f) + '';
+        svg.appendChild(t);
+      }
+      // backward residual
+      if (f > 0) {
+        var isB = onPath[key(e.u, e.v) + 'B'] !== undefined;
+        svg.appendChild(arrow(b[0], b[1] + DY, a[0], a[1] + DY, isB ? 'var(--trap-line)' : 'var(--cx)', isB ? 3 : 1.9, isB ? '' : '4 3'));
+        var m2 = mid(e.u, e.v, DY, 13);
+        var t2 = el('text', { x: m2[0], y: m2[1], 'text-anchor': 'middle', class: isB ? 'svg-lbl-b' : 'svg-lbl', fill: isB ? 'var(--trap-line)' : 'var(--cx)' });
+        t2.textContent = f + '';
+        svg.appendChild(t2);
+      }
+    });
+
+    if (showCut && cutA) {
+      // draw the cut boundary as a dashed curve between A and B, top graph
+      var xs = [];
+      Object.keys(POS).forEach(function (k) { if (cutA[k]) xs.push(POS[k][0]); });
+      var edge = Math.max.apply(null, xs) + 42;
+      svg.appendChild(el('line', {
+        x1: edge, y1: 20, x2: edge, y2: 222,
+        stroke: 'var(--trap-line)', 'stroke-width': 2.4, 'stroke-dasharray': '7 4'
+      }));
+      var ta = el('text', { x: edge - 6, y: 208, class: 'svg-lbl-b', fill: 'var(--trap-line)', 'text-anchor': 'end' });
+      ta.textContent = 'A';
+      svg.appendChild(ta);
+      var tb = el('text', { x: edge + 6, y: 208, class: 'svg-lbl-b', fill: 'var(--trap-line)' });
+      tb.textContent = 'B';
+      svg.appendChild(tb);
+    }
+
+    Object.keys(POS).forEach(function (k) {
+      svg.appendChild(node(k, DY, showCut && cutA && cutA[k], false));
+    });
+
+    /* ---- path log ---- */
+    var y = 468;
+    var hl = el('text', { x: 8, y: y, class: 'svg-lbl-b' });
+    hl.textContent = 'augmenting paths so far';
+    svg.appendChild(hl);
+    paths.forEach(function (p, i) {
+      var t = el('text', { x: 8, y: y + 16 + i * 14, class: 'svg-lbl' });
+      t.textContent = (i + 1) + '.  ' + p.nodes.join(', ') + '   bottleneck ' + p.b + (p.usedBack ? '   (uses a backward edge)' : '');
+      svg.appendChild(t);
+    });
+    if (!paths.length) {
+      var t = el('text', { x: 8, y: y + 16, class: 'svg-lbl' });
+      t.textContent = 'none yet';
+      svg.appendChild(t);
+    }
+
+    out.innerHTML = log;
+  }
+
+  document.getElementById('ffStep').addEventListener('click', function () {
+    if (timer) { clearInterval(timer); timer = null; document.getElementById('ffPlay').textContent = 'Play'; }
+    step();
+  });
+  document.getElementById('ffPlay').addEventListener('click', function () {
+    var self = this;
+    if (timer) { clearInterval(timer); timer = null; self.textContent = 'Play'; return; }
+    self.textContent = 'Pause';
+    timer = setInterval(function () {
+      if (done) { clearInterval(timer); timer = null; self.textContent = 'Play'; return; }
+      step();
+    }, 1600);
+  });
+  document.getElementById('ffCut').addEventListener('click', function () {
+    if (timer) { clearInterval(timer); timer = null; document.getElementById('ffPlay').textContent = 'Play'; }
+    var guard = 0;
+    while (!done && guard++ < 60) step();
+    cutA = reachable();
+    showCut = true;
+    var A = Object.keys(POS).filter(function (k) { return cutA[k]; });
+    var B = Object.keys(POS).filter(function (k) { return !cutA[k]; });
+    var cap = 0, crossing = [];
+    EDGES.forEach(function (e) {
+      if (cutA[e.u] && !cutA[e.v]) { cap += e.c; crossing.push('(' + e.u + ',' + e.v + ')=' + e.c); }
+    });
+    log = '<b>A = {' + A.join(', ') + '}</b> is what is reachable from s in the residual. ' +
+          '<b>B = {' + B.join(', ') + '}</b>. Edges crossing A to B: ' + crossing.join(' + ') +
+          ', so <b>c(A,B) = ' + cap + ' = val(f)</b>. The flow is maximum and this cut is minimum. ' +
+          'Note every A to B edge is full and every B to A edge is empty, which is exactly why the two numbers agree.';
+    draw();
+  });
+  document.getElementById('ffReset').addEventListener('click', function () {
+    if (timer) { clearInterval(timer); timer = null; document.getElementById('ffPlay').textContent = 'Play'; }
+    reset();
+  });
+
+  reset();
+})();
+</script>
+
+</body>
+</html>

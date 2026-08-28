@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flow Applications</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="backlink" href="index.html">&larr; CSC373 study guide</a>
+    <p class="kicker">Unit 5 &middot; Exam question 5 &middot; 15 marks</p>
+    <h1>Flow applications</h1>
+    <p class="sub">A word problem about assigning things to things. The constraints become capacities, and there are only four places they can go.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="toc">
+  <p>On this page</p>
+  <ul>
+    <li><a href="#match">Bipartite matching, built step by step</a></li>
+    <li><a href="#pattern">The four layer pattern</a></li>
+    <li><a href="#map">Mapping constraints onto edges</a></li>
+    <li><a href="#seg">Image segmentation, where you want the cut and not the flow</a></li>
+    <li><a href="#proof">The two direction correctness proof</a></li>
+    <li><a href="#exam">Exam answer, written out</a></li>
+  </ul>
+</div>
+
+<h2 id="match">Bipartite matching, built step by step</h2>
+
+<p>A <b>bipartite graph</b> is <code>G = (A &cup; B, E)</code> where every edge has one endpoint in A and
+one in B. A <b>matching</b> is a set of edges no two of which share an endpoint. The problem is to find
+a matching of maximum size.</p>
+
+<p>There is no obvious greedy or DP for this. The move is to turn it into a flow problem, which you
+already know how to solve.</p>
+
+<div class="anim">
+  <h4>Turning a matching problem into a flow problem</h4>
+  <p class="cap">Four steps to build the network, then read the matching off the middle layer.</p>
+  <div class="stage"><svg id="bmSvg" viewBox="0 0 440 300" role="img" aria-label="Constructing a flow network for bipartite matching"></svg></div>
+  <div class="ctrls">
+    <button id="bmStep" class="primary">Step</button>
+    <button id="bmReset">Reset</button>
+  </div>
+  <div class="readout" id="bmOut"></div>
+</div>
+
+<div class="box why">
+  <span class="label">Why capacity 1 on the source edges is the matching condition</span>
+  <p>The capacity of <code>(s, u)</code> is the number of times u is allowed to be used. Flow
+  conservation then forces <code>f<sup>out</sup>(u) = f<sup>in</sup>(u) &le; 1</code>, so at most one
+  middle edge out of u carries flow. That is precisely "u is in at most one matched edge".</p>
+  <p>The same argument at v, using the capacity of <code>(v, t)</code>, handles the other side. The two
+  matching conditions are not enforced by anything clever, they are enforced by two numbers.</p>
+</div>
+
+<h2 id="pattern">The four layer pattern</h2>
+
+<p>Nearly every Q5 is the same network with different numbers on it.</p>
+
+<div class="box tpl">
+  <span class="label">The template network</span>
+  <pre><code>          cap = per-left limit      cap = 1        cap = per-right limit
+    s  ------------------------&gt;  u&#7522;  --------&gt;  v&#11431;  ------------------------&gt;  t
+       (one edge per left thing)  (one edge per   (one edge per right thing)
+                                   allowed pair)</code></pre>
+  <ul>
+    <li><b>Left layer:</b> one vertex per thing being assigned (students, workers, TAs, roasters).</li>
+    <li><b>Right layer:</b> one vertex per thing being assigned to (clubs, jobs, time slots, shops).</li>
+    <li><b>Middle edges:</b> only for pairs the problem permits. This is where "no student can be
+    assigned to a club they did not apply to" lives.</li>
+    <li><b>Source edges:</b> carry the per left thing limit.</li>
+    <li><b>Sink edges:</b> carry the per right thing limit.</li>
+  </ul>
+</div>
+
+<h3>The two variations you have to know</h3>
+
+<div class="box note">
+  <span class="label">A global cap needs a fifth node</span>
+  <p>If the problem says "exactly c time slots must be filled" or "at most k in total", the cap is not
+  per left thing or per right thing, so it does not fit on any existing edge. Add a node
+  <code>t'</code> just before t, route every sink edge into <code>t'</code>, and put a single edge
+  <code>(t', t)</code> with capacity c. Every unit of flow is now forced through that one edge, so it
+  alone enforces the global cap.</p>
+  <p>Then check <code>f(t', t) = c</code> at the end. If the max flow is less than c, no valid
+  assignment exists and you output that.</p>
+</div>
+
+<div class="box note">
+  <span class="label">Capacity greater than 1 on a middle edge</span>
+  <p>Capacity 1 on the middle means each pair can be used at most once, which is what "no club can be
+  assigned a student twice" requires. If instead the problem measures a <b>quantity</b> (kilograms of
+  coffee, hours of work), the middle capacity is whatever the pairwise limit is, or infinity if there
+  is none. Read the sentence and put the number on the edge.</p>
+</div>
+
+<h2 id="map">Mapping constraints onto edges</h2>
+
+<p>This is the actual exam skill: read a paragraph of English, and know which edge each sentence
+becomes. Try it on the December 2024 clubs question.</p>
+
+<div class="anim">
+  <h4>Each constraint lives on exactly one edge</h4>
+  <p class="cap">Tap a constraint to see where it is enforced in the network.</p>
+  <div class="ctrls" style="margin-bottom:.7rem">
+    <button data-cn="0" class="primary">"at most b clubs each"</button>
+    <button data-cn="1">"club i takes k&#7522; members"</button>
+    <button data-cn="2">"only clubs they applied to"</button>
+    <button data-cn="3">"no student twice in a club"</button>
+  </div>
+  <div class="stage"><svg id="cnSvg" viewBox="0 0 440 250" role="img" aria-label="Which network edge enforces which constraint"></svg></div>
+  <div class="readout" id="cnOut"></div>
+</div>
+
+<div class="box trap">
+  <span class="label">If a constraint has nowhere to go, your network is wrong</span>
+  <p>Work through the problem statement sentence by sentence and point at the edge that enforces each
+  one. Any sentence with no edge is a constraint your network does not implement, and your correctness
+  proof will be false. That check takes a minute and is the difference between 15 and 8 on this
+  question.</p>
+  <p>The reverse also holds: an edge with a capacity you cannot justify from a sentence is an
+  invented constraint, and it may cut off valid assignments.</p>
+</div>
+
+<h2 id="seg">Image segmentation, where you want the cut and not the flow</h2>
+
+<p>Every pixel u has a likelihood <code>a<sub>u</sub></code> of being foreground and
+<code>b<sub>u</sub></code> of being background. Neighbouring pixels <code>(u,v)</code> have a separation
+penalty <code>p<sub>u,v</sub></code> charged when one goes foreground and the other background.
+Partition the pixels into foreground A and background B maximising</p>
+
+<pre><code>q(A,B) = &sum;<sub>u&isin;A</sub> a&#7512;  +  &sum;<sub>u&isin;B</sub> b&#7512;  -  &sum;<sub>(u,v) separated</sub> p&#7512;,&#7515;</code></pre>
+
+<div class="box why">
+  <span class="label">The trick: turn a maximisation into a minimisation</span>
+  <p>The total <code>&sum;<sub>u</sub>(a<sub>u</sub> + b<sub>u</sub>)</code> is a constant, independent of
+  how you partition. Subtract q from it and the maximisation becomes a minimisation of</p>
+  <pre><code>q'(A,B) = &sum;<sub>u&isin;B</sub> a&#7512;  +  &sum;<sub>u&isin;A</sub> b&#7512;  +  &sum;<sub>(u,v) separated</sub> p&#7512;,&#7515;</code></pre>
+  <p>Notice the a and b swapped sides and the penalty flipped sign. Now every term is a <b>cost paid for
+  a separation</b>, which is exactly the shape of a cut capacity.</p>
+</div>
+
+<div class="box tpl">
+  <span class="label">The network</span>
+  <ul>
+    <li><code>(s, u)</code> with capacity <code>a<sub>u</sub></code>, for every pixel u. Cut when u lands
+    in B, charging <code>a<sub>u</sub></code>.</li>
+    <li><code>(u, t)</code> with capacity <code>b<sub>u</sub></code>, for every pixel u. Cut when u lands
+    in A, charging <code>b<sub>u</sub></code>.</li>
+    <li><code>(u,v)</code> and <code>(v,u)</code> each with capacity <code>p<sub>u,v</sub></code>, for every
+    neighbouring pair. Cut when u and v land on opposite sides.</li>
+  </ul>
+  <p>Then <code>c(A,B) = q'(A,B)</code> for every s-t cut, so a minimum cut is an optimal segmentation.
+  Find it by computing a max flow and taking the vertices reachable from s in the residual.</p>
+</div>
+
+<div class="box why">
+  <span class="label">The generalisable idea</span>
+  <p>The source side of a cut becomes one label and the sink side the other, so an s-t cut <b>is</b> a
+  binary labelling of the vertices. If your objective can be written as a sum of penalties, each charged
+  when a specific pair gets different labels, then min cut solves it. That is why this trick shows up
+  in project selection and survey design as well as segmentation.</p>
+</div>
+
+<h2 id="proof">The two direction correctness proof</h2>
+
+<p>Both directions are required. Each is worth marks, and each is three or four sentences.</p>
+
+<div class="box tpl">
+  <span class="label">Direction 1: assignment gives flow</span>
+  <p><i>"Let M be a valid assignment of size k. Define a flow f by putting 1 unit on
+  <code>(u<sub>i</sub>, v<sub>j</sub>)</code> for each assigned pair, and setting
+  <code>f(s, u<sub>i</sub>)</code> to the number of assignments of i and <code>f(v<sub>j</sub>, t)</code> to
+  the number of assignments to j. Conservation holds by construction. Capacities are respected because
+  [each constraint of the problem, named]. Hence f is a valid flow of value k, so
+  <code>max flow &ge; max assignment</code>."</i></p>
+</div>
+
+<div class="box tpl">
+  <span class="label">Direction 2: flow gives assignment</span>
+  <p><i>"Conversely, let f be an integral maximum flow of value k, which exists because all capacities are
+  integers and Ford Fulkerson returns an integral flow. Since middle edge capacities are 1, each
+  <code>f(u<sub>i</sub>, v<sub>j</sub>)</code> is 0 or 1. Assign i to j exactly when it is 1. Conservation at
+  <code>u<sub>i</sub></code> gives that i is assigned at most <code>c(s, u<sub>i</sub>)</code> times, and
+  conservation at <code>v<sub>j</sub></code> gives that j receives at most <code>c(v<sub>j</sub>, t)</code>.
+  A middle edge exists only for permitted pairs. So the assignment is valid and has size k, giving
+  <code>max assignment &ge; max flow</code>."</i></p>
+  <p><i>"The two inequalities together give equality, so the algorithm's output is optimal."</i></p>
+</div>
+
+<div class="box trap">
+  <span class="label">Do not skip the second direction</span>
+  <p>Showing only that assignments give flows proves <code>max flow &ge; max assignment</code>, which
+  says nothing useful: a flow could be larger and correspond to no assignment at all. The second
+  direction is the one that makes the algorithm correct, and it is the one that needs integrality.</p>
+</div>
+
+<h2 id="exam">Exam answer, written out</h2>
+
+<p>December 2024 Q5. There are m students and n clubs. Each student is in at most b clubs. Club
+<code>c<sub>i</sub></code> accepts at most <code>k<sub>i</sub></code> members. Student i applied to the set
+<code>A<sub>i</sub></code>. Maximise total club membership. Give the algorithm, justify correctness, and
+bound the running time by a polynomial in n + m.</p>
+
+<details>
+<summary>Think about it first, then open this</summary>
+
+<p><b>The network.</b> Construct <code>G = (V, E)</code> where <code>V</code> consists of a source s, a
+sink t, a vertex <code>u<sub>i</sub></code> for each student <code>s<sub>i</sub></code>, and a vertex
+<code>w<sub>j</sub></code> for each club <code>c<sub>j</sub></code>. The edges are:</p>
+<ul>
+  <li><code>(s, u<sub>i</sub>)</code> with capacity <b>b</b>, for each <code>i &isin; [m]</code>;</li>
+  <li><code>(u<sub>i</sub>, w<sub>j</sub>)</code> with capacity <b>1</b>, for each i and each
+  <code>c<sub>j</sub> &isin; A<sub>i</sub></code>;</li>
+  <li><code>(w<sub>j</sub>, t)</code> with capacity <b>k<sub>j</sub></b>, for each <code>j &isin; [n]</code>.</li>
+</ul>
+
+<p><b>The algorithm.</b> Compute an integral maximum s-t flow f in G using Ford Fulkerson with the
+shortest augmenting path rule. Then assign student i to club j exactly when
+<code>f(u<sub>i</sub>, w<sub>j</sub>) = 1</code>. Output that assignment.</p>
+
+<p><b>Correctness.</b></p>
+
+<p><i>Every valid assignment of total size k yields a flow of value k.</i> Given such an assignment, put
+1 unit on <code>(u<sub>i</sub>, w<sub>j</sub>)</code> for each assigned pair, set
+<code>f(s, u<sub>i</sub>)</code> to the number of clubs student i was assigned, and
+<code>f(w<sub>j</sub>, t)</code> to the size of club j. Conservation holds at every
+<code>u<sub>i</sub></code> and <code>w<sub>j</sub></code> by construction. The source edge capacity is
+respected because each student is in at most b clubs; the middle edge capacities are respected because
+a student is assigned to a club at most once, and edges exist only for clubs applied to; the sink edge
+capacities are respected because club j takes at most <code>k<sub>j</sub></code> members. The value of
+this flow is <code>f<sup>out</sup>(s)</code>, which equals the total number of assignments, that is, the
+total membership k.</p>
+
+<p><i>Every integral flow of value k yields a valid assignment of total size k.</i> All capacities are
+integers, so Ford Fulkerson returns an integral flow, meaning each
+<code>f(u<sub>i</sub>, w<sub>j</sub>) &isin; {0, 1}</code>. Take the assignment defined above. No student is
+assigned to a club twice, since that edge carries at most 1. No student is assigned a club they did not
+apply to, since no such edge exists. Student i is assigned
+<code>f<sup>out</sup>(u<sub>i</sub>) = f<sup>in</sup>(u<sub>i</sub>) = f(s, u<sub>i</sub>) &le; b</code> clubs.
+Club j receives <code>f<sup>in</sup>(w<sub>j</sub>) = f(w<sub>j</sub>, t) &le; k<sub>j</sub></code> students.
+The total membership equals <code>&sum;<sub>j</sub> f(w<sub>j</sub>, t) = f<sup>in</sup>(t) = val(f) = k</code>.</p>
+
+<p>The two directions give a bijection between valid assignments and integral flows that preserves size,
+so maximising the flow maximises total membership.</p>
+
+<p><b>Running time.</b> Let <code>L = &sum;<sub>i</sub>|A<sub>i</sub>| &le; mn</code> be the total number of
+applications. Then <code>|V| = m + n + 2</code> and <code>|E| = m + L + n</code>. Building the network
+takes <code>O(m + n + L)</code>. Edmonds Karp runs in
+<code>O(|E|<sup>2</sup>|V|) = O((m + n + L)<sup>2</sup>(m + n))</code>. Reading off the assignment takes
+<code>O(|E|)</code>. The total is dominated by the flow computation and is polynomial in n + m, since
+<code>L &le; mn</code>.</p>
+
+<div class="box why">
+  <span class="label">The move to notice</span>
+  <p>Every number in the problem statement ended up on exactly one edge, and no edge got a capacity
+  that was not in the problem statement. When that is true, the correctness proof is nearly mechanical,
+  because each capacity check in the proof is just quoting the sentence it came from.</p>
+</div>
+</details>
+
+<div class="box tpl">
+  <span class="label">Recognising Q5 in 60 seconds</span>
+  <ul>
+    <li>Two kinds of thing, and you are pairing them up.</li>
+    <li>Limits on <b>both</b> sides ("each student at most b", "each club at most k&#7522;").</li>
+    <li>A permitted-pairs relation ("applied to", "qualified for", "available at").</li>
+    <li>"Maximise the number of assignments" or "decide if a valid assignment exists".</li>
+  </ul>
+  <p>Then: four layers, capacities from the two limits, middle edges from the relation, integrality
+  sentence, both directions, Edmonds Karp bound. Write those six things and the question is done.</p>
+</div>
+
+<div class="pagenav">
+  <a href="flow.html">&larr; Network flow</a>
+  <a href="lp.html">Linear programming &rarr;</a>
+</div>
+
+<footer class="bot">
+  <p>Worked answers written from scratch. No course material is reproduced.</p>
+</footer>
+
+</div>
+
+<script>
+var NSG = 'http://www.w3.org/2000/svg';
+function mk(n, a) { var e = document.createElementNS(NSG, n); for (var k in a) e.setAttribute(k, a[k]); return e; }
+function clr(s) { while (s.firstChild) s.removeChild(s.firstChild); }
+
+function arrowTo(x1, y1, x2, y2, col, w, r1, r2) {
+  var g = mk('g', {});
+  var dx = x2 - x1, dy = y2 - y1, L = Math.sqrt(dx * dx + dy * dy) || 1;
+  var ux = dx / L, uy = dy / L;
+  var ax = x1 + ux * (r1 || 0), ay = y1 + uy * (r1 || 0);
+  var bx = x2 - ux * (r2 || 0), by = y2 - uy * (r2 || 0);
+  g.appendChild(mk('line', { x1: ax, y1: ay, x2: bx, y2: by, stroke: col, 'stroke-width': w }));
+  var px = -uy, py = ux, h = 6.5, s = 4;
+  g.appendChild(mk('path', {
+    d: 'M ' + bx + ' ' + by + ' L ' + (bx - ux * h + px * s) + ' ' + (by - uy * h + py * s) +
+       ' L ' + (bx - ux * h - px * s) + ' ' + (by - uy * h - py * s) + ' Z', fill: col
+  }));
+  return g;
+}
+
+function circ(x, y, label, fill, stroke, r) {
+  var g = mk('g', {});
+  g.appendChild(mk('circle', { cx: x, cy: y, r: r || 13, fill: fill, stroke: stroke, 'stroke-width': 1.7 }));
+  var t = mk('text', { x: x, y: y + 4, 'text-anchor': 'middle', class: 'svg-lbl-b',
+    fill: fill === 'var(--bg2)' ? 'var(--ink)' : '#fff' });
+  t.textContent = label;
+  g.appendChild(t);
+  return g;
+}
+
+/* ---------------- bipartite matching construction ---------------- */
+(function () {
+  var svg = document.getElementById('bmSvg');
+  if (!svg) return;
+  var out = document.getElementById('bmOut');
+
+  var LEFT = [['a', 60], ['b', 118], ['c', 176], ['d', 234]];
+  var RIGHT = [['A', 60], ['B', 118], ['C', 176], ['D', 234]];
+  var PAIRS = [[0, 1], [0, 0], [1, 0], [2, 2], [2, 1], [3, 3], [3, 2]];
+  var MATCH = [[0, 1], [1, 0], [2, 2], [3, 3]];
+  var LX = 165, RX = 285, SX = 45, TX = 405;
+
+  var stage = 0;
+  var STAGES = [
+    'The bipartite graph as given. Edges are undirected, and we want the largest set of edges sharing no endpoint. Press Step.',
+    'Add a source <b>s</b> joined to every left vertex, and a sink <b>t</b> joined from every right vertex.',
+    '<b>Direct every original edge from left to right.</b> The graph is now a proper flow network with a single source and sink.',
+    'Set <b>every capacity to 1</b>. The source edges limit each left vertex to one use, the sink edges do the same on the right, and the middle edges stop a pair being used twice.',
+    'Run Ford Fulkerson. Each unit of flow traces a path <b>s → u → v → t</b>, and its middle edge is a matched pair. <b>The matching is the set of middle edges carrying flow</b>, here of size 4.'
+  ];
+
+  function draw() {
+    clr(svg);
+    var showST = stage >= 1, directed = stage >= 2, caps = stage >= 3, flowing = stage >= 4;
+
+    var ttl = mk('text', { x: 8, y: 16, class: 'svg-lbl-b' });
+    ttl.textContent = ['step 1: the input', 'step 2: add s and t', 'step 3: orient the edges',
+                       'step 4: capacities', 'step 5: max flow = max matching'][stage];
+    svg.appendChild(ttl);
+
+    // middle edges
+    PAIRS.forEach(function (p) {
+      var y1 = LEFT[p[0]][1], y2 = RIGHT[p[1]][1];
+      var inM = flowing && MATCH.some(function (m) { return m[0] === p[0] && m[1] === p[1]; });
+      var col = inM ? 'var(--fa)' : 'var(--line2)';
+      var w = inM ? 3 : 1.7;
+      if (directed) svg.appendChild(arrowTo(LX, y1, RX, y2, col, w, 13, 13));
+      else svg.appendChild(mk('line', { x1: LX + 13, y1: y1, x2: RX - 13, y2: y2, stroke: col, 'stroke-width': w }));
+      if (caps) {
+        var t = mk('text', { x: (LX + RX) / 2, y: (y1 + y2) / 2 - 3, 'text-anchor': 'middle', class: 'svg-lbl' });
+        t.textContent = '1';
+        svg.appendChild(t);
+      }
+    });
+
+    if (showST) {
+      LEFT.forEach(function (l) {
+        svg.appendChild(arrowTo(SX, 147, LX, l[1], flowing ? 'var(--fa)' : 'var(--line2)', flowing ? 2.6 : 1.7, 13, 13));
+      });
+      RIGHT.forEach(function (r) {
+        svg.appendChild(arrowTo(RX, r[1], TX, 147, flowing ? 'var(--fa)' : 'var(--line2)', flowing ? 2.6 : 1.7, 13, 13));
+      });
+      if (caps) {
+        var c1 = mk('text', { x: 100, y: 100, class: 'svg-lbl' }); c1.textContent = 'all cap 1';
+        svg.appendChild(c1);
+        var c2 = mk('text', { x: 330, y: 100, class: 'svg-lbl' }); c2.textContent = 'all cap 1';
+        svg.appendChild(c2);
+      }
+      svg.appendChild(circ(SX, 147, 's', 'var(--fl)', 'var(--fl)'));
+      svg.appendChild(circ(TX, 147, 't', 'var(--fl)', 'var(--fl)'));
+    }
+
+    LEFT.forEach(function (l) { svg.appendChild(circ(LX, l[1], l[0], 'var(--bg2)', 'var(--ink2)')); });
+    RIGHT.forEach(function (r) { svg.appendChild(circ(RX, r[1], r[0], 'var(--bg2)', 'var(--ink2)')); });
+
+    if (flowing) {
+      var mt = mk('text', { x: 8, y: 286, class: 'svg-lbl-b', fill: 'var(--fa)' });
+      mt.textContent = 'M = {(a,B), (b,A), (c,C), (d,D)},  |M| = 4 = val(f)';
+      svg.appendChild(mt);
+    }
+
+    out.innerHTML = STAGES[stage];
+  }
+
+  document.getElementById('bmStep').addEventListener('click', function () {
+    stage = Math.min(stage + 1, STAGES.length - 1); draw();
+  });
+  document.getElementById('bmReset').addEventListener('click', function () { stage = 0; draw(); });
+  draw();
+})();
+
+/* ---------------- constraint to edge map ---------------- */
+(function () {
+  var svg = document.getElementById('cnSvg');
+  if (!svg) return;
+  var out = document.getElementById('cnOut');
+
+  var SY = [58, 108, 158], CY = [58, 108, 158];
+  var SX = 40, UX = 160, WX = 290, TX = 400;
+  var LINKS = [[0, 0], [0, 1], [1, 1], [1, 2], [2, 0], [2, 2]];
+  var cur = 0;
+
+  var INFO = [
+    { where: 'source', msg: '<b>"Each student can be a member of at most b clubs."</b> This is a limit on how much a single student can do, so it belongs on the edge that all of that student’s flow must pass through: <code>(s, u&#7522;)</code> with capacity <b>b</b>. Conservation at u&#7522; then forces the total assignments of student i to be at most b.' },
+    { where: 'sink',   msg: '<b>"Club c&#7522; can accept no more than k&#7522; members."</b> A limit on a single club, so it goes on the one edge every unit reaching that club must leave by: <code>(w&#11431;, t)</code> with capacity <b>k&#11431;</b>.' },
+    { where: 'mid',    msg: '<b>"No student can be assigned to a club they did not apply to."</b> This one is not a capacity at all. It is enforced by <b>which middle edges exist</b>: draw <code>(u&#7522;, w&#11431;)</code> only when club j is in A&#7522;. A missing edge is an absolute prohibition, which is stronger than any finite capacity.' },
+    { where: 'midcap', msg: '<b>"No club can be assigned a student twice."</b> A limit on one specific pair, so it is the capacity of the middle edge: <code>(u&#7522;, w&#11431;)</code> with capacity <b>1</b>. Note this is a different sentence from the previous one: that decided whether the edge exists, this decides its capacity.' }
+  ];
+
+  function draw() {
+    clr(svg);
+    var info = INFO[cur];
+
+    var lbl1 = mk('text', { x: UX, y: 30, class: 'svg-lbl', 'text-anchor': 'middle' });
+    lbl1.textContent = 'students';
+    svg.appendChild(lbl1);
+    var lbl2 = mk('text', { x: WX, y: 30, class: 'svg-lbl', 'text-anchor': 'middle' });
+    lbl2.textContent = 'clubs';
+    svg.appendChild(lbl2);
+
+    SY.forEach(function (y) {
+      var hot = info.where === 'source';
+      svg.appendChild(arrowTo(SX, 108, UX, y, hot ? 'var(--fa)' : 'var(--line2)', hot ? 3 : 1.6, 13, 13));
+    });
+    if (info.where === 'source') {
+      var t = mk('text', { x: 96, y: 48, class: 'svg-lbl-b', fill: 'var(--fa)' });
+      t.textContent = 'cap b';
+      svg.appendChild(t);
+    }
+
+    LINKS.forEach(function (l) {
+      var hot = info.where === 'mid' || info.where === 'midcap';
+      svg.appendChild(arrowTo(UX, SY[l[0]], WX, CY[l[1]], hot ? 'var(--fa)' : 'var(--line2)', hot ? 3 : 1.6, 13, 13));
+    });
+    if (info.where === 'midcap') {
+      var t2 = mk('text', { x: 225, y: 40, class: 'svg-lbl-b', 'text-anchor': 'middle', fill: 'var(--fa)' });
+      t2.textContent = 'cap 1';
+      svg.appendChild(t2);
+    }
+    if (info.where === 'mid') {
+      // show a missing pair as a ghost
+      svg.appendChild(mk('line', {
+        x1: UX + 13, y1: SY[0], x2: WX - 13, y2: CY[2],
+        stroke: 'var(--trap-line)', 'stroke-width': 1.6, 'stroke-dasharray': '4 4', opacity: .7
+      }));
+      var t3 = mk('text', { x: 225, y: 200, class: 'svg-lbl-b', 'text-anchor': 'middle', fill: 'var(--trap-line)' });
+      t3.textContent = 'not applied  →  no edge at all';
+      svg.appendChild(t3);
+    }
+
+    CY.forEach(function (y) {
+      var hot = info.where === 'sink';
+      svg.appendChild(arrowTo(WX, y, TX, 108, hot ? 'var(--fa)' : 'var(--line2)', hot ? 3 : 1.6, 13, 13));
+    });
+    if (info.where === 'sink') {
+      var t4 = mk('text', { x: 352, y: 48, class: 'svg-lbl-b', fill: 'var(--fa)' });
+      t4.textContent = 'cap kⱼ';
+      svg.appendChild(t4);
+    }
+
+    svg.appendChild(circ(SX, 108, 's', 'var(--fl)', 'var(--fl)'));
+    svg.appendChild(circ(TX, 108, 't', 'var(--fl)', 'var(--fl)'));
+    SY.forEach(function (y, i) { svg.appendChild(circ(UX, y, 'u' + (i + 1), 'var(--bg2)', 'var(--ink2)')); });
+    CY.forEach(function (y, i) { svg.appendChild(circ(WX, y, 'w' + (i + 1), 'var(--bg2)', 'var(--ink2)')); });
+
+    out.innerHTML = info.msg;
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('[data-cn]'), function (b) {
+    b.addEventListener('click', function () {
+      cur = +this.getAttribute('data-cn');
+      Array.prototype.forEach.call(document.querySelectorAll('[data-cn]'), function (x) { x.className = ''; });
+      this.className = 'primary';
+      draw();
+    });
+  });
+  draw();
+})();
+</script>
+
+</body>
+</html>

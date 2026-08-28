@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Greedy Algorithms</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="backlink" href="index.html">&larr; CSC373 study guide</a>
+    <p class="kicker">Unit 3 &middot; Exam question 3 &middot; 15 marks</p>
+    <h1>Greedy algorithms</h1>
+    <p class="sub">Finding the rule takes two minutes. Proving it is right is the question.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="toc">
+  <p>On this page</p>
+  <ul>
+    <li><a href="#sched">Interval scheduling, and picking the right rule</a></li>
+    <li><a href="#wrong">Three rules that look fine and are not</a></li>
+    <li><a href="#proof">The exchange argument, animated</a></li>
+    <li><a href="#template">The proof template, in full</a></li>
+    <li><a href="#late">Minimising lateness</a></li>
+    <li><a href="#vsdp">Greedy or DP, deciding in 30 seconds</a></li>
+    <li><a href="#exam">Exam answer, written out</a></li>
+  </ul>
+</div>
+
+<h2 id="sched">Interval scheduling</h2>
+
+<p><b>Input:</b> intervals <code>I<sub>j</sub> = [s<sub>j</sub>, f<sub>j</sub>]</code>.
+<b>Output:</b> the largest set of pairwise disjoint intervals.</p>
+
+<p>There is a DP solution. Sort by finish time, let <code>c[j]</code> be the best you can do using only
+<code>I&#8321;..I<sub>j</sub></code>, and let <code>p[j] = max{k &lt; j : f<sub>k</sub> &lt; s<sub>j</sub>}</code>, the last
+interval that does not clash with j. Then <code>c[j] = max{c[j-1], c[p[j]] + 1}</code>. It works and it
+is O(n log n).</p>
+
+<p>But you never need the table. Sort by finish time and take greedily.</p>
+
+<div class="anim">
+  <h4>Earliest finish time first</h4>
+  <p class="cap">Sorted by right endpoint. Take the first interval that does not clash with what you
+  already have, and skip the rest.</p>
+  <div class="stage"><svg id="isSvg" viewBox="0 0 620 268" role="img" aria-label="Greedy interval scheduling by earliest finish time"></svg></div>
+  <div class="ctrls">
+    <button id="isStep" class="primary">Step</button>
+    <button id="isPlay">Play</button>
+    <button id="isReset">Reset</button>
+  </div>
+  <div class="readout" id="isOut">Eight intervals, sorted by finish time. Press Step.</div>
+</div>
+
+<pre><code>GreedySchedule(I)
+1  Sort I so that f&#8321; &le; f&#8322; &le; ... &le; f&#8345;
+2  T = &empty;,  f* = -&infin;
+3  for j = 1 to n
+4      if s&#8332; &gt; f*
+5          add I&#8332; to T
+6          f* = f&#8332;
+7  return T</code></pre>
+
+<p><b>Running time.</b> O(n log n) for the sort, then one O(n) pass. If the input is given sorted, O(n).
+The exam usually says "you can assume the input is sorted", which is the marker telling you the target
+is O(n) and that you should say so.</p>
+
+<div class="box why">
+  <span class="label">Why earliest finish time</span>
+  <p>Every interval you take costs you the same thing, one slot, and buys you the same thing, one
+  point of value. So the only way to compare two candidates is by what they <b>leave behind</b>.
+  Finishing earliest leaves the most room, and room is the only resource. That is the whole argument,
+  and it is also exactly the sentence that makes the exchange step in the proof work.</p>
+</div>
+
+<h2 id="wrong">Three rules that look fine and are not</h2>
+
+<p>Knowing why the wrong rules fail is how you avoid inventing one under exam pressure. Each of these
+is beaten by a small counterexample.</p>
+
+<div class="anim">
+  <h4>Counterexamples</h4>
+  <p class="cap">Switch between rules and watch each one lose to the optimum.</p>
+  <div class="stage"><svg id="ceSvg" viewBox="0 0 620 200" role="img" aria-label="Counterexamples to incorrect greedy rules"></svg></div>
+  <div class="ctrls">
+    <button data-ce="0" class="primary">Earliest start</button>
+    <button data-ce="1">Shortest interval</button>
+    <button data-ce="2">Fewest conflicts</button>
+  </div>
+  <div class="readout" id="ceOut"></div>
+</div>
+
+<div class="box trap">
+  <span class="label">If you invent a greedy rule on the exam, attack it first</span>
+  <p>Spend 90 seconds trying to break your own rule with three or four intervals before you write the
+  proof. The failure modes above are the standard ones: something that starts early and runs long,
+  something short that straddles two others, something that looks locally safe but blocks a chain.
+  If you cannot break it in 90 seconds, commit and write the proof.</p>
+</div>
+
+<h2 id="proof">The exchange argument</h2>
+
+<p>This is the load bearing idea of the whole unit, and it is worth roughly 8 to 10 of the 15 marks on
+the exam question.</p>
+
+<p>You want to prove greedy is optimal. You cannot compare it to "the" optimal solution directly,
+because there may be many and you do not know which one. So you prove something slightly different and
+much easier: at every step, greedy's partial answer is <b>compatible</b> with optimality, meaning some
+optimal solution contains it.</p>
+
+<div class="anim">
+  <h4>Swapping greedy's choice into an optimal solution</h4>
+  <p class="cap">Greedy picks I&#8332;. Suppose an optimal O does not contain it. We build a different
+  optimal solution that does.</p>
+  <div class="stage"><svg id="exSvg" viewBox="0 0 620 250" role="img" aria-label="Exchange argument swapping an interval"></svg></div>
+  <div class="ctrls">
+    <button id="exStep" class="primary">Step</button>
+    <button id="exReset">Reset</button>
+  </div>
+  <div class="readout" id="exOut"></div>
+</div>
+
+<div class="box why">
+  <span class="label">What the exchange is really doing</span>
+  <p>It never claims greedy's choice is <i>better</i> than O's. It claims it is <b>no worse</b>: you can
+  swap it in without breaking anything and without losing count. That is a far weaker claim, which is
+  why it is provable.</p>
+  <p>The swap survives because greedy picked the earliest finishing interval, so
+  <code>f<sub>j</sub> &le; f<sub>k</sub></code>. Anything in O that fitted after
+  <code>I<sub>k</sub></code> still fits after <code>I<sub>j</sub></code>. The greedy rule is exactly the
+  hypothesis the exchange needs, which is not a coincidence: <b>you choose the greedy rule so that the
+  exchange will work.</b></p>
+</div>
+
+<h2 id="template">The proof template, in full</h2>
+
+<div class="box tpl">
+  <span class="label">Learn this by heart, it is worth 10 marks a year</span>
+  <p><b>Lemma.</b> For every <code>j &isin; {0, 1, ..., n}</code>, let <code>T<sub>j</sub></code> be the
+  algorithm's partial solution after processing item j. Then
+  <code>T<sub>j</sub> &sube; O</code> for some optimal solution O.</p>
+
+  <p><b>Proof, by induction on j.</b></p>
+
+  <p><b>Base case.</b> <code>T&#8320; = &empty;</code>, which is contained in every optimal solution.</p>
+
+  <p><b>Inductive step.</b> Suppose <code>T<sub>j-1</sub> &sube; O</code> for an optimal O. Three cases.</p>
+  <ol>
+    <li><b>Greedy skips item j.</b> Then <code>T<sub>j</sub> = T<sub>j-1</sub> &sube; O</code>. Done.</li>
+    <li><b>Greedy takes j and <code>I<sub>j</sub> &isin; O</code>.</b> Then
+    <code>T<sub>j</sub> = T<sub>j-1</sub> &cup; {I<sub>j</sub>} &sube; O</code>. Done.</li>
+    <li><b>Greedy takes j and <code>I<sub>j</sub> &notin; O</code>.</b> Since
+    <code>T<sub>j-1</sub> &cup; {I<sub>j</sub>}</code> is feasible but O does not contain
+    <code>I<sub>j</sub></code>, there is some <code>I<sub>k</sub> &isin; O \ T<sub>j-1</sub></code> that
+    conflicts with <code>I<sub>j</sub></code>. Take the smallest such k. Let
+    <code>O' = (O \ {I<sub>k</sub>}) &cup; {I<sub>j</sub>}</code>.
+      <ul>
+        <li><b>O' is feasible</b>, because <code>f<sub>j</sub> &le; f<sub>k</sub></code> by the greedy
+        rule, so anything in O compatible with <code>I<sub>k</sub></code> is compatible with
+        <code>I<sub>j</sub></code>.</li>
+        <li><b>O' is optimal</b>, because <code>|O'| = |O|</code>.</li>
+        <li><b>T<sub>j</sub> &sube; O'</b>, because <code>T<sub>j-1</sub> &sube; O</code>, the removed
+        <code>I<sub>k</sub></code> was not in <code>T<sub>j-1</sub></code>, and
+        <code>I<sub>j</sub></code> was added.</li>
+      </ul>
+    </li>
+  </ol>
+
+  <p><b>Conclusion.</b> So <code>T = T<sub>n</sub> &sube; O</code> for some optimal O. It cannot be a
+  strict subset: every interval not in T was rejected because it conflicts with something in T, so it
+  cannot appear in any feasible set containing T. Hence <code>T = O</code> and greedy is optimal.</p>
+</div>
+
+<div class="box trap">
+  <span class="label">The ending people forget</span>
+  <p>"Greedy's answer is contained in an optimal solution" is <b>not</b> the same as "greedy's answer is
+  optimal". The empty set is contained in an optimal solution too. You must finish with the argument
+  that T cannot be extended, so it equals O rather than sitting strictly inside it. It is two sentences
+  and it is worth marks. Do not stop one line early.</p>
+</div>
+
+<div class="box trap">
+  <span class="label">The wrong induction, and the counterexample that kills it</span>
+  <p>The proof obligation is exactly this: <b>every partial solution the greedy algorithm computes can
+  be extended to some optimal solution</b>. You are <b>not</b> showing that every optimal solution
+  matches the greedy one, which is usually false.</p>
+  <p>The tempting alternative is to induct differently: "greedy's answer after the first i items is an
+  optimal solution for the first i items". That statement is often true, but the usual proof of it is
+  broken. It quietly assumes that <b>removing item i from an optimal solution for i items leaves an
+  optimal solution for i-1 items</b>, and that is false.</p>
+  <p>Take the shelves problem with shelf length 10 and books of thickness 5, 2, 2, 5. One optimal
+  solution uses two shelves: the first book alone, then the last three together (2 + 2 + 5 = 9). Now
+  delete the last book from that solution. You are left with the first book alone and then 2 + 2, still
+  two shelves, but the optimum for 5, 2, 2 is <b>one</b> shelf, since 5 + 2 + 2 = 9 fits. So the
+  leftover is not optimal for the subproblem and the induction hypothesis does not apply.</p>
+  <p>If you want this style of argument to work, remove <b>the whole last shelf</b>, not the last item.
+  Safer still, use the contained-in-an-optimal-solution template above, which has no such hole.</p>
+</div>
+
+<div class="box note">
+  <span class="label">The other accepted shape: induction on input size</span>
+  <p>Some problems read more naturally as: greedy's first choice matches some optimal solution, the
+  rest of the input is a smaller instance of the same problem, so apply the induction hypothesis to it.
+  The 2025 midterm's couples-in-a-line question and the 2024 final's post office question both work
+  best this way. Say in your first line which induction you are doing and on what quantity.</p>
+</div>
+
+<h2 id="late">Minimising lateness</h2>
+
+<p><b>Input:</b> tasks with duration <code>t<sub>i</sub></code> and deadline <code>d<sub>i</sub></code>. You
+choose start times, no overlaps, no idle time needed.
+<b>Output:</b> a schedule minimising the maximum lateness
+<code>max<sub>i</sub> max{0, f<sub>i</sub> - d<sub>i</sub>}</code>.</p>
+
+<div class="box tpl">
+  <span class="label">The rule</span>
+  <p><b>Earliest deadline first.</b> Sort by <code>d<sub>i</sub></code> ascending and run tasks
+  back to back in that order. Durations are irrelevant to the ordering, which is the surprising part.</p>
+</div>
+
+<div class="box why">
+  <span class="label">Why durations do not matter</span>
+  <p>Total time used is the same in every schedule, since all tasks run and there is no idle time. So
+  ordering does not change <i>when the work ends</i>, only <i>who is late</i>. Given that, you want the
+  most urgent things earliest, and urgency is the deadline alone.</p>
+  <p>The proof is a swap argument on <b>adjacent inversions</b>: if a task with a later deadline runs
+  immediately before one with an earlier deadline, swapping them does not increase the max lateness.
+  Any schedule can be turned into the earliest deadline order by repeatedly fixing adjacent inversions,
+  none of which makes things worse, so the sorted schedule is at least as good as any schedule.</p>
+</div>
+
+<h2 id="vsdp">Greedy or DP, deciding in 30 seconds</h2>
+
+<p>On the exam the question is titled, so you are told which. In practice, and for understanding, the
+distinction is this:</p>
+
+<div class="scroll">
+<table>
+<thead><tr><th></th><th>Greedy</th><th>Dynamic programming</th></tr></thead>
+<tbody>
+<tr><td><b>Decision at each step</b></td><td>Committed, never revisited</td><td>Both options explored, best kept</td></tr>
+<tr><td><b>Subproblems solved</b></td><td>One per step</td><td>All of them, tabulated</td></tr>
+<tr><td><b>Typical running time</b></td><td>O(n) or O(n log n)</td><td>O(n<sup>2</sup>), O(nB), O(nk)</td></tr>
+<tr><td><b>Proof burden</b></td><td>Exchange argument, hard</td><td>Case exhaustiveness, easy</td></tr>
+<tr><td><b>Fails when</b></td><td>Local choice can be regretted later</td><td>Almost never, just slower</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="box why">
+  <span class="label">The tell is in the stated running time</span>
+  <p>If the question demands O(n) or O(n log n), a table is out of reach and it must be greedy. If it
+  says O(nB) or O(n<sup>2</sup>), that is a table shape and it is DP. The October 2025 midterm asked the
+  <b>same</b> books-and-shelves problem twice: greedy when shelves were identical, DP when shelves had
+  adjustable heights. What changed is that with heights, fitting one more book on a shelf can raise its
+  height and cost you more than it saves. The moment a local choice has a delayed cost, greedy dies and
+  you need a table.</p>
+</div>
+
+<h2 id="exam">Exam answer, written out</h2>
+
+<p>December 2024 Q3. Houses at sorted positions <code>x&#8321; &le; ... &le; x<sub>n</sub></code> on the
+road <code>[0, 100]</code>. Every house needs a post office within 2 km. Minimise the number of post
+offices. Full credit requires O(n), and the question explicitly demands an inductive proof that each
+partial solution extends to an optimal one.</p>
+
+<details>
+<summary>Think about it first, then open this</summary>
+
+<p><b>Algorithm.</b> Scan left to right. Take the leftmost house not yet covered, at position
+<code>x</code>, and put a post office at <code>x + 2</code>. Remove every house it covers, that is,
+every house at position at most <code>x + 4</code>. Repeat.</p>
+
+<pre><code>PostOffices(x[1..n])
+1  k = 0,  i = 1
+2  while i &le; n
+3      k = k + 1
+4      y[k] = x[i] + 2
+5      while i &le; n and x[i] &le; y[k] + 2
+6          i = i + 1
+7  return k, y[1..k]</code></pre>
+
+<p><b>Running time.</b> The index <code>i</code> only ever increases and never exceeds n, so the two
+loops together perform O(n) iterations of constant work. The input is given sorted, so no sorting is
+needed and the total is <b>O(n)</b>.</p>
+
+<p><b>Correctness (every house is covered).</b> The outer loop only ends when <code>i &gt; n</code>, and
+the inner loop advances past house i only once a post office covering it has been placed. So on exit,
+every house is within 2 km of some post office.</p>
+
+<p><b>Optimality.</b> We prove by induction on k that for every k, the first k post offices placed by
+the algorithm are the first k post offices of some optimal solution, when both are listed left to
+right.</p>
+
+<p><i>Base case.</i> k = 0 is trivial: the empty partial solution agrees with every optimal solution.</p>
+
+<p><i>Inductive step.</i> Suppose the algorithm's first <code>k-1</code> offices agree with an optimal
+solution O. Both therefore cover exactly the same set of houses, namely a prefix
+<code>x&#8321;, ..., x<sub>i-1</sub></code>, so house <code>x<sub>i</sub></code> is the leftmost house
+uncovered in both. O must cover <code>x<sub>i</sub></code> with some office at a position
+<code>y &isin; [x<sub>i</sub> - 2, x<sub>i</sub> + 2]</code>, and since the houses are sorted, that is O's
+k-th office. The algorithm puts its k-th office at <code>y' = x<sub>i</sub> + 2 &ge; y</code>.</p>
+
+<p>Form <code>O'</code> from O by moving that one office from <code>y</code> to <code>y'</code>. Every
+house O's k-th office covered lies in <code>[y - 2, y + 2]</code>. Any such house at position at least
+<code>x<sub>i</sub></code> lies in <code>[x<sub>i</sub>, y + 2] &sube; [y' - 2, y' + 2]</code> and so is still
+covered, using <code>y' &ge; y</code> and <code>y' - 2 = x<sub>i</sub></code>. Any such house below
+<code>x<sub>i</sub></code> is already covered by the first <code>k-1</code> offices, since
+<code>x<sub>i</sub></code> is the leftmost uncovered house. So <code>O'</code> covers every house that O
+covered, uses the same number of offices, and is therefore also optimal. Its first k offices agree with
+the algorithm's, completing the step.</p>
+
+<p><i>Conclusion.</i> Taking k to be the number of offices the algorithm places, its full solution is
+the prefix of some optimal solution. Since it already covers every house, that optimal solution has no
+further offices, so the two are equal and the algorithm is optimal.</p>
+
+<div class="box why">
+  <span class="label">The one idea, in one sentence</span>
+  <p><b>Push each office as far right as it can go while still covering the leftmost uncovered
+  house.</b> That maximises what it reaches without giving anything up, which is exactly the property
+  the exchange step needs. Almost every "cover a line with intervals" greedy has this shape, so
+  recognise it and reuse it.</p>
+</div>
+</details>
+
+<div class="box tpl">
+  <span class="label">Recognising Q3 in 60 seconds</span>
+  <ul>
+    <li>Target running time is <b>O(n)</b> or <b>O(n log n)</b>. Too fast for a table.</li>
+    <li>The output is a <b>set or a partition</b> built one piece at a time, and every piece is worth the
+    same.</li>
+    <li>The candidate rules are: earliest finish, earliest deadline, largest ratio, or "push as far as
+    feasible". Try them against a four element counterexample before committing.</li>
+    <li>Write the algorithm and running time in five minutes, then spend the rest on the induction. The
+    proof is where the marks live.</li>
+  </ul>
+</div>
+
+<div class="pagenav">
+  <a href="divide-conquer.html">&larr; Divide and conquer</a>
+  <a href="dp.html">Dynamic programming &rarr;</a>
+</div>
+
+<footer class="bot">
+  <p>Worked answers written from scratch. No course material is reproduced.</p>
+</footer>
+
+</div>
+
+<script>
+var NSG = 'http://www.w3.org/2000/svg';
+function mk(n, a) { var e = document.createElementNS(NSG, n); for (var k in a) e.setAttribute(k, a[k]); return e; }
+function clr(s) { while (s.firstChild) s.removeChild(s.firstChild); }
+
+/* ---------------- interval scheduling ---------------- */
+(function () {
+  var svg = document.getElementById('isSvg');
+  if (!svg) return;
+
+  // sorted by finish time
+  var IV = [
+    { s: 0,  f: 3  }, { s: 1,  f: 5  }, { s: 4,  f: 6  }, { s: 2,  f: 8 },
+    { s: 7,  f: 10 }, { s: 9,  f: 12 }, { s: 11, f: 14 }, { s: 13, f: 17 }
+  ];
+  var T = 18, X0 = 40, X1 = 600, ROW = 28;
+  var j, taken, fstar, log, done, timer = null;
+  var out = document.getElementById('isOut');
+
+  function reset() {
+    j = 0; taken = []; fstar = -1; done = false;
+    log = 'Eight intervals, sorted by finish time. Press Step.';
+    draw();
+  }
+
+  function step() {
+    if (done) return;
+    if (j >= IV.length) {
+      done = true;
+      log = '<b>Done. ' + taken.length + ' intervals chosen.</b> No remaining interval can be added, because every one we skipped overlaps something we took.';
+      draw(); return;
+    }
+    var iv = IV[j];
+    if (iv.s > fstar) {
+      taken.push(j);
+      fstar = iv.f;
+      log = 'I' + (j + 1) + ' starts at ' + iv.s + ', after our last finish time ' +
+            (taken.length === 1 ? '(nothing taken yet)' : fstar) + '. <b>Take it.</b> New finish time f* = ' + iv.f + '.';
+    } else {
+      log = 'I' + (j + 1) + ' starts at ' + iv.s + ', which is not after f* = ' + fstar +
+            '. It overlaps something we already took, so <b>skip it</b>.';
+    }
+    j++;
+    draw();
+  }
+
+  function draw() {
+    clr(svg);
+    var W = X1 - X0;
+    for (var t = 0; t <= T; t += 3) {
+      var x = X0 + (t / T) * W;
+      svg.appendChild(mk('line', { x1: x, y1: 14, x2: x, y2: 20 + IV.length * ROW, stroke: 'var(--line)', 'stroke-width': 1 }));
+      var lb = mk('text', { x: x, y: 11, class: 'svg-lbl', 'text-anchor': 'middle' });
+      lb.textContent = t;
+      svg.appendChild(lb);
+    }
+
+    IV.forEach(function (iv, i) {
+      var y = 20 + i * ROW;
+      var xa = X0 + (iv.s / T) * W, xb = X0 + (iv.f / T) * W;
+      var isTaken = taken.indexOf(i) >= 0;
+      var isCur = i === j && !done;
+      var isPast = i < j;
+      var fill = isTaken ? 'var(--gr)' : (isPast ? 'var(--line2)' : 'var(--bg2)');
+      svg.appendChild(mk('rect', {
+        x: xa, y: y, width: Math.max(xb - xa, 6), height: 19, rx: 4,
+        fill: fill, opacity: isPast && !isTaken ? .4 : .9,
+        stroke: isCur ? 'var(--gr)' : 'var(--line2)', 'stroke-width': isCur ? 2.5 : 1.4
+      }));
+      var lb = mk('text', { x: 8, y: y + 14, class: isTaken ? 'svg-lbl-b' : 'svg-lbl' });
+      lb.textContent = 'I' + (i + 1);
+      svg.appendChild(lb);
+      if (isTaken) {
+        var ck = mk('text', { x: xb + 6, y: y + 14, class: 'svg-lbl-b', fill: 'var(--gr)' });
+        ck.textContent = 'taken';
+        svg.appendChild(ck);
+      } else if (isPast) {
+        var sk = mk('text', { x: xb + 6, y: y + 14, class: 'svg-lbl' });
+        sk.textContent = 'skipped';
+        svg.appendChild(sk);
+      }
+    });
+
+    if (fstar >= 0 && !done) {
+      var fx = X0 + (fstar / T) * W;
+      svg.appendChild(mk('line', {
+        x1: fx, y1: 14, x2: fx, y2: 20 + IV.length * ROW,
+        stroke: 'var(--gr)', 'stroke-width': 2, 'stroke-dasharray': '5 3'
+      }));
+      var ft = mk('text', { x: fx + 4, y: 20 + IV.length * ROW + 14, class: 'svg-lbl-b', fill: 'var(--gr)' });
+      ft.textContent = 'f* = ' + fstar;
+      svg.appendChild(ft);
+    }
+
+    out.innerHTML = log;
+  }
+
+  document.getElementById('isStep').addEventListener('click', function () {
+    if (timer) { clearInterval(timer); timer = null; document.getElementById('isPlay').textContent = 'Play'; }
+    step();
+  });
+  document.getElementById('isPlay').addEventListener('click', function () {
+    var self = this;
+    if (timer) { clearInterval(timer); timer = null; self.textContent = 'Play'; return; }
+    self.textContent = 'Pause';
+    timer = setInterval(function () {
+      if (done) { clearInterval(timer); timer = null; self.textContent = 'Play'; return; }
+      step();
+    }, 1100);
+  });
+  document.getElementById('isReset').addEventListener('click', function () {
+    if (timer) { clearInterval(timer); timer = null; document.getElementById('isPlay').textContent = 'Play'; }
+    reset();
+  });
+
+  reset();
+})();
+
+/* ---------------- wrong greedy rules ---------------- */
+(function () {
+  var svg = document.getElementById('ceSvg');
+  if (!svg) return;
+  var out = document.getElementById('ceOut');
+
+  var CASES = [
+    {
+      name: 'Earliest start time', T: 13,
+      iv: [{ s: 0, f: 11, bad: 1 }, { s: 1, f: 4, good: 1 }, { s: 5, f: 8, good: 1 }, { s: 9, f: 12, good: 1 }],
+      msg: 'Earliest start takes the long interval first and blocks everything. <b>Greedy gets 1, optimal gets 3.</b> One early start can consume the whole timeline.'
+    },
+    {
+      name: 'Shortest interval', T: 12,
+      iv: [{ s: 0, f: 5, good: 1 }, { s: 4, f: 7, bad: 1 }, { s: 6, f: 11, good: 1 }],
+      msg: 'The shortest interval is the middle one, and it overlaps both of the others. <b>Greedy gets 1, optimal gets 2.</b> Short is not the same as out of the way.'
+    },
+    {
+      name: 'Fewest conflicts', T: 22,
+      iv: [{ s: 1, f: 6, good: 1 }, { s: 2, f: 8 }, { s: 4, f: 6 }, { s: 5, f: 9 },
+           { s: 7, f: 10, good: 1 }, { s: 9, f: 11, bad: 1 }, { s: 10, f: 16, good: 1 },
+           { s: 14, f: 17 }, { s: 14, f: 20 }, { s: 15, f: 21 }, { s: 16, f: 19, good: 1 }],
+      msg: 'The interval [9, 11] overlaps only two others, fewer than anything else here, so this rule takes it first. But it sits across the join between [7, 10] and [10, 16], and removing both of those costs more than it gains. <b>Greedy gets 3, optimal gets 4.</b> A conflict count is local, and it cannot see that two of the things it destroys were links in a longer chain.'
+    }
+  ];
+  var cur = 0;
+
+  function draw() {
+    clr(svg);
+    var c = CASES[cur], T = c.T, X0 = 34, X1 = 600, W = X1 - X0, ROW = 17;
+    var H = 24 + c.iv.length * ROW + 34;
+    svg.setAttribute('viewBox', '0 0 620 ' + H);
+
+    var ttl = mk('text', { x: 8, y: 13, class: 'svg-lbl-b' });
+    ttl.textContent = 'rule: ' + c.name;
+    svg.appendChild(ttl);
+
+    c.iv.forEach(function (iv, i) {
+      var y = 24 + i * ROW;
+      var xa = X0 + (iv.s / T) * W, xb = X0 + (iv.f / T) * W;
+      svg.appendChild(mk('rect', {
+        x: xa, y: y, width: Math.max(xb - xa, 6), height: 12, rx: 3,
+        fill: iv.bad ? 'var(--trap-line)' : (iv.good ? 'var(--fa)' : 'var(--line2)'),
+        opacity: iv.bad || iv.good ? .85 : .45
+      }));
+    });
+
+    var y2 = 24 + c.iv.length * ROW + 14;
+    svg.appendChild(mk('rect', { x: 8, y: y2 - 9, width: 11, height: 11, rx: 2, fill: 'var(--trap-line)', opacity: .85 }));
+    var l1 = mk('text', { x: 24, y: y2, class: 'svg-lbl' }); l1.textContent = 'what this rule picks first';
+    svg.appendChild(l1);
+    svg.appendChild(mk('rect', { x: 190, y: y2 - 9, width: 11, height: 11, rx: 2, fill: 'var(--fa)', opacity: .85 }));
+    var l2 = mk('text', { x: 206, y: y2, class: 'svg-lbl' }); l2.textContent = 'an optimal set';
+    svg.appendChild(l2);
+
+    out.innerHTML = c.msg;
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('[data-ce]'), function (b) {
+    b.addEventListener('click', function () {
+      cur = +this.getAttribute('data-ce');
+      Array.prototype.forEach.call(document.querySelectorAll('[data-ce]'), function (x) { x.className = ''; });
+      this.className = 'primary';
+      draw();
+    });
+  });
+  draw();
+})();
+
+/* ---------------- exchange argument ---------------- */
+(function () {
+  var svg = document.getElementById('exSvg');
+  if (!svg) return;
+  var out = document.getElementById('exOut');
+  var stage = 0;
+
+  var STAGES = [
+    'Greedy has already taken the grey intervals, and they sit inside an optimal solution O. Now greedy takes I&#8332;, the earliest finishing interval left. Press Step.',
+    'But O does not contain I&#8332;. Instead O contains I&#8342;, which conflicts with I&#8332;. Note where each one ends: <b>f&#8332; &le; f&#8342;</b>, because greedy picked the earliest finishing one available.',
+    'Build O&prime; by removing I&#8342; and inserting I&#8332;. The only thing to check is feasibility: does anything in O now clash with I&#8332;?',
+    'Nothing does. I&#8332; ends no later than I&#8342; did, so every interval of O that started after I&#8342; still starts after I&#8332;. <b>O&prime; is feasible, |O&prime;| = |O| so it is still optimal, and it contains greedy’s choice.</b> The induction survives one more step.'
+  ];
+
+  function bar(x1, x2, y, fill, label, dash) {
+    var g = mk('g', {});
+    g.appendChild(mk('rect', {
+      x: x1, y: y, width: x2 - x1, height: 20, rx: 4, fill: fill, opacity: .85,
+      stroke: dash ? 'var(--ink2)' : 'none', 'stroke-width': dash ? 1.6 : 0,
+      'stroke-dasharray': dash ? '4 3' : ''
+    }));
+    if (label) {
+      var t = mk('text', { x: (x1 + x2) / 2, y: y + 14, 'text-anchor': 'middle', class: 'svg-lbl-b', fill: '#fff' });
+      t.textContent = label;
+      g.appendChild(t);
+    }
+    return g;
+  }
+
+  function draw() {
+    clr(svg);
+
+    var lblG = mk('text', { x: 8, y: 42, class: 'svg-lbl-b' }); lblG.textContent = 'greedy';
+    svg.appendChild(lblG);
+    svg.appendChild(bar(70, 150, 28, 'var(--line2)', 'T', 0));
+    svg.appendChild(bar(160, 240, 28, 'var(--line2)', '', 0));
+    svg.appendChild(bar(260, 350, 28, stage >= 1 ? 'var(--gr)' : 'var(--gr)', 'Iⱼ', 0));
+
+    var lblO = mk('text', { x: 8, y: 122, class: 'svg-lbl-b' });
+    lblO.textContent = stage >= 3 ? 'O′' : 'O';
+    svg.appendChild(lblO);
+    svg.appendChild(bar(70, 150, 108, 'var(--line2)', 'T', 0));
+    svg.appendChild(bar(160, 240, 108, 'var(--line2)', '', 0));
+
+    if (stage < 3) {
+      svg.appendChild(bar(270, 420, 108, stage >= 1 ? 'var(--trap-line)' : 'var(--fa)', 'Iₖ', 0));
+    } else {
+      svg.appendChild(bar(260, 350, 108, 'var(--gr)', 'Iⱼ', 0));
+      svg.appendChild(bar(270, 420, 108, 'transparent', '', 1));
+      var rm = mk('text', { x: 345, y: 145, class: 'svg-lbl', 'text-anchor': 'middle', fill: 'var(--ink3)' });
+      rm.textContent = 'Iₖ removed';
+      svg.appendChild(rm);
+    }
+    svg.appendChild(bar(440, 540, 108, 'var(--fa)', '', 0));
+
+    if (stage >= 1) {
+      svg.appendChild(mk('line', { x1: 350, y1: 22, x2: 350, y2: 136, stroke: 'var(--gr)', 'stroke-width': 1.8, 'stroke-dasharray': '4 3' }));
+      var t1 = mk('text', { x: 354, y: 174, class: 'svg-lbl-b', fill: 'var(--gr)' }); t1.textContent = 'fⱼ';
+      svg.appendChild(t1);
+      svg.appendChild(mk('line', { x1: 420, y1: 100, x2: 420, y2: 136, stroke: 'var(--trap-line)', 'stroke-width': 1.8, 'stroke-dasharray': '4 3' }));
+      var t2 = mk('text', { x: 424, y: 174, class: 'svg-lbl-b', fill: 'var(--trap-line)' }); t2.textContent = 'fₖ';
+      svg.appendChild(t2);
+      var t3 = mk('text', { x: 8, y: 208, class: 'svg-lbl' });
+      t3.textContent = 'fⱼ ≤ fₖ, so swapping in Iⱼ frees space, never takes it';
+      svg.appendChild(t3);
+    }
+
+    if (stage >= 2) {
+      svg.appendChild(mk('path', {
+        d: 'M 305 56 L 305 96', stroke: 'var(--ink2)', 'stroke-width': 2, 'marker-end': ''
+      }));
+      svg.appendChild(mk('path', {
+        d: 'M 299 88 L 305 100 L 311 88 Z', fill: 'var(--ink2)'
+      }));
+      var sw = mk('text', { x: 314, y: 80, class: 'svg-lbl' }); sw.textContent = 'swap in';
+      svg.appendChild(sw);
+    }
+
+    var st = mk('text', { x: 8, y: 234, class: 'svg-lbl' });
+    st.textContent = 'step ' + (stage + 1) + ' of ' + STAGES.length;
+    svg.appendChild(st);
+
+    out.innerHTML = STAGES[stage];
+  }
+
+  document.getElementById('exStep').addEventListener('click', function () {
+    stage = Math.min(stage + 1, STAGES.length - 1); draw();
+  });
+  document.getElementById('exReset').addEventListener('click', function () { stage = 0; draw(); });
+  draw();
+})();
+</script>
+
+</body>
+</html>

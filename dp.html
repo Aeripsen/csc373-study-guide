@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dynamic Programming</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="backlink" href="index.html">&larr; CSC373 study guide</a>
+    <p class="kicker">Unit 2 &middot; Exam question 2 &middot; 15 marks</p>
+    <h1>Dynamic programming</h1>
+    <p class="sub">Three marked parts: define the array, write the Bellman equation, fill it bottom up. The format is most of the mark.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="toc">
+  <p>On this page</p>
+  <ul>
+    <li><a href="#three">The three parts, and what each is worth</a></li>
+    <li><a href="#array">Part (a): defining the array</a></li>
+    <li><a href="#bellman">Part (b): the Bellman equation</a></li>
+    <li><a href="#fill">Part (c): filling it, animated</a></li>
+    <li><a href="#trace">The traceback array</a></li>
+    <li><a href="#edit">Edit distance, the two dimensional case</a></li>
+    <li><a href="#pseudo">Pseudo-polynomial time, and why O(nB) is not polynomial</a></li>
+    <li><a href="#zoo">The problems from this course</a></li>
+    <li><a href="#exam">Exam answer, written out</a></li>
+  </ul>
+</div>
+
+<h2 id="three">The three parts, and what each is worth</h2>
+
+<div class="scroll">
+<table>
+<thead><tr><th>Part</th><th class="num">Marks</th><th>What it wants</th><th>How long</th></tr></thead>
+<tbody>
+<tr><td>(a) Define the array</td><td class="num">2 to 3</td><td>One sentence: index range, what an entry holds, which entry is the answer</td><td>2 min</td></tr>
+<tr><td>(b) Bellman equation</td><td class="num">6 to 7</td><td>The recurrence, the base cases, and a case split justifying it</td><td>10 min</td></tr>
+<tr><td>(c) Bottom up + timing</td><td class="num">5 to 7</td><td>Fill order, pseudocode, running time, and the traceback if outputs are asked for</td><td>12 min</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="box why">
+  <span class="label">Why this question is the most forgiving on the paper</span>
+  <p>The parts are marked separately and the exam says "the subquestions are not independent", which
+  cuts both ways: a wrong array in (a) is not re-punished in (b) and (c) as long as your recurrence is
+  consistent with what you wrote. So even a partly wrong idea carries marks through, provided you keep
+  using your own definition.</p>
+  <p>The one thing that destroys the question is <b>changing your mind halfway</b> and having (b) refer
+  to an array that (a) did not define. Pick a definition, write it down, and stick to it.</p>
+</div>
+
+<h2 id="array">Part (a): defining the array</h2>
+
+<div class="box tpl">
+  <span class="label">The sentence, with three slots</span>
+  <p><i>"For <b>[index range]</b>, define <code>A[i]</code> to be the <b>[maximum / minimum / number of]</b>
+  <b>[quantity]</b> achievable using only <b>[the restricted resource]</b>. We also set <code>A[0] = 0</code>.
+  The final answer is <code>A[n]</code>."</i></p>
+</div>
+
+<p>The whole skill is choosing what the index restricts. There are only a few options and one of them
+is always right:</p>
+
+<div class="scroll">
+<table>
+<thead><tr><th>The index means</th><th>Use it when</th><th>Course example</th></tr></thead>
+<tbody>
+<tr><td>the first i items are available</td><td>Items are independent and considered in order</td><td>Shelves, subset sum</td></tr>
+<tr><td>a budget or capacity of i</td><td>There is a numeric resource being spent</td><td>Bundling apples, shares</td></tr>
+<tr><td>the prefix <code>A[1..i]</code></td><td>The input is a sequence and the answer is about a prefix</td><td>Dominoes, books</td></tr>
+<tr><td>two prefixes <code>[1..i]</code> and <code>[1..j]</code></td><td>Two sequences being compared</td><td>Edit distance</td></tr>
+<tr><td>the subtree rooted at v</td><td>The input is a tree</td><td>Independent set in a tree</td></tr>
+<tr><td>an interval <code>[i..j]</code></td><td>The answer splits at an interior point</td><td>Optimal BST</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="box trap">
+  <span class="label">Say what the entry holds, not how it is computed</span>
+  <p>"<code>A[i]</code> is the maximum dividends achievable with budget i" is a definition. "<code>A[i]</code>
+  is <code>max(A[i-1], A[i-c] + d)</code>" is not, it is part (b) written in the wrong box. Part (a)
+  should be readable by someone who has not seen your recurrence.</p>
+</div>
+
+<h2 id="bellman">Part (b): the Bellman equation</h2>
+
+<p>Every Bellman equation in this course comes from the same question: <b>look at an optimal solution
+to the subproblem, and ask what the last decision was.</b> Enumerate the possible answers, and each one
+leaves behind a smaller subproblem you have already defined.</p>
+
+<div class="box tpl">
+  <span class="label">The justification, which is most of the marks</span>
+  <p><i>"Consider an optimal solution to the subproblem indexed by i. Either it <b>[does X]</b>, in which
+  case the rest of it must be an optimal solution to <b>[smaller subproblem]</b>, giving value
+  <b>[expression]</b>; or it <b>[does not do X]</b>, in which case it is an optimal solution to
+  <b>[other subproblem]</b>, giving <b>[expression]</b>. These cases are exhaustive, so the optimum is
+  the better of the two, which is what the recurrence takes."</i></p>
+  <p>Two claims are hiding in there and both are needed:</p>
+  <ul>
+    <li><b>Exhaustive.</b> Every optimal solution falls into one of your cases. If it can do something
+    else, your recurrence misses it.</li>
+    <li><b>Optimal substructure.</b> The leftover piece is itself optimal for the smaller problem. If it
+    were not, you could improve it and improve the whole, contradiction.</li>
+  </ul>
+</div>
+
+<div class="box note">
+  <span class="label">Base cases are marked separately</span>
+  <p>"Make sure to specify the base cases" appears in the question wording every year. Write them on
+  their own line, labelled. Usually <code>A[0] = 0</code>, and often a second one such as
+  <code>A[i] = 0</code> for <code>i &lt; 0</code> or <code>A[m][0] = m</code>. Missing them costs a mark
+  when you have done the hard part correctly.</p>
+</div>
+
+<h2 id="fill">Part (c): filling it, animated</h2>
+
+<p>This is the December 2024 shares problem. Budget B, companies with cost
+<code>c<sub>i</sub></code> and dividend <code>d<sub>i</sub></code> per share, and you may buy <b>more than
+one share</b> from the same company. Maximise total dividends within budget.</p>
+
+<div class="box tpl">
+  <span class="label">The array and the recurrence</span>
+  <p>For <code>b = 0, 1, ..., B</code>, let <code>D[b]</code> be the maximum total dividends achievable
+  with budget exactly at most b. The answer is <code>D[B]</code>.</p>
+  <pre><code>D[0] = 0
+D[b] = max( D[b-1],
+            max over i with c&#7522; &le; b of  D[b - c&#7522;] + d&#7522; )</code></pre>
+  <p>The <code>D[b-1]</code> term covers "do not spend this last dollar". The inner max covers "the last
+  share bought was from company i". Because <code>D[b - c<sub>i</sub>]</code> is a full solution rather
+  than a company-restricted one, company i can be chosen again, which is exactly what "you can purchase
+  more than one share" requires.</p>
+</div>
+
+<div class="anim">
+  <h4>Bottom up fill</h4>
+  <p class="cap">One row, filled left to right. Each cell looks back at one cell per company. The arrows
+  show which cells it reads, so you can see that they are all already computed.</p>
+  <div class="stage"><svg id="dpSvg" viewBox="0 0 620 260" role="img" aria-label="Filling the dynamic programming table left to right"></svg></div>
+  <div class="ctrls">
+    <button id="dpStep" class="primary">Step</button>
+    <button id="dpPlay">Play</button>
+    <button id="dpTrace">Trace back</button>
+    <button id="dpReset">Reset</button>
+  </div>
+  <div class="readout" id="dpOut"></div>
+</div>
+
+<div class="box why">
+  <span class="label">Why left to right is the whole of "bottom up"</span>
+  <p><code>D[b]</code> reads only cells with a strictly smaller index, since every
+  <code>c<sub>i</sub> &ge; 1</code>. So filling in increasing b guarantees that every cell a formula
+  needs is already written. That single sentence is what part (c) means by "describe the order in which
+  you would compute your table entries", and it is worth stating explicitly.</p>
+  <p>If the recurrence for a cell ever read a cell with a <b>larger</b> index, the fill order would be
+  wrong and the algorithm would be reading garbage. Checking that is the sanity check for the whole
+  question.</p>
+</div>
+
+<h3>The pseudocode and the running time</h3>
+
+<pre><code>Shares(c[1..n], d[1..n], B)
+1  D[0] = 0,  J[0] = 0
+2  for b = 1 to B
+3      D[b] = D[b-1]
+4      J[b] = 0                       // 0 means "buy nothing at this budget"
+5      for i = 1 to n
+6          if c[i] &le; b and D[b - c[i]] + d[i] &gt; D[b]
+7              D[b] = D[b - c[i]] + d[i]
+8              J[b] = i               // last share bought was from company i
+9  return D[B], J</code></pre>
+
+<p><b>Running time.</b> The outer loop runs B times, the inner loop n times, and each iteration is O(1),
+so the fill is <b>O(nB)</b>. That is exactly the bound the question demands.</p>
+
+<h2 id="trace">The traceback array</h2>
+
+<p>The question asks for "how many shares to buy from each company", not just the best total. The table
+alone does not tell you that, so you store a second array recording <b>which choice achieved the
+maximum</b> at each cell, then walk it backwards.</p>
+
+<pre><code>Recover(J, c, B)
+1  count[1..n] = 0
+2  b = B
+3  while b &gt; 0 and J[b] &ne; 0
+4      i = J[b]
+5      count[i] = count[i] + 1
+6      b = b - c[i]
+7  while b &gt; 0 and J[b] == 0
+8      b = b - 1                      // walk past budgets where nothing was bought
+9  return count</code></pre>
+
+<p>The walk visits each budget value at most once, so recovery is <b>O(B)</b> and does not change the
+overall bound.</p>
+
+<div class="box trap">
+  <span class="label">This is where the marks leak</span>
+  <p>Part (c) in December 2024 was worth 7 marks and explicitly said the algorithm "should also compute
+  how many shares to buy from each company". A perfect table fill with no traceback is roughly half the
+  answer. Whenever the question names an output object, add the second array. It costs four lines.</p>
+</div>
+
+<div class="box trap">
+  <span class="label">The recurrence that looks fine and is not a recurrence at all</span>
+  <p>On the shelves problem the most common wrong answer defines <code>S[i]</code> = minimum total
+  height for the first i books, then writes something like <i>"S[i] = S[i-1] if book i fits on the last
+  shelf and is no taller than what is already on it"</i>.</p>
+  <p>That is not a valid recurrence, because <code>S[i-1]</code> is a <b>number</b>. It does not tell
+  you which books are on its last shelf, what their total thickness is, or what their maximum height
+  is, so the condition cannot be evaluated. There may be many optimal solutions to the same subproblem
+  and they disagree about all three of those things.</p>
+  <p>You could repair it by adding the running thickness and running maximum height as extra
+  parameters, but do not: that makes the array size exponential in the input, so the algorithm stops
+  being polynomial.</p>
+  <p><b>The fix is to guess more.</b> Do not guess only where the last book goes, guess the
+  <b>entire last shelf</b>: minimise over j, the index of the first book on it. That is what the
+  worked answer below does, and it is why the answer is O(n<sup>2</sup>) rather than O(n).</p>
+</div>
+
+<h2 id="edit">Edit distance, the two dimensional case</h2>
+
+<p><b>Input:</b> strings X of length m and Y of length n.
+<b>Output:</b> the fewest single character insertions, deletions and substitutions turning X into Y.</p>
+
+<div class="box tpl">
+  <span class="label">Array, recurrence, base cases</span>
+  <p><code>E[i][j]</code> = the edit distance between the prefixes <code>X[1..i]</code> and
+  <code>Y[1..j]</code>. The answer is <code>E[m][n]</code>.</p>
+  <pre><code>E[i][0] = i          // delete all i characters
+E[0][j] = j          // insert all j characters
+
+E[i][j] = min( E[i-1][j]   + 1,                    // delete X[i]
+               E[i][j-1]   + 1,                    // insert Y[j]
+               E[i-1][j-1] + (X[i] &ne; Y[j] ? 1 : 0) )   // match or substitute</code></pre>
+  <p><b>Justification.</b> Look at what an optimal edit sequence does with the <b>last</b> characters.
+  Either it deletes <code>X[i]</code>, leaving the problem of turning <code>X[1..i-1]</code> into
+  <code>Y[1..j]</code>; or it inserts <code>Y[j]</code>, leaving <code>X[1..i]</code> into
+  <code>Y[1..j-1]</code>; or it pairs <code>X[i]</code> with <code>Y[j]</code>, costing 1 if they differ
+  and 0 if they match, leaving <code>X[1..i-1]</code> into <code>Y[1..j-1]</code>. There is nothing else
+  a last operation can do, so the cases are exhaustive.</p>
+</div>
+
+<p><b>Fill order.</b> Row by row, left to right. Each cell reads only up, left, and up-left, all of
+which are already written. <b>Running time O(mn)</b>, one constant time operation per cell.</p>
+
+<div class="box why">
+  <span class="label">The 2D pattern in general</span>
+  <p>Two sequences being compared always gives a grid where each cell depends on some subset of
+  <b>up, left, up-left</b>. Longest common subsequence, sequence alignment, and edit distance are the
+  same grid with different costs on the three arrows. If you can draw the three arrows, you have the
+  recurrence.</p>
+</div>
+
+<h2 id="pseudo">Pseudo-polynomial time, and why O(nB) is not polynomial</h2>
+
+<p>This is examinable in its own right. Assignment 4 asked directly why an O(nP) algorithm for a
+problem you just proved NP-complete does not prove P = NP.</p>
+
+<div class="box tpl">
+  <span class="label">The answer</span>
+  <p>Polynomial time means polynomial in the <b>number of bits of input</b>. The budget B is one number,
+  written in <code>log B</code> bits. So an O(nB) algorithm is
+  <code>O(n &middot; 2<sup>log B</sup>)</code>, which is <b>exponential</b> in the length of that input,
+  not polynomial. It is called <b>pseudo-polynomial</b>: polynomial in the numeric <i>value</i> of the
+  input, exponential in its <i>size</i>.</p>
+  <p>Concretely, a 64 bit budget is 8 bytes of input and up to <code>2<sup>64</sup></code> table columns.</p>
+</div>
+
+<div class="box why">
+  <span class="label">The consequence worth understanding</span>
+  <p>Subset Sum is NP-complete and also has an O(nB) algorithm, with no contradiction. NP-completeness
+  says there is no algorithm polynomial in the input <b>size</b>. The DP is polynomial in the input
+  <b>value</b>. Both are true, because those are different quantities whenever numbers are written in
+  binary.</p>
+  <p>The tell is a running time mentioning a numeric input value (B, W, P) instead of only counts of
+  things (n, m, k). Say the words "pseudo-polynomial" if you see one.</p>
+</div>
+
+<h2 id="zoo">The problems from this course</h2>
+
+<div class="scroll">
+<table>
+<thead><tr><th>Problem</th><th>Array</th><th>Recurrence idea</th><th>Time</th></tr></thead>
+<tbody>
+<tr><td>Bundling apples</td><td><code>A[n]</code> over budget</td><td>Best over the size of the last bundle</td><td>O(n<sup>2</sup>)</td></tr>
+<tr><td>Subset sum</td><td><code>S[i][b]</code></td><td>Include item i or not</td><td>O(nB)</td></tr>
+<tr><td>Weighted interval scheduling</td><td><code>c[j]</code>, sorted by finish</td><td><code>max(c[j-1], c[p[j]] + v&#7522;)</code></td><td>O(n log n)</td></tr>
+<tr><td>Edit distance</td><td><code>E[i][j]</code></td><td>Delete, insert, or match/substitute</td><td>O(mn)</td></tr>
+<tr><td>Shelves with heights</td><td><code>S[i]</code> over prefixes</td><td>Best over where the last shelf starts</td><td>O(n<sup>2</sup>)</td></tr>
+<tr><td>Dominoes on an array</td><td><code>dom[i]</code> over prefixes</td><td>Place a domino on (i-1, i) or not</td><td>O(nk)</td></tr>
+<tr><td>Independent set in a tree</td><td><code>I[v][0/1]</code></td><td>Take v (skip children) or not</td><td>O(n)</td></tr>
+<tr><td>Optimal BST</td><td><code>C[i][j]</code> over intervals</td><td>Best over which key is the root</td><td>O(n<sup>3</sup>)</td></tr>
+<tr><td>Shortest paths (Bellman-Ford)</td><td><code>d[v][k]</code></td><td>Shortest path to v using at most k edges</td><td>O(|V||E|)</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="box why">
+  <span class="label">Two shapes cover almost all of them</span>
+  <p><b>Binary choice on the last item:</b> take it or leave it. Gives
+  <code>A[i] = max(A[i-1], A[i-1 or i-w] + v)</code>. Subset sum, dominoes, weighted intervals.</p>
+  <p><b>Best over a split point:</b> the last group starts somewhere, or the root is one of the keys.
+  Gives <code>A[i] = min over j of (A[j-1] + cost(j..i))</code>. Shelves, bundling, optimal BST. This
+  one has an inner loop, so it costs a factor of n more.</p>
+  <p>Ask "is the last decision a yes/no, or a where?" and you have picked your shape.</p>
+</div>
+
+<h2 id="exam">Exam answer, written out</h2>
+
+<p>October 2025 Q3. Books <code>1..n</code> with thickness <code>T[i]</code> and height
+<code>H[i]</code>, stored on shelves in order, so each shelf holds consecutively numbered books. A shelf
+holds total thickness at most L, and its height becomes the max height of the books on it. Minimise the
+total height of the shelves.</p>
+
+<details>
+<summary>Think about it first, then open this</summary>
+
+<p><b>(a) The array.</b> For <code>i = 0, 1, ..., n</code>, let <code>S[i]</code> be the minimum total
+shelf height needed to store books <code>1..i</code>. Base case <code>S[0] = 0</code>. The answer is
+<code>S[n]</code>.</p>
+
+<p><b>(b) The Bellman equation.</b></p>
+
+<pre><code>S[0] = 0
+
+S[i] = min over j in 1..i, subject to  T[j] + ... + T[i] &le; L,  of
+           S[j-1] + max( H[j], ..., H[i] )</code></pre>
+
+<p><i>Justification.</i> In an optimal arrangement of books <code>1..i</code>, the last shelf holds some
+block of consecutive books <code>j, j+1, ..., i</code>. That shelf's height is
+<code>max(H[j..i])</code>, and it is legal exactly when <code>T[j] + ... + T[i] &le; L</code>. Whatever
+is left, books <code>1..j-1</code>, must itself be arranged at minimum total height, because if it were
+not we could replace it with a better arrangement and lower the total, contradicting optimality. So the
+cost is <code>S[j-1] + max(H[j..i])</code>. The value of j is not known, but it must be one of
+<code>1..i</code>, so taking the minimum over all feasible j is exhaustive and correct.</p>
+
+<p><b>(c) Bottom up.</b> Compute in the order <code>i = 1, 2, ..., n</code>. For each i, run the inner
+loop <code>j = i</code> down to 1, accumulating the running thickness and running max height so both are
+available in O(1) per step.</p>
+
+<pre><code>DP-TotalHeight(T, H, L)
+1  S[0] = 0
+2  for i = 1 to n
+3      S[i] = &infin;
+4      thick = 0
+5      maxh = -&infin;
+6      for j = i downto 1
+7          thick = thick + T[j]
+8          maxh = max(maxh, H[j])
+9          if thick &gt; L
+10             break                          // no smaller j can fit either
+11         if S[j-1] + maxh &lt; S[i]
+12             S[i] = S[j-1] + maxh
+13             J[i] = j                       // first book on the last shelf
+14 return S[n], J</code></pre>
+
+<p><i>Why descending j.</i> Going down from i, adding one book at a time, lets both the thickness sum
+and the height max be updated in constant time. Going up would need a fresh scan for each j and cost a
+factor of n more.</p>
+
+<p><b>Running time.</b> Two nested loops of at most n iterations each, constant work inside, so
+<b>O(n<sup>2</sup>)</b>.</p>
+
+<p><b>(d) Recovering the shelves.</b> <code>J[i]</code> stores the j that achieved the minimum for
+<code>S[i]</code>, that is, the first book on the last shelf of the optimal arrangement of
+<code>1..i</code>. Walk it backwards:</p>
+
+<pre><code>1  t = n
+2  while t &ge; 1
+3      s = J[t]
+4      output shelf holding books s, s+1, ..., t
+5      t = s - 1</code></pre>
+
+<p>This outputs the shelves right to left, so reverse the list if order matters. Each iteration
+consumes at least one book, so it is O(n).</p>
+
+<div class="box why">
+  <span class="label">The move to notice</span>
+  <p>The last shelf is a <b>contiguous block ending at i</b>, and you do not know where it starts, so
+  you minimise over the start point. That is the "best over a split" shape, and it is why this is
+  O(n<sup>2</sup>) rather than O(n). The greedy version of this problem is O(n), and the thing that broke
+  greedy is the height: cramming one more book onto a shelf can raise that shelf's height by more than
+  it saves later.</p>
+</div>
+</details>
+
+<div class="box tpl">
+  <span class="label">Recognising Q2 in 60 seconds</span>
+  <ul>
+    <li>Stated running time mentions a <b>product</b>: O(nB), O(nk), O(n<sup>2</sup>), O(mn). That is a
+    table with those dimensions and it names your array for you.</li>
+    <li>The problem asks for a <b>maximum or minimum over choices</b>, with choices interacting through
+    a shared resource.</li>
+    <li>Ask what the <b>last decision</b> was, and enumerate every value it could take.</li>
+    <li>Check every term on the right of your recurrence has a <b>smaller index</b> than the left. If not,
+    your fill order does not exist and the recurrence is wrong.</li>
+  </ul>
+</div>
+
+<div class="pagenav">
+  <a href="greedy.html">&larr; Greedy</a>
+  <a href="flow.html">Network flow &rarr;</a>
+</div>
+
+<footer class="bot">
+  <p>Worked answers written from scratch. No course material is reproduced.</p>
+</footer>
+
+</div>
+
+<script>
+(function () {
+  var svg = document.getElementById('dpSvg');
+  if (!svg) return;
+  var NS = 'http://www.w3.org/2000/svg';
+  function el(n, a) { var e = document.createElementNS(NS, n); for (var k in a) e.setAttribute(k, a[k]); return e; }
+
+  var C = [3, 4], D = [5, 7], B = 12;   // two companies: cost 3 pays 5, cost 4 pays 7
+  var Dv, J, b, log, done, tracing, traceCells, timer = null;
+  var out = document.getElementById('dpOut');
+
+  function reset() {
+    Dv = new Array(B + 1).fill(null);
+    J = new Array(B + 1).fill(0);
+    Dv[0] = 0; b = 1; done = false; tracing = false; traceCells = [];
+    log = 'Company 1: a share costs 3 and pays 5. Company 2: costs 4, pays 7. Budget B = 12. ' +
+          'D[0] = 0 is the base case. Press Step.';
+    draw();
+  }
+
+  function step() {
+    if (done || tracing) return;
+    if (b > B) {
+      done = true;
+      log = '<b>Table complete. D[12] = ' + Dv[B] + '.</b> ' +
+            'Filled B = 12 cells, each doing n = 2 comparisons, so O(nB). ' +
+            'Press Trace back to recover which shares to buy.';
+      draw(); return;
+    }
+    var best = Dv[b - 1], from = 0, why = 'spend nothing more at budget ' + b + ', so carry D[' + (b - 1) + '] = ' + Dv[b - 1];
+    for (var i = 0; i < C.length; i++) {
+      if (C[i] <= b) {
+        var v = Dv[b - C[i]] + D[i];
+        if (v > best) {
+          best = v; from = i + 1;
+          why = 'buy from company ' + (i + 1) + ': D[' + (b - C[i]) + '] + ' + D[i] + ' = ' + Dv[b - C[i]] + ' + ' + D[i] + ' = ' + v;
+        }
+      }
+    }
+    Dv[b] = best; J[b] = from;
+    log = '<b>D[' + b + '] = ' + best + '</b>. Best option is to ' + why + '. ' +
+          (from === 0 ? '' : 'Record J[' + b + '] = ' + from + ' so the traceback knows the last share came from company ' + from + '.');
+    b++;
+    draw();
+  }
+
+  function trace() {
+    if (Dv[B] === null) return;
+    tracing = true;
+    traceCells = [];
+    var t = B, counts = [0, 0];
+    var guard = 0;
+    while (t > 0 && guard++ < 100) {
+      if (J[t] === 0) { t--; continue; }
+      traceCells.push(t);
+      counts[J[t] - 1]++;
+      t -= C[J[t] - 1];
+    }
+    traceCells.push(0);
+    log = '<b>Traceback.</b> Follow J backwards from B = 12. Buy <b>' + counts[0] +
+          '</b> share(s) from company 1 and <b>' + counts[1] + '</b> from company 2. Cost = ' +
+          (counts[0] * C[0] + counts[1] * C[1]) + ' &le; 12, dividends = ' + Dv[B] +
+          '. The table alone never told you this, only the J array did.';
+    draw();
+  }
+
+  function draw() {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var X0 = 40, CW = 44, Y = 74, H = 38;
+
+    var t0 = el('text', { x: 8, y: 18, class: 'svg-lbl-b' });
+    t0.textContent = 'budget b';
+    svg.appendChild(t0);
+
+    for (var i = 0; i <= B; i++) {
+      var x = X0 + i * CW;
+      var lb = el('text', { x: x + CW / 2, y: Y - 8, class: 'svg-lbl', 'text-anchor': 'middle' });
+      lb.textContent = i;
+      svg.appendChild(lb);
+
+      var isCur = i === b && !done && !tracing;
+      var inTrace = tracing && traceCells.indexOf(i) >= 0;
+      svg.appendChild(el('rect', {
+        x: x + 1, y: Y, width: CW - 3, height: H, rx: 4,
+        fill: inTrace ? 'var(--gr)' : (isCur ? 'var(--tpl-bg)' : (Dv[i] === null ? 'var(--bg)' : 'var(--tpl-bg)')),
+        opacity: Dv[i] === null && !isCur ? .4 : (inTrace ? .85 : 1),
+        stroke: isCur ? 'var(--tpl-line)' : (inTrace ? 'var(--gr)' : 'var(--line2)'),
+        'stroke-width': isCur || inTrace ? 2.4 : 1.3
+      }));
+      var vt = el('text', {
+        x: x + CW / 2, y: Y + 25, 'text-anchor': 'middle',
+        class: 'svg-lbl-b', fill: inTrace ? '#fff' : 'var(--ink)'
+      });
+      vt.textContent = Dv[i] === null ? '' : Dv[i];
+      svg.appendChild(vt);
+
+      if (Dv[i] !== null && J[i] > 0) {
+        var jt = el('text', { x: x + CW / 2, y: Y + H + 14, 'text-anchor': 'middle', class: 'svg-lbl' });
+        jt.textContent = 'J=' + J[i];
+        svg.appendChild(jt);
+      }
+    }
+
+    // dependency arrows for the cell being computed
+    if (!done && !tracing && b <= B) {
+      var xc = X0 + b * CW + CW / 2;
+      var deps = [{ off: 1, lbl: 'skip' }];
+      for (var k = 0; k < C.length; k++) if (C[k] <= b) deps.push({ off: C[k], lbl: 'co ' + (k + 1) });
+      deps.forEach(function (d, idx) {
+        var xs = X0 + (b - d.off) * CW + CW / 2;
+        var lift = 22 + idx * 16;
+        svg.appendChild(el('path', {
+          d: 'M ' + xs + ' ' + Y + ' C ' + xs + ' ' + (Y - lift) + ', ' + xc + ' ' + (Y - lift) + ', ' + xc + ' ' + Y,
+          fill: 'none', stroke: idx === 0 ? 'var(--line2)' : 'var(--tpl-line)', 'stroke-width': 1.6
+        }));
+        var mt = el('text', { x: (xs + xc) / 2, y: Y - lift - 2, class: 'svg-lbl', 'text-anchor': 'middle' });
+        mt.textContent = d.lbl;
+        svg.appendChild(mt);
+      });
+    }
+
+    var note = el('text', { x: 8, y: 178, class: 'svg-lbl' });
+    note.textContent = 'company 1: cost 3, pays 5     company 2: cost 4, pays 7     B = 12';
+    svg.appendChild(note);
+    var note2 = el('text', { x: 8, y: 196, class: 'svg-lbl' });
+    note2.textContent = 'every arrow points left, so every cell it reads is already filled';
+    svg.appendChild(note2);
+
+    out.innerHTML = log;
+  }
+
+  document.getElementById('dpStep').addEventListener('click', function () {
+    if (timer) { clearInterval(timer); timer = null; document.getElementById('dpPlay').textContent = 'Play'; }
+    step();
+  });
+  document.getElementById('dpPlay').addEventListener('click', function () {
+    var self = this;
+    if (timer) { clearInterval(timer); timer = null; self.textContent = 'Play'; return; }
+    self.textContent = 'Pause';
+    timer = setInterval(function () {
+      if (done || tracing) { clearInterval(timer); timer = null; self.textContent = 'Play'; return; }
+      step();
+    }, 900);
+  });
+  document.getElementById('dpTrace').addEventListener('click', function () {
+    if (timer) { clearInterval(timer); timer = null; document.getElementById('dpPlay').textContent = 'Play'; }
+    while (b <= B) { step(); }
+    done = true;
+    trace();
+  });
+  document.getElementById('dpReset').addEventListener('click', function () {
+    if (timer) { clearInterval(timer); timer = null; document.getElementById('dpPlay').textContent = 'Play'; }
+    reset();
+  });
+
+  reset();
+})();
+</script>
+
+</body>
+</html>

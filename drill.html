@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Past Paper Drill</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="backlink" href="index.html">&larr; CSC373 study guide</a>
+    <p class="kicker">Practice</p>
+    <h1>Past paper drill</h1>
+    <p class="sub">Eleven real questions with full model answers. Do them with your aid sheet and a timer, then open the answer.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="box note">
+  <span class="label">How to use this page</span>
+  <p>Reading a model answer teaches you almost nothing. Write yours first, on paper, in the stated time,
+  then compare. The gap between what you wrote and what is below is your actual revision list.</p>
+  <p>Each answer is written the way you would write it in the exam room, not the way a textbook would.
+  That means short sentences, named moves, and no more rigour than the marks require.</p>
+</div>
+
+<h2>Warm up: master theorem, 8 minutes</h2>
+
+<p>Write the tightest bound following from the master theorem. No justification needed, but write the
+one line reason for yourself.</p>
+
+<div class="scroll">
+<table>
+<thead><tr><th>Recurrence</th><th>Your answer</th></tr></thead>
+<tbody>
+<tr><td><code>T(n) &le; 3T(&lceil;n/2&rceil;) + O(n log n)</code></td><td></td></tr>
+<tr><td><code>T(n) &le; 8T(&lceil;n/2&rceil;) + O(n<sup>2</sup>)</code></td><td></td></tr>
+<tr><td><code>T(n) &le; 8T(&lceil;n/2&rceil;) + O(n<sup>3</sup>)</code></td><td></td></tr>
+<tr><td><code>T(n) &le; 2T(&lceil;n/4&rceil;) + O(&radic;n)</code></td><td></td></tr>
+</tbody>
+</table>
+</div>
+
+<details>
+<summary>Answers</summary>
+<ol>
+  <li><code>O(n<sup>log&#8322;3</sup>)</code>. Here <code>c = log&#8322;3 &asymp; 1.585</code>. Since
+  <code>n log n = O(n<sup>1+&epsilon;</sup>)</code> for any <code>&epsilon; &gt; 0</code>, and
+  <code>log&#8322;3 &gt; 1</code>, we are in case 1 and the log vanishes.</li>
+  <li><code>O(n<sup>3</sup>)</code>. <code>c = log&#8322;8 = 3</code> and <code>n<sup>2</sup> = n<sup>3-1</sup></code>,
+  so case 1.</li>
+  <li><code>O(n<sup>3</sup> log n)</code>. <code>c = 3</code> and <code>n<sup>3</sup> = &Theta;(n<sup>3</sup>)</code>,
+  so case 2 with <code>k = 0</code>.</li>
+  <li><code>O(n<sup>1/2</sup> log n)</code>. <code>c = log&#8324;2 = 1/2</code> and
+  <code>f(n) = &radic;n = &Theta;(n<sup>1/2</sup>)</code>, a tie, so case 2 with <code>k = 0</code>.</li>
+</ol>
+<div class="box why">
+  <span class="label">Watch the difference between 4 and the version with O(n)</span>
+  <p><code>T(n) = 2T(n/4) + O(n)</code> gives <code>O(n)</code>, not <code>O(n log n)</code>, because
+  <code>n = n<sup>0.5 + 0.5</sup></code> is polynomially <b>larger</b> than <code>n<sup>0.5</sup></code>, so
+  it is case 3, not case 2. Also check the regularity condition:
+  <code>af(n/b) = 2(n/4) = n/2 = &frac12;f(n)</code>, so <code>d = &frac12; &lt; 1</code> works.</p>
+</div>
+</details>
+
+<h2>Q1. Divide and conquer: significant inversions <span class="marks">20 marks &middot; 25 min</span></h2>
+
+<p>Recall counting inversions: pairs <code>i &lt; j</code> with <code>A[i] &gt; A[j]</code>, solvable in
+O(n log n). A <b>significant inversion</b> is a pair <code>i &lt; j</code> with
+<code>A[i] &gt; 2A[j]</code>. For example <code>A = [6, 2, 1, 3]</code> has 4 inversions but only 2
+significant ones. Modify the algorithm from class to count significant inversions in O(n log n).
+Justify correctness and running time.</p>
+
+<details>
+<summary>Hint</summary>
+<p>The comparison you count with is not the comparison you sort with. What does that force you to do?</p>
+</details>
+
+<details>
+<summary>Model answer</summary>
+
+<p><b>Algorithm.</b> Implement <code>CountSig(A, l, u)</code> which returns the number of significant
+inversions inside <code>A[l..u]</code>, together with <code>A[l..u]</code> in sorted order. The top
+level calls <code>CountSig(A, 1, n)</code> and outputs the count.</p>
+
+<p>Base case: if <code>l == u</code>, return <code>(0, A[l..u])</code>.</p>
+
+<p>Otherwise let <code>mid = &lfloor;(l+u)/2&rfloor;</code>, and recursively compute
+<code>(L, left) = CountSig(A, l, mid)</code> and <code>(R, right) = CountSig(A, mid+1, u)</code>. Both
+returned halves are sorted.</p>
+
+<p>To count the straddling pairs C, make a copy B of <code>right</code> and double every entry. Run the
+merge-and-count procedure from class on <code>left</code> and B, which counts pairs
+<code>(i, j)</code> with <code>left[i] &gt; B[j]</code>. Since <code>B[j] = 2&middot;right[j]</code>, those
+are exactly the pairs with <code>left[i] &gt; 2&middot;right[j]</code>, that is, the significant straddling
+inversions.</p>
+
+<p>Then run a <b>second, ordinary</b> merge of <code>left</code> and <code>right</code> to build the
+sorted output. Return <code>(L + R + C, merged)</code>.</p>
+
+<p><b>Correctness.</b> By induction on <code>n = u - l + 1</code>. The base case is immediate, as a
+single element contains no pairs. For the step, L and R correctly count the significant inversions
+lying wholly in the left and wholly in the right half, by the induction hypothesis. Every significant
+inversion is in exactly one of three groups: both indices left, both right, or straddling. So it
+remains to show C counts the straddling group.</p>
+
+<p>The merge-and-count procedure from class correctly counts, for two sorted arrays, the pairs with
+<code>first[i] &gt; second[j]</code>. It applies here because <code>left</code> is sorted by the
+induction hypothesis and B is sorted, since doubling is monotone and <code>right</code> is sorted. And
+<code>left[i] &gt; B[j] &hArr; left[i] &gt; 2&middot;right[j]</code>. So C is exactly the straddling
+count. The sorted output is correct by the correctness of the mergesort merge.</p>
+
+<p><b>Running time.</b> Doubling the copy is O(n), the counting merge is O(n), and the plain merge is
+O(n), so the combine step is O(n) overall. Hence <code>T(n) = 2T(n/2) + O(n)</code>. By the master
+theorem with a = 2, b = 2, c = log&#8322;2 = 1, and <code>f(n) = &Theta;(n) = &Theta;(n<sup>c</sup>)</code>,
+we are in case 2 with k = 0, giving <code>T(n) = O(n log n)</code>.</p>
+
+<div class="box why">
+  <span class="label">The idea worth keeping</span>
+  <p>Two merges, not one. The doubled array is right for <b>counting</b> and wrong for <b>sorting</b>.
+  Whenever the comparison used to count differs from the comparison used to order, you need separate
+  passes, and since each is O(n), the recurrence does not change.</p>
+</div>
+</details>
+
+<h2>Q2. Divide and conquer: majority in a ternary tree <span class="marks">20 marks &middot; 25 min</span></h2>
+
+<p>A complete ternary rooted tree: every non leaf node v has exactly three children
+<code>c[v]</code>, and every leaf v has a positive integer <code>x[v]</code>. For each non leaf node,
+decide whether some value is associated with a <b>strict majority</b> of the leaves in its subtree.
+Output Y or N per non leaf node. Give pseudocode, justify correctness, and analyse the running time in
+terms of the total number of nodes n.</p>
+
+<details>
+<summary>Hint</summary>
+<p>If a value is a strict majority in a subtree, must it be a strict majority in at least one of the
+three child subtrees? Why does that give you at most three candidates to test?</p>
+</details>
+
+<details>
+<summary>Model answer</summary>
+
+<p><b>Algorithm.</b> Declare <code>c</code>, <code>x</code> and an output array
+<code>maj[1..n]</code> initialised to N as globals, then call <code>MajRec(r)</code> on the root.</p>
+
+<pre><code>MajRec(v)
+1  if c[v] is empty
+2      return x[v]                        // v is a leaf
+3  T = number of leaves in the subtree of v      // one traversal
+4  for each child v' of v
+5      z = MajRec(v')
+6      if z is not None and count of z among the leaves of v's subtree &gt; T/2
+7          maj[v] = Y
+8          return z
+9  return None</code></pre>
+
+<p><code>MajRec(v)</code> returns a majority value in v's subtree if one exists, and None otherwise.</p>
+
+<p><b>Correctness.</b> We argue that <code>MajRec(v)</code> returns a majority value of v's subtree when
+one exists and None otherwise, setting <code>maj[v]</code> accordingly.</p>
+
+<p>For a leaf, the subtree has one leaf, so its value is trivially a strict majority, and line 2
+returns it. Nothing needs to be recorded, since leaves are not asked about.</p>
+
+<p>For a non leaf v, the key fact is this: <b>if z is a strict majority among the leaves of v's subtree,
+then z is a strict majority in at least one child's subtree.</b> Suppose not. Then z appears at most
+half the leaves in each of the three child subtrees, so summing over the children z appears at most
+half of all leaves, contradicting strict majority. Also a strict majority is unique, since two distinct
+values each on more than half the leaves would need more than all of them.</p>
+
+<p>So if a majority exists, it appears among the (at most three) values returned by the recursive calls,
+and line 6 tests each candidate against the true count. Some test succeeds, so
+<code>maj[v] = Y</code> and z is returned. If no majority exists, then no candidate passes the test,
+every check on line 6 fails, and the algorithm correctly returns None with
+<code>maj[v]</code> left at N.</p>
+
+<p><b>Running time.</b> Let <code>T(n)</code> be the time on a node whose subtree has n nodes. The
+algorithm recurses on three children, each with a subtree of at most <code>n/3</code> nodes, and spends
+O(n) time on lines 3 and 6: counting the leaves and counting occurrences of at most three candidate
+values can each be done by a single linear traversal (BFS or DFS) of the subtree. Hence</p>
+
+<pre><code>T(n) &le; 3T(n/3) + O(n)</code></pre>
+
+<p>By the master theorem with a = 3, b = 3, c = log&#8323;3 = 1, and <code>f(n) = &Theta;(n)</code>, we are
+in case 2 with k = 0, so <code>T(n) = O(n log n)</code>.</p>
+</details>
+
+<h2>Q3. Greedy: books on shelves <span class="marks">20 marks &middot; 25 min</span></h2>
+
+<p>Store n books, numbered 1 to n, on shelves. Each shelf holds consecutively numbered books of total
+thickness at most L. Given <code>T[1..n]</code> and L, minimise the number of shelves. Give pseudocode
+and words, analyse the running time (O(n) for full credit), then prove optimality.</p>
+
+<details>
+<summary>Model answer</summary>
+
+<p><b>Algorithm.</b> Fit as many books as possible on shelf 1, then as many of the rest as possible on
+shelf 2, and so on.</p>
+
+<pre><code>GreedyShelves(T, L)
+1  P[0] = 0
+2  for i = 1 to n
+3      P[i] = P[i-1] + T[i]           // prefix sums
+4  num = 1
+5  s = 1
+6  for t = 2 to n
+7      if P[t] - P[s-1] &gt; L
+8          output shelf num with books s, ..., t-1
+9          num = num + 1
+10         s = t
+11 output shelf num with books s, ..., n</code></pre>
+
+<p><b>Running time.</b> Two loops of at most n iterations, constant work each, so <b>O(n)</b>.</p>
+
+<p><b>Optimality.</b> First note what the algorithm computes: <code>P</code> holds prefix sums, so
+<code>P[t] - P[s-1]</code> is the total thickness of books <code>s..t</code>. The shelf starting at s
+therefore holds books <code>s, ..., t-1</code> where t is the first index making that sum exceed L. An
+easy induction shows each shelf holds the <b>maximum</b> number of consecutive books of total thickness
+at most L, starting from the first book not yet shelved.</p>
+
+<p>We prove by induction on i that shelves 1 through i of the greedy solution are also shelves of some
+optimal solution O.</p>
+
+<p><i>Base case.</i> i = 0, trivial.</p>
+
+<p><i>Inductive step.</i> Assume shelves 1 through <code>i-1</code> of greedy are shelves of an optimal
+O. If greedy's shelf i is also a shelf of O, done. Otherwise, let s and t be the first and last books on
+greedy's shelf i. Since shelves 1 through <code>i-1</code> agree, both solutions have shelved exactly
+books <code>1..s-1</code>, so book s is the first book on shelf i of O too. Shelf i of O therefore
+holds books <code>s, ..., t'</code> for some <code>t' &le; t</code> by the greedy choice (greedy fits the
+maximum possible), and since the shelves differ, <code>t' &lt; t</code>.</p>
+
+<p>Move books <code>t'+1, ..., t</code> from their shelves in O onto shelf i of O. They fit, because
+they fit together with books <code>s..t'</code> on greedy's shelf i. The number of shelves does not
+increase, since we only moved books later in the order onto an earlier shelf, so O remains optimal,
+and now shelf i matches greedy's. This completes the step.</p>
+
+<p><i>Conclusion.</i> The greedy solution's shelves all appear in some optimal solution O, and since
+greedy shelves every book, O has no further shelves. So greedy uses the same number of shelves as O and
+is optimal.</p>
+</details>
+
+<h2>Q4. Greedy: partitioning a line of couples <span class="marks">20 marks &middot; 25 min</span></h2>
+
+<p>There are n couples, and all 2n people stand in a line. <code>A[1..2n]</code> gives the couple index
+of each person. A segment is <b>good</b> if everyone in it has their partner in it too. Compute the
+maximum number of good segments the line can be partitioned into. O(n) for full credit. Then prove
+correctness.</p>
+
+<details>
+<summary>Hint</summary>
+<p>Scan left to right tracking how many couples you have seen exactly one member of. What does it mean
+when that count reaches zero?</p>
+</details>
+
+<details>
+<summary>Model answer</summary>
+
+<p><b>Algorithm.</b></p>
+
+<pre><code>MaxSegments(A)
+1  B[1..n] = False           // couples seen once but not twice
+2  cnt = 0                   // how many such couples
+3  segs = 0
+4  for i = 1 to 2n
+5      if B[A[i]] == False
+6          B[A[i]] = True,  cnt = cnt + 1
+7      else
+8          B[A[i]] = False,  cnt = cnt - 1
+9          if cnt == 0
+10             segs = segs + 1
+11 return segs</code></pre>
+
+<p><b>In words.</b> <code>B[j]</code> records whether couple j is "half seen". <code>cnt</code> is how
+many couples are half seen. Reading left to right, the first member of a couple opens it and the second
+closes it. When <code>cnt</code> hits 0, every couple encountered so far is complete and no later couple
+has been touched, so we have found a minimal good segment and we cut there.</p>
+
+<p><b>Running time.</b> Each of the 2n people is processed in O(1) time, so <b>O(n)</b>.</p>
+
+<p><b>Correctness.</b> By induction on the number of couples n.</p>
+
+<p><i>Base case.</i> n = 1, two people, one segment, clearly optimal.</p>
+
+<p><i>Inductive step.</i> Assume the algorithm is correct on every instance with fewer than n couples.
+Take an optimal solution OPT for an instance A with n couples, and suppose its first segment is
+<code>{1, ..., i}</code>. Being good, it fully contains <code>i/2</code> couples and no member of any
+other couple. So after the algorithm processes person i, every couple is either fully seen or fully
+unseen, meaning <code>B</code> is entirely False and <code>cnt = 0</code>. Since the algorithm increments
+<code>segs</code> every time <code>cnt</code> drops to 0, it has produced at least one segment by
+position i.</p>
+
+<p>The remainder <code>A[i+1 .. 2n]</code> is a valid instance with <code>n - i/2</code> couples, and the
+algorithm enters it in exactly its initial state (<code>B</code> all False, <code>cnt = 0</code>). By the
+induction hypothesis it produces the maximum possible number of good segments on that remainder, hence
+at least as many as OPT does there.</p>
+
+<p>Adding up, the algorithm produces at least as many segments as OPT overall, so it is optimal.</p>
+
+<div class="box note">
+  <span class="label">An alternative that also gets full marks</span>
+  <p>Define greedy's partial solution up to person i to be <b>promising</b> if its segment endpoints so
+  far match those of some optimal solution, then induct on i. Both work here, because this problem has
+  a unique optimal partition. Say which induction you are doing in your first line.</p>
+</div>
+</details>
+
+<h2>Q5. Dynamic programming: dominoes on an array <span class="marks">20 marks &middot; 25 min</span></h2>
+
+<p>You have unlimited dominoes of k types, type j being an ordered pair
+<code>(a<sub>j</sub>, b<sub>j</sub>)</code>. Given <code>C[1..n]</code>, a domino of type j can go on
+indices <code>(i, i+1)</code> when <code>a<sub>j</sub> = C[i]</code> and <code>b<sub>j</sub> = C[i+1]</code>.
+Maximise the number of non overlapping dominoes. O(nk) for full credit, O((n+k) log k) for bonus.</p>
+
+<details>
+<summary>Model answer</summary>
+
+<p><b>(a) The table.</b> For <code>i = 1, ..., n</code>, let <code>dom[i]</code> be the maximum number of
+non overlapping dominoes placeable on the subarray <code>C[1..i]</code>. Set <code>dom[0] = 0</code>. The
+final answer is <code>dom[n]</code>.</p>
+
+<p><b>(b) The Bellman equation.</b></p>
+
+<pre><code>dom[i] = 0                                     if i &le; 1
+dom[i] = max{ dom[i-1], dom[i-2] + 1 }         if i &ge; 2 and some type j
+                                               has (C[i-1], C[i]) = (a&#11431;, b&#11431;)
+dom[i] = dom[i-1]                              otherwise</code></pre>
+
+<p><i>Justification.</i> For <code>i &isin; {0, 1}</code> there are not two cells, so no domino fits and
+the answer is 0. For <code>i &ge; 2</code>, consider an optimal placement on <code>C[1..i]</code> and ask
+whether cell i is covered. If it is, the covering domino must sit on <code>(i-1, i)</code>, which
+requires a type matching <code>(C[i-1], C[i])</code>, and the rest is an optimal placement on
+<code>C[1..i-2]</code>, giving <code>dom[i-2] + 1</code>. If cell i is uncovered, the placement is an
+optimal one on <code>C[1..i-1]</code>, giving <code>dom[i-1]</code>. These cases are exhaustive, so the
+optimum is the larger. When no type matches, the first case is impossible and only
+<code>dom[i-1]</code> remains.</p>
+
+<p><b>(c) Bottom up.</b> Compute in the order <code>i = 0, 1, ..., n</code>. Base cases
+<code>dom[0] = dom[1] = 0</code> are set directly. For each <code>i &ge; 2</code>, the only real work is
+testing whether <code>(C[i-1], C[i])</code> matches one of the k types.</p>
+
+<p>The straightforward version scans all k types per cell, giving <b>O(nk)</b>.</p>
+
+<p><b>Bonus, O((n+k) log k).</b> Pre-process the domino types once into a balanced search structure keyed
+by the pair, costing <code>O(k log k)</code> for k insertions. Each lookup is then
+<code>O(log k)</code>. Alternatively, sort the types by <code>a<sub>j</sub></code> breaking ties by
+<code>b<sub>j</sub></code> in <code>O(k log k)</code>, then per cell binary search for the range with first
+coordinate <code>C[i-1]</code> and binary search inside it for second coordinate <code>C[i]</code>, again
+<code>O(log k)</code>.</p>
+
+<p>Total: <code>O(k log k)</code> pre-processing plus <code>O(log k)</code> for each of n cells, so
+<b>O((n + k) log k)</b>.</p>
+
+<div class="box why">
+  <span class="label">Also worth knowing</span>
+  <p>A greedy that scans left to right and places a domino as soon as it can also solves this optimally,
+  with the same running time. The DP is asked for because it is the robust method, but noticing the
+  greedy works is a good sanity check that your recurrence is right.</p>
+</div>
+</details>
+
+<h2>Q6. Dynamic programming: counting bundlings <span class="marks">10 marks &middot; 15 min</span></h2>
+
+<p>Given <code>n</code>, count the ways to write <code>n = i&#8321; + i&#8322; + ... + i<sub>k</sub></code> with
+<code>i&#8321; &ge; i&#8322; &ge; ... &ge; i<sub>k</sub> &ge; 1</code>. For n = 5 the answer is 7. Define
+<code>P[m, b]</code> as the number of such sums for m with largest part at most b. Give a recurrence with
+base cases, justify it, then give O(n<sup>2</sup>) pseudocode.</p>
+
+<details>
+<summary>Model answer</summary>
+
+<p><b>Recurrence.</b></p>
+
+<pre><code>P[m, b] = 1 + P[m, m-1]              if b &ge; m
+P[m, b] = P[m-b, b] + P[m, b-1]      if b &lt; m
+
+base cases:  P[1, b] = 1  for all b &ge; 1
+             P[m, 1] = 1  for all m &ge; 1</code></pre>
+
+<p><i>Justification.</i> Since all parts are positive, <code>i&#8321; &le; m</code> always, so any bound
+<code>b &gt; m</code> is no restriction and <code>P[m, b] = P[m, m]</code>. That handles
+<code>b &ge; m</code> once we know <code>P[m, m] = 1 + P[m, m-1]</code>, which holds because there is
+exactly one sum using the single part m, and every other sum has largest part at most
+<code>m - 1</code>.</p>
+
+<p>For <code>b &lt; m</code>, split on the largest part. Either <code>i&#8321; = b</code>, and the rest is a
+sum for <code>m - b</code> with parts at most b, of which there are <code>P[m-b, b]</code>; or
+<code>i&#8321; &le; b - 1</code>, giving <code>P[m, b-1]</code>. These are exhaustive and disjoint, so add
+them.</p>
+
+<p>The base cases are immediate: <code>m = 1</code> has only <code>1 = 1</code>, and <code>b = 1</code>
+forces all parts to be 1, so only <code>m = 1 + ... + 1</code>.</p>
+
+<p><b>Pseudocode.</b></p>
+
+<pre><code>1  P[1, b] = 1 for all b;  P[m, 1] = 1 for all m
+2  for m = 2 to n
+3      for b = 2 to n
+4          if b &ge; m
+5              P[m, b] = 1 + P[m, m-1]
+6          else
+7              P[m, b] = P[m-b, b] + P[m, b-1]
+8  return P[n, n]</code></pre>
+
+<p><b>Running time.</b> <code>n<sup>2</sup></code> cells, O(1) each, so <b>O(n<sup>2</sup>)</b>, assuming the
+arithmetic is constant time.</p>
+
+<div class="box note">
+  <span class="label">The cleaner version</span>
+  <p>With base cases <code>P[0, b] = 1</code> for all <code>b &ge; 0</code> and <code>P[m, b] = 0</code>
+  for <code>m &lt; 0</code>, the single equation <code>P[m, b] = P[m-b, b] + P[m, b-1]</code> covers every
+  case. Shorter, but the case split above is easier to justify under exam pressure, and the
+  justification is what carries the marks.</p>
+</div>
+</details>
+
+<h2>Q7. Flow: is this flow optimal? <span class="marks">10 marks &middot; 15 min</span></h2>
+
+<p>You are given a flow network with a flow f marked as <code>flow / capacity</code> on each edge. Draw
+the residual network. Then either show f is not maximum by listing an augmenting path, or show it is
+maximum by giving an s-t cut whose capacity equals <code>val(f)</code>.</p>
+
+<details>
+<summary>The procedure to follow, every time</summary>
+
+<p><b>1. Draw the residual.</b> For each edge with <code>f / c</code>:</p>
+<ul>
+  <li>a forward edge with residual <code>c - f</code>, if positive;</li>
+  <li>a backward edge in the opposite direction with residual <code>f</code>, if positive.</li>
+</ul>
+<p>Do not skip the backward ones. They are where the augmenting path usually is.</p>
+
+<p><b>2. BFS from s in the residual.</b> Mark every vertex you can reach.</p>
+
+<p><b>3a. If you reach t</b>, f is not maximum. List the path as a node sequence, for example
+<i>s, b, d, a, c, t</i>. State its bottleneck if asked. Multiple correct answers usually exist, so any
+valid path earns the marks.</p>
+
+<p><b>3b. If you cannot reach t</b>, f is maximum. Let A be everything you reached and
+<code>B = V \ A</code>. Write both sets out. Then compute <code>c(A, B)</code> by summing capacities of
+edges from A to B, and state that it equals <code>val(f)</code>.</p>
+
+<p><b>4. Check.</b> Compute <code>val(f) = f<sup>out</sup>(s)</code> independently and confirm it matches
+your cut capacity. If it does not, you missed an augmenting path or mis-summed the cut.</p>
+
+<div class="box why">
+  <span class="label">Why "reachable from s" is the answer to "give a cut"</span>
+  <p>When BFS stops, every edge leaving A is full (or it would have let you go further) and every edge
+  entering A is empty (or its backward residual edge would have). So the flow across the cut is exactly
+  its capacity, with nothing flowing back. A flow that saturates some cut cannot be beaten, because
+  every flow is bounded by every cut.</p>
+</div>
+
+<div class="box note">
+  <span class="label">And if it asks whether the min cut is unique</span>
+  <p>Compute the other extreme cut: let <code>B' =</code> the vertices that <b>can reach t</b> in the
+  residual, and <code>A' = V \ B'</code>. That is also a minimum cut. If <code>A &ne; A'</code> you have
+  two distinct minimum cuts and you write both. If they are equal, the minimum cut is unique and you say
+  why: no other partition achieves the same capacity.</p>
+</div>
+</details>
+
+<h2>Q8. LP: coffee roasters and shops <span class="marks">12 marks &middot; 15 min</span></h2>
+
+<p>m roasters, n coffeeshops. Roaster <code>r<sub>i</sub></code> supplies at most
+<code>s<sub>i</sub></code> kg per month. Shop <code>c<sub>j</sub></code> receives at most
+<code>d<sub>j</sub></code> kg. Shop j values a kg from roaster i at <code>w<sub>i,j</sub></code>. Every
+roaster can ship to every shop. (a) Write an LP in standard form maximising total value. (b) Give its
+dual, saying which dual variable goes with which primal constraint.</p>
+
+<details>
+<summary>Model answer</summary>
+
+<p><b>(a) The primal.</b> Let <code>x<sub>i,j</sub> &ge; 0</code> be the kilograms per month sent from
+roaster i to shop j.</p>
+
+<pre><code>max   &sum;&#7522;&#8330;&#8321;..&#7504; &sum;&#11431;&#8330;&#8321;..&#8345;  w&#7522;,&#11431; x&#7522;,&#11431;
+
+s.t.  &sum;&#11431;&#8330;&#8321;..&#8345;  x&#7522;,&#11431;  &le;  s&#7522;        for all i &isin; [m]
+      &sum;&#7522;&#8330;&#8321;..&#7504;  x&#7522;,&#11431;  &le;  d&#11431;        for all j &isin; [n]
+      x&#7522;,&#11431; &ge; 0                     for all i, j</code></pre>
+
+<p>This is already in standard form: a maximisation, all constraints <code>&le;</code>, all variables
+non negative. Say that explicitly rather than leaving the marker to check.</p>
+
+<p><b>(b) The dual.</b> There are <code>m + n</code> primal constraints, so <code>m + n</code> dual
+variables. Use <code>y<sub>i</sub></code> for the supply constraint of roaster i, and
+<code>z<sub>j</sub></code> for the demand constraint of shop j. There are <code>mn</code> primal
+variables, so <code>mn</code> dual constraints, one for each pair <code>(i, j)</code>.</p>
+
+<pre><code>min   &sum;&#7522;&#8330;&#8321;..&#7504; s&#7522; y&#7522;  +  &sum;&#11431;&#8330;&#8321;..&#8345; d&#11431; z&#11431;
+
+s.t.  y&#7522; + z&#11431;  &ge;  w&#7522;,&#11431;         for all i &isin; [m], j &isin; [n]
+      y&#7522;, z&#11431;  &ge;  0               for all i, j</code></pre>
+
+<p>The dual constraint for the pair <code>(i,j)</code> reads down the column of
+<code>x<sub>i,j</sub></code>, which has a 1 in roaster i's supply row, a 1 in shop j's demand row, and
+zeros elsewhere. Hence the left hand side <code>y<sub>i</sub> + z<sub>j</sub></code>.</p>
+
+<div class="box why">
+  <span class="label">What the dual means here</span>
+  <p><code>y<sub>i</sub></code> is a price per kg charged for using roaster i's capacity, and
+  <code>z<sub>j</sub></code> a price per kg for using shop j's. The constraint says the combined price of
+  a shipment must be at least its value, and the objective minimises the total cost of pricing all the
+  capacity. Duality says the cheapest such pricing equals the maximum achievable value. Reading a dual
+  as prices on the primal's scarce resources works for most LPs in this course and makes the algebra
+  much easier to remember.</p>
+</div>
+</details>
+
+<h2>Q9. NP: certificates and certifiers <span class="marks">8 marks &middot; 8 min</span></h2>
+
+<p>For each problem, give a certificate for a Yes instance and a polynomial time certifier. You do not
+need to justify the certifier's correctness or running time.</p>
+
+<ol>
+  <li><b>Dominating Set:</b> given <code>G = (V,E)</code> and k, is there a set S of at most k vertices
+  such that every vertex is in S or has a neighbour in S?</li>
+  <li><b>3-Colouring:</b> given <code>G = (V,E)</code>, can each vertex get a value in
+  <code>{1,2,3}</code> so no edge has both endpoints equal?</li>
+  <li><b>Degree Bounded Spanning Tree:</b> given <code>G = (V,E)</code> and k, is there a spanning tree in
+  which every vertex has degree at most k?</li>
+  <li><b>3-Clique</b> asks whether G contains a triangle. Justify why 3-Clique is in P.</li>
+</ol>
+
+<details>
+<summary>Model answer</summary>
+
+<ol>
+  <li>The certificate is S. The certifier checks that <code>|S| &le; k</code>, and that for every
+  <code>u &isin; V</code>, either <code>u &isin; S</code> or some neighbour of u is in S.</li>
+
+  <li>The certificate is the assignment <code>&phi;: V &rarr; {1,2,3}</code>. The certifier checks that
+  <code>&phi;(u) &ne; &phi;(v)</code> for every <code>(u,v) &isin; E</code>.</li>
+
+  <li>The certificate is the edge set of the tree T. The certifier runs DFS in T to check it is
+  connected, by confirming every vertex is visited. It counts the edges of T and checks there are
+  exactly <code>|V| - 1</code>, which together with connectivity rules out cycles. It then computes each
+  vertex's degree within T and checks it is at most k.</li>
+
+  <li>There are only <code>O(n<sup>3</sup>)</code> possible certificates, one per triple of vertices, so
+  instead of guessing you can enumerate. Loop over all triples in <code>O(n<sup>3</sup>)</code> time and
+  check in O(1) whether all three pairs are edges, using an adjacency matrix (buildable from an
+  adjacency list in <code>O(n<sup>2</sup>)</code>). This decides 3-Clique in
+  <code>O(n<sup>3</sup>)</code> time, so it is in P.</li>
+</ol>
+
+<div class="box why">
+  <span class="label">The lesson in part 4</span>
+  <p>A problem is in NP when a certificate is short. It is in P when the number of possible certificates
+  is only polynomial, so you can try them all. Fixing k to a constant in k-Clique shrinks
+  <code>C(n,k)</code> from exponential to <code>O(n<sup>k</sup>)</code>, which is why the general problem
+  is NP complete and the k = 3 case is easy.</p>
+</div>
+</details>
+
+<h2>Q10. Exchange argument: independent set in a tree <span class="marks">12 marks &middot; 18 min</span></h2>
+
+<p>(a) Let T be a tree and <code>&ell;</code> a leaf. Prove there is a maximum cardinality independent
+set containing <code>&ell;</code>. (b) <code>GreedyIS(G)</code> repeatedly picks a smallest degree vertex
+u, removes u and its neighbours, and recurses. Prove <code>GreedyIS(T)</code> returns a maximum
+independent set for any tree T. You may assume the root has at least two children unless T has 2 or
+fewer nodes.</p>
+
+<details>
+<summary>Model answer</summary>
+
+<p><b>(a)</b> Let O be a maximum independent set in T. If <code>&ell; &isin; O</code>, done. Otherwise O
+must contain the parent u of <code>&ell;</code>: if it did not, then <code>O &cup; {&ell;}</code> would
+still be independent (since u is <code>&ell;</code>'s only neighbour) and strictly larger, contradicting
+maximality.</p>
+
+<p>Set <code>O' = (O \ {u}) &cup; {&ell;}</code>. Then <code>|O'| = |O|</code>. And <code>O'</code> is
+independent: <code>&ell;</code>'s only neighbour is u, which we removed, so <code>&ell;</code> conflicts
+with nothing in <code>O'</code>; and any edge with both endpoints in <code>O' \ {&ell;}</code> would have
+both endpoints in O, contradicting O being independent. So <code>O'</code> is a maximum independent set
+containing <code>&ell;</code>.</p>
+
+<p><b>(b)</b> We prove the stronger statement that the algorithm is correct on <b>forests</b>, that is,
+acyclic undirected graphs, by induction on the number of vertices n. This is needed because deleting
+vertices from a tree can disconnect it, and a forest is what you are left with.</p>
+
+<p>Let T' be the connected component of G containing the chosen vertex u. Note that a union of maximum
+independent sets, one per component, is a maximum independent set of the whole graph, so to show u lies
+in some maximum independent set of G it suffices to show it lies in one of T'.</p>
+
+<p><i>u is a leaf of T'.</i> If T' has one or two vertices this is trivial. Otherwise, root it at a
+vertex with at least two neighbours. Every internal node then has degree at least 2, having a parent and
+at least one child, and the root has degree at least 2 by assumption. A leaf has degree 1. Since the
+algorithm picks a vertex of smallest degree, it picks a leaf.</p>
+
+<p>By part (a), some maximum independent set of T' contains u, and hence some maximum independent set O
+of G contains u.</p>
+
+<p>Since O is independent and contains u, it contains no neighbour of u. So
+<code>O' = O \ {u}</code> is an independent set in <code>G'</code>, the graph after removing u and its
+neighbours. Deleting vertices from a forest leaves a forest, so the induction hypothesis applies to
+<code>G'</code>, giving <code>|S'| &ge; |O'|</code> where <code>S'</code> is what the recursive call
+returns. Therefore</p>
+
+<pre><code>|S| = |S'| + 1 &ge; |O'| + 1 = |O|</code></pre>
+
+<p>and S is a maximum independent set in G.</p>
+
+<div class="box why">
+  <span class="label">Why the proof had to generalise to forests</span>
+  <p>The induction hypothesis is applied to <code>G'</code>, and <code>G'</code> is what remains after
+  deleting a vertex and its neighbours, which is usually disconnected. A hypothesis only about trees
+  could not be applied to it. Strengthening the claim to forests makes the induction go through, and it
+  is easier to prove because deleting vertices cannot create a cycle. Strengthening the statement to
+  make an induction work is a standard move and is worth recognising.</p>
+</div>
+</details>
+
+<h2 id="textbook">The exercises the instructor actually recommends</h2>
+
+<p>These were posted to the class as suggested practice. Treat the CLRS list as a minimum, not a
+target. All references are to the <b>3rd edition</b> of CLRS, since numbering moves between editions.</p>
+
+<div class="scroll">
+<table>
+<thead><tr><th>Topic</th><th>Kleinberg and Tardos</th><th>CLRS, 3rd edition</th></tr></thead>
+<tbody>
+<tr><td>Divide and conquer</td><td>Ch 5: 1, 4, 6</td><td>4.1-5, 4.2-5, Problem 4-6</td></tr>
+<tr><td>Dynamic programming</td><td>Ch 6: 1, 3, 5, 7, 10, 13, 19</td><td>15.1-3, 15.1-5, 15.5-1, 15.5-4, Problems 15-2, 15-6, 15-7</td></tr>
+<tr><td>Greedy</td><td>Ch 4: 3, 5, 7, 13, 17</td><td>16.1-3, 16.1-4, 16.1-5, 16.3-4, 16.3-7, Problems 16-2, 16-5</td></tr>
+<tr><td>Shortest paths</td><td></td><td>24.1-4, 24.1-5, 24.3-6, 24.3-10, Problems 24-3, 24-5</td></tr>
+<tr><td>Network flow</td><td>Ch 7: 7, 9, 11, 23, 29, 30, 35</td><td>26.2-10, 26.2-11, 26.2-13, Problems 26-2, 26-4</td></tr>
+<tr><td>Bipartite matching via flow</td><td></td><td>26.3-4, 26.3-5 (both challenging)</td></tr>
+<tr><td>Linear programming</td><td></td><td>29.1-4, 29.2-4, 29.2-5, 29.2-6, 29.2-7, 29.4-1, 29.4-3, 29.4-4</td></tr>
+<tr><td>NP completeness</td><td>Ch 8: 1, 2, 3, 5, 12, 14, 17</td><td>34.2-1, 34.2-5, 34.4-6, 34.5-1, 34.5-2, Problems 34-3, 34-4</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="box note">
+  <span class="label">Two pieces of advice that came with the list</span>
+  <p><b>Do the solved exercises.</b> Kleinberg and Tardos put two fully solved exercises at the end of
+  every chapter. They are the closest thing in either book to a model exam answer, and they are worth
+  more per minute than the unsolved ones.</p>
+  <p><b>Sample widely rather than grinding one chapter.</b> The instructor noted there is a real chance
+  some textbook exercises turn up on a test, so breadth across all three books beats depth in one.</p>
+</div>
+
+<h2>Q11. Full paper, 3 hours</h2>
+
+<p>When you have done the above, sit the December 2024 final under exam conditions: three hours, one
+double sided handwritten aid sheet, no other material, phone away. Its seven questions are the ones
+worked through on the topic pages:</p>
+
+<div class="scroll">
+<table>
+<thead><tr><th class="num">Q</th><th>Topic</th><th class="num">Marks</th><th>Worked answer</th></tr></thead>
+<tbody>
+<tr><td class="num">1</td><td>Dominated jobs</td><td class="num">15</td><td><a href="divide-conquer.html#exam">Divide and conquer</a></td></tr>
+<tr><td class="num">2</td><td>Buying shares within a budget</td><td class="num">15</td><td><a href="dp.html#fill">Dynamic programming</a></td></tr>
+<tr><td class="num">3</td><td>Post offices along a road</td><td class="num">15</td><td><a href="greedy.html#exam">Greedy</a></td></tr>
+<tr><td class="num">4</td><td>Bipartite matching by Ford Fulkerson</td><td class="num">10</td><td><a href="flow.html#exam">Network flow</a></td></tr>
+<tr><td class="num">5</td><td>Students and clubs</td><td class="num">15</td><td><a href="flow-apps.html#exam">Flow applications</a></td></tr>
+<tr><td class="num">6</td><td>Standard form and dual</td><td class="num">10</td><td><a href="lp.html#exam">Linear programming</a></td></tr>
+<tr><td class="num">7</td><td>Representatives is NP complete</td><td class="num">10</td><td><a href="complexity.html#exam">NP completeness</a></td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="box trap">
+  <span class="label">Mark it honestly</span>
+  <p>Give yourself marks only for what you actually wrote, not for what you meant. In particular, no
+  marks for an unstated running time, a missing base case, a one directional correctness proof, or a
+  reduction with no reverse direction. Those four are where almost everyone loses marks they thought
+  they had.</p>
+</div>
+
+<div class="pagenav">
+  <a href="templates.html">&larr; Answer templates</a>
+  <a href="cheatsheet.html">Aid sheet &rarr;</a>
+</div>
+
+<footer class="bot">
+  <p>Questions are paraphrased from past CSC373 papers for identification. All worked answers are
+  written from scratch, and no course PDF is reproduced.</p>
+</footer>
+
+</div>
+</body>
+</html>
